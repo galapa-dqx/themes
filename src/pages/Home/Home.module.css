@@ -1,0 +1,32 @@
+.Launcher {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 281px;
+  gap: 10px 20px;
+  height: 100%;
+  padding: 26px 34px 34px;
+}
+
+.CarouselArea {
+  grid-column: 1 / -1;
+}
+
+.News {
+  min-height: 0;
+}
+
+.LoginPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 19px;
+  padding: 0 27px;
+}
+
+.PlayRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  color: var(--app-border);
+}

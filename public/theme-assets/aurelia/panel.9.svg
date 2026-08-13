@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <!-- .9.svg profile: nested svg id="col_row" slices; rect id="content" is
+       the safe area; colours reference theme tokens (var(theme-x) form,
+       written with the double-dash prefix in attributes below) and are
+       substituted at load. NB: XML comments cannot contain double dashes. -->
+  <rect id="content" x="18" y="18" width="60" height="60" fill="none"/>
+
+  <!-- top-left corner -->
+  <svg id="0_0" x="0" y="0" width="24" height="24">
+    <path d="M24 0 H8 Q0 0 0 8 V24 H24 Z" fill="var(--theme-surface)"/>
+    <path d="M24 3 H10 Q3 3 3 10 V24" fill="none" stroke="var(--theme-border)" stroke-width="1"/>
+    <path d="M24 7 H12.5 Q7 7 7 12.5 V24" fill="none" stroke="var(--theme-border)" stroke-width="0.5"/>
+    <path d="M10.5 6 L15 10.5 L10.5 15 L6 10.5 Z" fill="var(--theme-accent)" stroke="var(--theme-surface)" stroke-width="1"/>
+    <circle cx="10.5" cy="10.5" r="1.2" fill="var(--theme-surface)"/>
+    <circle cx="18" cy="5" r="0.9" fill="var(--theme-border)"/>
+    <circle cx="5" cy="18" r="0.9" fill="var(--theme-border)"/>
+  </svg>
+
+  <!-- top edge -->
+  <svg id="1_0" x="24" y="0" width="48" height="24" data-slice-repeat="stretch">
+    <rect width="48" height="24" fill="var(--theme-surface)"/>
+    <line x1="0" y1="3" x2="48" y2="3" stroke="var(--theme-border)" stroke-width="1"/>
+    <line x1="0" y1="7" x2="48" y2="7" stroke="var(--theme-border)" stroke-width="0.5"/>
+  </svg>
+
+  <!-- top-right corner (mirrored top-left) -->
+  <svg id="2_0" x="72" y="0" width="24" height="24">
+    <g transform="translate(24 0) scale(-1 1)">
+      <path d="M24 0 H8 Q0 0 0 8 V24 H24 Z" fill="var(--theme-surface)"/>
+      <path d="M24 3 H10 Q3 3 3 10 V24" fill="none" stroke="var(--theme-border)" stroke-width="1"/>
+      <path d="M24 7 H12.5 Q7 7 7 12.5 V24" fill="none" stroke="var(--theme-border)" stroke-width="0.5"/>
+      <path d="M10.5 6 L15 10.5 L10.5 15 L6 10.5 Z" fill="var(--theme-accent)" stroke="var(--theme-surface)" stroke-width="1"/>
+      <circle cx="10.5" cy="10.5" r="1.2" fill="var(--theme-surface)"/>
+      <circle cx="18" cy="5" r="0.9" fill="var(--theme-border)"/>
+      <circle cx="5" cy="18" r="0.9" fill="var(--theme-border)"/>
+    </g>
+  </svg>
+
+  <!-- left edge -->
+  <svg id="0_1" x="0" y="24" width="24" height="48">
+    <rect width="24" height="48" fill="var(--theme-surface)"/>
+    <line x1="3" y1="0" x2="3" y2="48" stroke="var(--theme-border)" stroke-width="1"/>
+    <line x1="7" y1="0" x2="7" y2="48" stroke="var(--theme-border)" stroke-width="0.5"/>
+  </svg>
+
+  <!-- centre -->
+  <svg id="1_1" x="24" y="24" width="48" height="48">
+    <rect width="48" height="48" fill="var(--theme-surface)"/>
+  </svg>
+
+  <!-- right edge (mirrored left) -->
+  <svg id="2_1" x="72" y="24" width="24" height="48">
+    <g transform="translate(24 0) scale(-1 1)">
+      <rect width="24" height="48" fill="var(--theme-surface)"/>
+      <line x1="3" y1="0" x2="3" y2="48" stroke="var(--theme-border)" stroke-width="1"/>
+      <line x1="7" y1="0" x2="7" y2="48" stroke="var(--theme-border)" stroke-width="0.5"/>
+    </g>
+  </svg>
+
+  <!-- bottom-left corner (mirrored top-left) -->
+  <svg id="0_2" x="0" y="72" width="24" height="24">
+    <g transform="translate(0 24) scale(1 -1)">
+      <path d="M24 0 H8 Q0 0 0 8 V24 H24 Z" fill="var(--theme-surface)"/>
+      <path d="M24 3 H10 Q3 3 3 10 V24" fill="none" stroke="var(--theme-border)" stroke-width="1"/>
+      <path d="M24 7 H12.5 Q7 7 7 12.5 V24" fill="none" stroke="var(--theme-border)" stroke-width="0.5"/>
+      <path d="M10.5 6 L15 10.5 L10.5 15 L6 10.5 Z" fill="var(--theme-accent)" stroke="var(--theme-surface)" stroke-width="1"/>
+      <circle cx="10.5" cy="10.5" r="1.2" fill="var(--theme-surface)"/>
+      <circle cx="18" cy="5" r="0.9" fill="var(--theme-border)"/>
+      <circle cx="5" cy="18" r="0.9" fill="var(--theme-border)"/>
+    </g>
+  </svg>
+
+  <!-- bottom edge (mirrored top) -->
+  <svg id="1_2" x="24" y="72" width="48" height="24">
+    <g transform="translate(0 24) scale(1 -1)">
+      <rect width="48" height="24" fill="var(--theme-surface)"/>
+      <line x1="0" y1="3" x2="48" y2="3" stroke="var(--theme-border)" stroke-width="1"/>
+      <line x1="0" y1="7" x2="48" y2="7" stroke="var(--theme-border)" stroke-width="0.5"/>
+    </g>
+  </svg>
+
+  <!-- bottom-right corner (mirrored top-left, both axes) -->
+  <svg id="2_2" x="72" y="72" width="24" height="24">
+    <g transform="translate(24 24) scale(-1 -1)">
+      <path d="M24 0 H8 Q0 0 0 8 V24 H24 Z" fill="var(--theme-surface)"/>
+      <path d="M24 3 H10 Q3 3 3 10 V24" fill="none" stroke="var(--theme-border)" stroke-width="1"/>
+      <path d="M24 7 H12.5 Q7 7 7 12.5 V24" fill="none" stroke="var(--theme-border)" stroke-width="0.5"/>
+      <path d="M10.5 6 L15 10.5 L10.5 15 L6 10.5 Z" fill="var(--theme-accent)" stroke="var(--theme-surface)" stroke-width="1"/>
+      <circle cx="10.5" cy="10.5" r="1.2" fill="var(--theme-surface)"/>
+      <circle cx="18" cy="5" r="0.9" fill="var(--theme-border)"/>
+      <circle cx="5" cy="18" r="0.9" fill="var(--theme-border)"/>
+    </g>
+  </svg>
+</svg>

@@ -1,0 +1,62 @@
+.desktop-settings {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: -10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.settings-segmented {
+  display: flex;
+  padding: 2px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.settings-segmented button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.settings-segmented button.active {
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+}
+
+.settings-select {
+  padding: 3px 6px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 6px;
+  background: rgb(255 255 255 / 12%);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  color-scheme: dark;
+}
+
+.settings-select:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 70%);
+  outline-offset: 1px;
+}

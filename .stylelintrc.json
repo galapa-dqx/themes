@@ -1,0 +1,19 @@
+{
+  "extends": "stylelint-config-standard",
+  "ignoreFiles": ["**/*.tsx"],
+  "rules": {
+    "import-notation": "string",
+    "color-hex-length": "long",
+    "no-descending-specificity": null,
+    "custom-property-empty-line-before": null,
+    "comment-empty-line-before": null
+  },
+  "overrides": [
+    {
+      "files": ["**/*.module.css"],
+      "rules": {
+        "selector-class-pattern": "^[A-Z][a-zA-Z0-9]+$"
+      }
+    }
+  ]
+}

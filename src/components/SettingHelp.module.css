@@ -1,0 +1,29 @@
+.SettingHelp {
+  min-height: 0;
+  padding: 14px 27px 24px 15px;
+  overflow: hidden;
+}
+
+.Title {
+  margin: 0 0 19px;
+  color: var(--app-text);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-style: var(--heading-style);
+  font-weight: var(--heading-weight);
+  text-transform: var(--label-case);
+}
+
+.Body {
+  color: var(--app-text);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.Body p {
+  margin: 0 0 10px;
+}
+
+.Body p:last-child {
+  margin-bottom: 0;
+}

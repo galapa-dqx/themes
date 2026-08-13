@@ -1,0 +1,57 @@
+.TabBar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+  padding: 0 10px;
+  color: var(--app-muted);
+}
+
+.Hint {
+  flex: none;
+}
+
+.Tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+  height: 100%;
+}
+
+.Tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 87px;
+  padding: 0 10px;
+  color: var(--g-tab-content, var(--app-muted));
+  font-family: var(--font-heading);
+  font-size: var(--app-tab-size, var(--text-lg));
+  font-style: var(--heading-style);
+  font-weight: var(--heading-weight);
+  text-decoration: none;
+  text-transform: var(--label-case);
+  transition: color var(--g-tab-t, 0s) var(--g-tab-te, ease);
+}
+
+.Tab:hover {
+  color: var(--g-tab-hover-content, var(--app-accent));
+}
+
+.Tab:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -2px;
+}
+
+/* Underline = the part's bottom border, drawn as an inset shadow so the
+   selected state doesn't shift the label. */
+.Tab[data-active] {
+  color: var(--g-tab-selected-content, var(--app-accent));
+  box-shadow: inset 0 calc(-1 * var(--g-tab-bw-b, 2px)) 0
+    var(--g-tab-selected-bc, var(--app-accent));
+}
+
+.TabBar[data-size='sm'] .Tab {
+  min-width: 0;
+  font-size: var(--text-md);
+}

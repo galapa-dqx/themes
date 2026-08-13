@@ -1,0 +1,21 @@
+.Settings {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.SubTabs {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  height: 34px;
+  background: var(--g-titlebar-fill, var(--app-surface-2));
+  border-bottom: var(--g-titlebar-bw-b, 1px) solid
+    var(--g-titlebar-bc, var(--app-border));
+}
+
+.Body {
+  flex: 1;
+  min-height: 0;
+}

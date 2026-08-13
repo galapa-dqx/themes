@@ -1,0 +1,26 @@
+/* Shared layout scaffolding for settings pages. */
+
+.Section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 281px;
+  gap: 20px;
+  height: 100%;
+  padding: 26px 34px 34px;
+}
+
+.Column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.SectionHeading {
+  margin: 0;
+  color: var(--app-muted);
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-style: var(--heading-style);
+  font-weight: var(--heading-weight);
+  text-transform: var(--label-case);
+}

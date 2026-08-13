@@ -1,0 +1,461 @@
+/* Studio chrome is deliberately unthemed: hardcoded neutrals only, so a
+   broken theme under development can never take the tools down with it. */
+
+.Workspace {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  color: #e8edf4;
+  font-size: 12px;
+  background: #131922;
+}
+
+.Head {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+}
+
+.Tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: rgb(255 255 255 / 10%);
+  border-radius: 6px;
+}
+
+.Tabs button {
+  padding: 3px 18px;
+  color: inherit;
+  font: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.Tabs button[data-active] {
+  color: #101418;
+  background: rgb(255 255 255 / 92%);
+}
+
+/* Read-only notice: centered toast pill under the studio header. */
+.Banner {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  max-width: calc(100% - 40px);
+  margin-top: 12px;
+  padding: 6px 8px 6px 18px;
+  color: #ffd43b;
+  background: rgb(250 176 5 / 12%);
+  border: 1px solid rgb(250 176 5 / 30%);
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 25%);
+}
+
+.Scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.Scroll[hidden] {
+  display: none;
+}
+
+.Tool {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+/* Controls page header: component + state pickers governing the page. */
+.PageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 8px;
+}
+
+/* Group frame: fieldset with the label breaking the border, marking what a
+   control scope (e.g. the selected state) actually covers. */
+.Frame {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 10px 14px 14px;
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 8px;
+}
+
+.Frame > legend {
+  padding: 0 6px;
+  color: #9fb0c3;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.SectionTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #9fb0c3;
+  text-transform: uppercase;
+}
+
+.Hint {
+  margin: 0;
+  color: #9fb0c3;
+  line-height: 1.5;
+}
+
+.Row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.Label {
+  color: #9fb0c3;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.TextArea {
+  width: 100%;
+  min-height: 140px;
+  padding: 8px;
+  color: #dfe7f0;
+  background: rgb(0 0 0 / 35%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+  font-family: ui-monospace, 'SF Mono', menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.TextArea:focus-visible {
+  outline: 2px solid #7cc4ff;
+  outline-offset: -1px;
+}
+
+.Num,
+.Select {
+  padding: 3px 6px;
+  color: inherit;
+  font: inherit;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+  color-scheme: dark;
+}
+
+.Num {
+  width: 56px;
+}
+
+.Btn {
+  padding: 4px 12px;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  background: rgb(255 255 255 / 12%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.Btn:hover {
+  background: rgb(255 255 255 / 20%);
+}
+
+.Btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.FileLabel {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  color: #9fb0c3;
+}
+
+.PreviewBox {
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow: auto;
+  background:
+    repeating-conic-gradient(
+      rgb(255 255 255 / 5%) 0% 25%,
+      transparent 0% 50%
+    )
+    0 0 / 16px 16px,
+    #151b24;
+  border: 1px dashed rgb(255 255 255 / 20%);
+  border-radius: 6px;
+}
+
+.PreviewSurface {
+  position: relative;
+}
+
+.ContentOutline {
+  position: absolute;
+  outline: 1px dashed #7cc4ff;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.Meta {
+  color: #9fb0c3;
+  line-height: 1.5;
+}
+
+/* Slicer editor */
+
+.EditorSplit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.CanvasPane {
+  display: flex;
+  flex: 1 1 340px;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.Inspector {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 10px;
+  width: 290px;
+}
+
+.CanvasBox {
+  padding: 10px;
+  background:
+    repeating-conic-gradient(
+      rgb(255 255 255 / 5%) 0% 25%,
+      transparent 0% 50%
+    )
+    0 0 / 16px 16px,
+    #151b24;
+  border: 1px dashed rgb(255 255 255 / 20%);
+  border-radius: 6px;
+}
+
+.CanvasSvg {
+  display: block;
+  width: 100%;
+  max-height: 460px;
+  touch-action: none;
+}
+
+/* Drag handles keep out of the art's way until the pointer is over the
+   canvas (their fat invisible hit targets stay live throughout). */
+.Handle {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.CanvasSvg:hover .Handle {
+  opacity: 1;
+}
+
+/* Inspector inset fields: four abreast, never wrapping. */
+.BoxRow {
+  display: flex;
+  gap: 6px;
+}
+
+.Legend {
+  color: #9fb0c3;
+  font-size: 11px;
+}
+
+.FrameOutline {
+  position: absolute;
+  inset: 0;
+  outline: 1px dashed #ffd43b;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Palette editor */
+
+.PaletteGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.SwatchRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ColorInput {
+  flex: none;
+  width: 34px;
+  height: 26px;
+  padding: 2px;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ColorInput:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.HexInput {
+  flex: none;
+  width: 76px;
+  padding: 3px 6px;
+  color: inherit;
+  font-family: ui-monospace, 'SF Mono', menlo, monospace;
+  font-size: 11px;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+}
+
+.HexInput:disabled {
+  opacity: 0.5;
+}
+
+.NameInput {
+  width: 160px;
+  padding: 3px 6px;
+  color: inherit;
+  font: inherit;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+}
+
+.NameInput:disabled {
+  opacity: 0.5;
+}
+
+.RoleText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.RoleName {
+  color: #dfe7f0;
+  font-weight: 600;
+}
+
+/* Info & controls pages */
+
+.WideInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 3px 6px;
+  color: inherit;
+  font: inherit;
+  background: rgb(255 255 255 / 10%);
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+}
+
+.WideInput:disabled {
+  opacity: 0.5;
+}
+
+.Thumb {
+  max-width: 280px;
+  max-height: 180px;
+  object-fit: contain;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+}
+
+.TokenSwatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 3px;
+}
+
+.Good {
+  color: #86e29b;
+  font-weight: 600;
+}
+
+.Error {
+  color: #ff9b9b;
+}
+
+/* The gallery's themed sandbox: the one place theme vars apply in here. */
+.Island {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  color: var(--app-text, #333333);
+  background: var(--app-bg, #ffffff);
+  border-radius: 8px;
+}
+
+.IslandLabel {
+  color: var(--app-muted, #777777);
+  font-family: var(--font-heading, serif);
+  font-size: 11px;
+  font-style: var(--heading-style, normal);
+  font-weight: var(--heading-weight, 600);
+  text-transform: var(--label-case, uppercase);
+}
+
+.IslandRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  color: var(--app-border, #cccccc);
+}
+
+.IslandCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}

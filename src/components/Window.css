@@ -1,0 +1,202 @@
+/* Desktop backdrop (Win11 "Bloom"-ish wallpaper) */
+.win-desktop {
+  --surface: var(--app-surface, #f3f3f3);
+  --surface-text: var(--app-text, #1b1b1b);
+  --win-border: var(--app-border, rgb(0 0 0 / 32%));
+  --win-radius: 8px;
+  --btn-hover: rgb(0 0 0 / 5%);
+  --btn-active: rgb(0 0 0 / 3%);
+  --btn-active-text: rgb(27 27 27 / 60%);
+  --close-hover: #c42b1c;
+
+  color-scheme: light;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+
+  /* Own stacking context so negative-z children (DesktopSettings) stay
+     above the wallpaper — position:fixed used to provide this for free. */
+  isolation: isolate;
+  background:
+    radial-gradient(90% 110% at 15% 90%, #3d59c6 0%, transparent 60%),
+    radial-gradient(100% 120% at 85% 15%, #6ec5e9 0%, transparent 55%),
+    radial-gradient(70% 90% at 60% 60%, #4f8fd8 0%, transparent 70%),
+    #1d4fa1;
+}
+
+/* Surface/text/border come from the palette; these are the neutral overlays
+   that have to flip with the variant regardless of which theme is active. */
+.win-desktop[data-theme='dark'] {
+  --btn-hover: rgb(255 255 255 / 6%);
+  --btn-active: rgb(255 255 255 / 4%);
+  --btn-active-text: rgb(255 255 255 / 60%);
+
+  color-scheme: dark;
+}
+
+/* Win10 chrome: square corners, Win10 close red */
+.win-desktop[data-win-style='win10'] {
+  --win-radius: 0px;
+  --close-hover: #e81123;
+}
+
+.win-desktop[data-win-style='win10'] .win-icon {
+  border-radius: 0;
+}
+
+/* Console mode: black wallpaper, bare 1280x800 screen */
+.win-desktop[data-mode='console'] {
+  background: #000000;
+}
+
+.console-screen {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1280px;
+  height: 800px;
+  overflow: auto;
+  background: var(--surface);
+  color: var(--surface-text);
+}
+
+/* Console mode: the app lays out at the design's native scale and zooms
+   up to fill the 1280x800 screen exactly (960x600 * 1.3333). */
+.console-screen .app-shell {
+  width: 960px;
+  height: 600px;
+  zoom: 1.3333;
+}
+
+.win-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--surface-text);
+  border: 1px solid var(--win-border);
+  border-radius: var(--win-radius);
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 45%),
+    0 2px 8px rgb(0 0 0 / 20%);
+}
+
+.win-window.win-maximized {
+  inset: 0;
+  border: none;
+  border-radius: 0;
+}
+
+/* Title bar */
+.win-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  height: 32px;
+  padding-left: 12px;
+  user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+.win-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #6ec5e9, #3d59c6);
+}
+
+.win-title {
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Caption buttons */
+.win-caption-controls {
+  display: flex;
+  align-self: stretch;
+  margin-left: auto;
+}
+
+.win-caption-btn {
+  width: 46px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: default;
+}
+
+.win-caption-btn:hover {
+  background: var(--btn-hover);
+}
+
+.win-caption-btn:active {
+  background: var(--btn-active);
+  color: var(--btn-active-text);
+}
+
+.win-caption-btn.win-close:hover {
+  background: var(--close-hover);
+  color: #ffffff;
+}
+
+.win-caption-btn.win-close:active {
+  background: var(--close-hover);
+  color: rgb(255 255 255 / 70%);
+}
+
+/* Content area */
+.win-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  position: relative;
+}
+
+/* Resize handles */
+.win-resize {
+  position: absolute;
+  z-index: 10;
+  touch-action: none;
+}
+
+.win-resize-n,
+.win-resize-s {
+  left: 12px;
+  right: 12px;
+  height: 6px;
+}
+
+.win-resize-e,
+.win-resize-w {
+  top: 12px;
+  bottom: 12px;
+  width: 6px;
+}
+.win-resize-n { top: 0; cursor: n-resize; }
+.win-resize-s { bottom: 0; cursor: s-resize; }
+.win-resize-e { right: 0; cursor: e-resize; }
+.win-resize-w { left: 0; cursor: w-resize; }
+
+.win-resize-ne,
+.win-resize-nw,
+.win-resize-se,
+.win-resize-sw {
+  width: 12px;
+  height: 12px;
+}
+.win-resize-ne { top: 0; right: 0; cursor: ne-resize; }
+.win-resize-nw { top: 0; left: 0; cursor: nw-resize; }
+.win-resize-se { bottom: 0; right: 0; cursor: se-resize; }
+.win-resize-sw { bottom: 0; left: 0; cursor: sw-resize; }

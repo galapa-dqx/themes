@@ -1,0 +1,61 @@
+.NewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.NewsItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 43px;
+  padding: 0 12px;
+  background: var(--g-news-item-fill, var(--app-surface));
+  border: var(--g-news-item-bw-t, 1px) solid
+    var(--g-news-item-bc, var(--app-border));
+  border-radius: var(--g-news-item-radius, var(--radius));
+  text-decoration: none;
+  transition: border-color var(--g-news-item-t, 0s) var(--g-news-item-te, ease);
+}
+
+.NewsItem:hover {
+  border-color: var(--g-news-item-hover-bc, var(--app-muted));
+}
+
+.NewsItem:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -1px;
+}
+
+/* Category shape straddles the card's left border. */
+.Badge {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.Title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--g-news-item-content, var(--app-muted));
+  font-family: var(--font-strong);
+  font-size: var(--text-lg);
+  font-style: var(--strong-style);
+  font-weight: var(--strong-weight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.Date {
+  flex: none;
+  color: var(--app-border);
+  font-size: var(--text-sm);
+}

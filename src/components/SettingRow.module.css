@@ -1,0 +1,49 @@
+.SettingRow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 19px;
+  height: 43px;
+  padding: 0 13px;
+  background: var(--g-setting-row-fill, var(--app-surface));
+  border-color: var(--g-setting-row-bc, var(--app-border));
+  outline: none;
+  cursor: default;
+  transition:
+    border-color var(--g-setting-row-t, 0s) var(--g-setting-row-te, ease),
+    box-shadow var(--g-setting-row-t, 0s) var(--g-setting-row-te, ease);
+}
+
+/* Active ring: border + inset shadow reads as the design's 2px accent
+   stroke without shifting the row's content. */
+.SettingRow[data-active] {
+  border-color: var(--g-setting-row-selected-bc, var(--app-accent));
+  box-shadow: inset 0 0 0 1px var(--g-setting-row-selected-bc, var(--app-accent));
+}
+
+.Label {
+  overflow: hidden;
+  color: var(--g-setting-row-content, var(--app-muted));
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-style: var(--heading-style);
+  font-weight: var(--heading-weight);
+  text-overflow: ellipsis;
+  text-transform: var(--label-case);
+  white-space: nowrap;
+}
+
+.Value {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  color: var(--g-setting-row-content, var(--app-muted));
+  font-size: var(--text-md);
+  font-weight: 500;
+}
+
+.SettingRow[data-active] .Label,
+.SettingRow[data-active] .Value {
+  color: var(--g-setting-row-selected-content, var(--app-accent));
+}

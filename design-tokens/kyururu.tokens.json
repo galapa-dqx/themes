@@ -1,0 +1,132 @@
+{
+  "$description": "Kyururu — light theme (galapa-ui)",
+  "color": {
+    "bg": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.929412,
+          0.980392,
+          0.960784
+        ],
+        "alpha": 1,
+        "hex": "#edfaf5"
+      }
+    },
+    "surface": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.960784,
+          0.992157,
+          0.980392
+        ],
+        "alpha": 1,
+        "hex": "#f5fdfa"
+      }
+    },
+    "surface-2": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.847059,
+          0.956863,
+          0.92549
+        ],
+        "alpha": 1,
+        "hex": "#d8f4ec"
+      }
+    },
+    "border": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.658824,
+          0.878431,
+          0.8
+        ],
+        "alpha": 1,
+        "hex": "#a8e0cc"
+      }
+    },
+    "text": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.039216,
+          0.156863,
+          0.12549
+        ],
+        "alpha": 1,
+        "hex": "#0a2820"
+      }
+    },
+    "muted": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.227451,
+          0.470588,
+          0.376471
+        ],
+        "alpha": 1,
+        "hex": "#3a7860"
+      }
+    },
+    "accent": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.133333,
+          0.666667,
+          0.470588
+        ],
+        "alpha": 1,
+        "hex": "#22aa78"
+      }
+    },
+    "success": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.164706,
+          0.541176,
+          0.290196
+        ],
+        "alpha": 1,
+        "hex": "#2a8a4a"
+      }
+    },
+    "danger": {
+      "$type": "color",
+      "$value": {
+        "colorSpace": "srgb",
+        "components": [
+          0.752941,
+          0.188235,
+          0.25098
+        ],
+        "alpha": 1,
+        "hex": "#c03040"
+      }
+    }
+  },
+  "font": {
+    "heading": {
+      "$type": "string",
+      "$value": "Crimson Pro"
+    },
+    "body": {
+      "$type": "string",
+      "$value": "Source Sans 3"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+.ScrollPanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8px;
+  column-gap: 8px;
+  min-height: 0;
+  height: 100%;
+}
+
+.Viewport {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.Viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.Viewport:focus-visible {
+  outline: 2px solid var(--app-accent);
+  outline-offset: -2px;
+}
+
+.Viewport[data-fade] {
+  mask-image: linear-gradient(to bottom, #000000 95%, transparent 100%);
+}
+
+.Track {
+  position: relative;
+  background: var(--g-scrollbar-track-fill, var(--app-surface-2));
+  touch-action: none;
+}
+
+.Thumb {
+  position: absolute;
+  right: 0;
+  left: 0;
+  background: var(--g-scrollbar-thumb-fill, var(--app-muted));
+}
+
+/* Square scrollbars get the design's 45° beveled caps... */
+.Track:not([data-rounded]),
+.Track:not([data-rounded]) .Thumb {
+  clip-path: polygon(
+    50% 0,
+    100% 4px,
+    100% calc(100% - 4px),
+    50% 100%,
+    0 calc(100% - 4px),
+    0 4px
+  );
+}
+
+/* ...rounded ones are full pills. */
+.Track[data-rounded],
+.Track[data-rounded] .Thumb {
+  border-radius: 15px;
+}

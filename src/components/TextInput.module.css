@@ -1,0 +1,57 @@
+.TextInput {
+  /* fieldsets default to min-content width; opt back into normal sizing */
+  min-inline-size: 0;
+  inline-size: 100%;
+  margin: 0;
+  padding: 0 10px 4px;
+  border: 1px solid var(--g-input-bc, var(--app-border));
+  border-radius: var(--g-input-radius, var(--radius));
+}
+
+/* Focus thickens the frame to 2px, like the design's focused variant. */
+.TextInput:focus-within {
+  padding: 0 9px 3px;
+  border-color: var(--g-input-focused-bc, var(--app-accent));
+  border-width: 2px;
+}
+
+.TextInput:has(.Input:disabled) {
+  opacity: 0.5;
+}
+
+.Label {
+  margin-inline-start: 4px;
+  padding-inline: 6px;
+  color: var(--g-input-bc, var(--app-border));
+  font-family: var(--font-heading);
+  font-size: var(--text-xs);
+  font-style: var(--heading-style);
+  font-weight: var(--heading-weight);
+  text-transform: var(--field-label-case);
+}
+
+.TextInput:focus-within .Label {
+  color: var(--g-input-focused-bc, var(--app-accent));
+}
+
+.Input {
+  display: block;
+  inline-size: 100%;
+  padding: 3px 0 5px;
+  color: var(--g-input-content, var(--app-text));
+  caret-color: var(--app-accent);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  background: none;
+  border: none;
+}
+
+.Input:focus {
+  outline: none;
+}
+
+.Input::placeholder {
+  color: var(--app-muted);
+  opacity: 0.6;
+}

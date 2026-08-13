@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="728" height="185" viewBox="0 0 728 185">
+  <defs>
+    <linearGradient id="dawn" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbe6b8"/>
+      <stop offset="0.6" stop-color="#f6c98a"/>
+      <stop offset="1" stop-color="#eda75f"/>
+    </linearGradient>
+  </defs>
+  <rect width="728" height="185" fill="url(#dawn)"/>
+  <circle cx="586" cy="96" r="64" fill="#fdf4dc"/>
+  <circle cx="586" cy="96" r="52" fill="#fbe08e"/>
+  <path d="M0 152 Q120 108 260 140 T520 132 T728 148 V185 H0 Z" fill="#d98a44" opacity="0.55"/>
+  <path d="M0 166 Q160 130 320 156 T728 160 V185 H0 Z" fill="#c06e30" opacity="0.6"/>
+  <g fill="#b3541e">
+    <circle cx="118" cy="42" r="3"/>
+    <circle cx="176" cy="26" r="2.4"/>
+    <circle cx="420" cy="34" r="3"/>
+    <circle cx="480" cy="20" r="2.2"/>
+    <circle cx="680" cy="28" r="2.6"/>
+  </g>
+  <text x="52" y="72" font-family="Georgia, 'Times New Roman', serif" font-size="19" letter-spacing="5" fill="#a34a16">ASTOLTIA</text>
+  <text x="50" y="118" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="bold" fill="#7c3008">14th Anniversary</text>
+  <text x="52" y="150" font-family="Verdana, sans-serif" font-size="12" fill="#a34a16">Login bonuses, birthday cakes, and fireworks all week long</text>
+</svg>
