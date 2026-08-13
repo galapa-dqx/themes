@@ -3,32 +3,31 @@ import type { Theme } from '@/theme';
 
 export type WinStyle = 'win11' | 'win10';
 export type ScreenMode = 'desktop' | 'console';
-/** Top-level app view: the unthemed Studio, or the themed desktop preview. */
-export type AppView = 'studio' | 'preview';
 
 export type OSSettings = {
-  /** Selected theme id — a built-in key or a custom theme id. */
-  themeId: string;
   winStyle: WinStyle;
   mode: ScreenMode;
-  view: AppView;
   /** User-created themes, editable in the Studio palette page. */
   customThemes: Record<string, Theme>;
 };
 
 export type OSSettingsContextValue = OSSettings & {
+  /** Selected theme id — from the /themes/$themeId route (custom UUID or
+   *  built-in key), falling back to the last known theme for bad URLs. */
+  themeId: string;
   /** The selected theme object (custom first, then built-ins). */
   theme: Theme;
   /** True when the selected theme is user-created (and thus editable). */
   isCustomTheme: boolean;
-  setThemeId: (themeId: string) => void;
+  /** False when the URL names a theme id that doesn't exist. */
+  isKnownTheme: boolean;
   setWinStyle: (winStyle: WinStyle) => void;
   setMode: (mode: ScreenMode) => void;
-  setView: (view: AppView) => void;
-  /** Clone the current theme into a new editable custom theme and select it. */
-  createTheme: () => void;
+  /** Clone the current theme into a new editable custom theme and return its
+   *  id. Selection is the URL's job — callers navigate to the new id. */
+  createTheme: () => string;
   updateCustomTheme: (id: string, patch: Partial<Theme>) => void;
-  /** Remove a custom theme; falls back to kyururu if it was selected. */
+  /** Remove a custom theme. Callers navigate away if it was selected. */
   deleteTheme: (id: string) => void;
 };
 

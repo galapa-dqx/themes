@@ -1,76 +1,55 @@
 import { useEffect, useState, type ReactNode } from 'react';
+import { useParams } from '@tanstack/react-router';
 import { OSSettingsContext, type OSSettings } from './OSSettingsContext';
+import {
+  STORAGE_KEY,
+  FALLBACK_THEME_ID,
+  builtIn,
+  loadPersisted,
+  resolveInitialThemeId,
+} from './persistence';
 import { THEMES, type Theme } from '@/theme';
 import { ensureFontLoaded } from '@/studio/googleFonts';
 
-const STORAGE_KEY = 'galapa-ui.themes.v1';
-
-const builtIn = (id: string): Theme | undefined =>
-  THEMES[id as keyof typeof THEMES];
-
-type Persisted = {
-  themeId?: string;
-  customThemes?: Record<string, Theme>;
-};
-
-/** Loose validation: keep anything theme-shaped, drop the rest. */
-function loadPersisted(): Persisted {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    const data = JSON.parse(raw) as Persisted;
-    const customThemes: Record<string, Theme> = {};
-    for (const [id, theme] of Object.entries(data.customThemes ?? {})) {
-      if (theme && typeof theme === 'object' && theme.colors && theme.fonts) {
-        customThemes[id] = theme;
-      }
-    }
-    return {
-      themeId: typeof data.themeId === 'string' ? data.themeId : undefined,
-      customThemes,
-    };
-  } catch (err) {
-    console.warn('[theme] failed to load persisted themes', err);
-    return {};
-  }
-}
-
 export function OSSettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<OSSettings>(() => {
-    const persisted = loadPersisted();
-    const customThemes = persisted.customThemes ?? {};
-    const themeId =
-      persisted.themeId &&
-      (customThemes[persisted.themeId] || builtIn(persisted.themeId))
-        ? persisted.themeId
-        : 'kyururu';
-    return {
-      themeId,
-      winStyle: 'win11',
-      mode: 'desktop',
-      view: 'studio',
-      customThemes,
-    };
-  });
+  const [settings, setSettings] = useState<OSSettings>(() => ({
+    winStyle: 'win11',
+    mode: 'desktop',
+    customThemes: loadPersisted().customThemes ?? {},
+  }));
+
+  // Theme selection lives in the URL (/themes/$themeId/…). The provider sits
+  // above those routes, so read the param loosely; it's absent only on
+  // never-rendered redirect routes and the 404 page.
+  const { themeId: routeThemeId } = useParams({ strict: false });
+  const lookup = (id: string) => settings.customThemes[id] ?? builtIn(id);
+  const isKnownTheme = routeThemeId == null || lookup(routeThemeId) != null;
+
+  // Last id that resolved, so a bad URL (stale bookmark, deleted theme)
+  // degrades to something real instead of poisoning persistence. Adjusted
+  // during render (React's derived-state pattern) rather than in an effect.
+  const [lastKnown, setLastKnown] = useState(resolveInitialThemeId);
+  if (routeThemeId != null && isKnownTheme && routeThemeId !== lastKnown) {
+    setLastKnown(routeThemeId);
+  }
+  const themeId =
+    routeThemeId != null && isKnownTheme
+      ? routeThemeId
+      : lookup(lastKnown)
+        ? lastKnown
+        : FALLBACK_THEME_ID;
+  const theme = lookup(themeId) ?? THEMES[FALLBACK_THEME_ID];
 
   useEffect(() => {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({
-          themeId: settings.themeId,
-          customThemes: settings.customThemes,
-        }),
+        JSON.stringify({ themeId, customThemes: settings.customThemes }),
       );
     } catch (err) {
       console.warn('[theme] failed to persist themes (storage quota?)', err);
     }
-  }, [settings.themeId, settings.customThemes]);
-
-  const theme =
-    settings.customThemes[settings.themeId] ??
-    builtIn(settings.themeId) ??
-    THEMES.kyururu;
+  }, [themeId, settings.customThemes]);
 
   // Persisted custom themes may reference Google Fonts that aren't bundled;
   // load whatever the active theme needs.
@@ -83,27 +62,24 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
 
   const value = {
     ...settings,
+    themeId,
     theme,
-    isCustomTheme: settings.themeId in settings.customThemes,
-    setThemeId: (themeId: string) => setSettings((s) => ({ ...s, themeId })),
+    isCustomTheme: themeId in settings.customThemes,
+    isKnownTheme,
     setWinStyle: (winStyle: OSSettings['winStyle']) =>
       setSettings((s) => ({ ...s, winStyle })),
     setMode: (mode: OSSettings['mode']) => setSettings((s) => ({ ...s, mode })),
-    setView: (view: OSSettings['view']) => setSettings((s) => ({ ...s, view })),
-    createTheme: () =>
+    createTheme: () => {
+      const id = crypto.randomUUID();
       setSettings((s) => {
         const base =
-          s.customThemes[s.themeId] ?? builtIn(s.themeId) ?? THEMES.kyururu;
-        const id = `custom-${Date.now().toString(36)}`;
+          s.customThemes[themeId] ?? builtIn(themeId) ?? THEMES[FALLBACK_THEME_ID];
         const clone = structuredClone(base);
         clone.label = `${base.label} Copy`;
-        return {
-          ...s,
-          themeId: id,
-          view: 'studio',
-          customThemes: { ...s.customThemes, [id]: clone },
-        };
-      }),
+        return { ...s, customThemes: { ...s.customThemes, [id]: clone } };
+      });
+      return id;
+    },
     updateCustomTheme: (id: string, patch: Partial<Theme>) =>
       setSettings((s) => {
         const existing = s.customThemes[id];
@@ -118,11 +94,7 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
         if (!(id in s.customThemes)) return s;
         const customThemes = { ...s.customThemes };
         delete customThemes[id];
-        return {
-          ...s,
-          customThemes,
-          themeId: s.themeId === id ? 'kyururu' : s.themeId,
-        };
+        return { ...s, customThemes };
       }),
   };
 

@@ -5,9 +5,14 @@ import { IconDismiss, IconMaximize, IconMinimize } from './icons';
 import { useOptionalWindowContext } from '@/context/window';
 import styles from './TitleBar.module.css';
 
+/** $themeId is inherited from the current location's params. */
 const TABS: TabItem[] = [
-  { id: 'launcher', label: 'Launcher', to: '/' },
-  { id: 'settings', label: 'Settings', to: '/settings/graphics' },
+  { id: 'launcher', label: 'Launcher', to: '/themes/$themeId/preview' },
+  {
+    id: 'settings',
+    label: 'Settings',
+    to: '/themes/$themeId/preview/settings/graphics',
+  },
 ];
 
 /** Keeps clicks on tabs/buttons from starting a window drag. */
@@ -19,7 +24,7 @@ const inert: Pick<DOMAttributes<HTMLDivElement>, 'onPointerDown' | 'onDoubleClic
 export default function TitleBar() {
   const win = useOptionalWindowContext();
   const { pathname } = useLocation();
-  const activeId = pathname.startsWith('/settings') ? 'settings' : 'launcher';
+  const activeId = pathname.includes('/settings') ? 'settings' : 'launcher';
 
   return (
     <header

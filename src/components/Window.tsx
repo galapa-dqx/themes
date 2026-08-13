@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
@@ -15,6 +16,11 @@ const RESIZE_DIRS: ResizeDir[] = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
 const MIN_W = 800
 const MIN_H = 600
 
+// Placement survives leaving/re-entering the preview route. Fine as a single
+// module slot while the preview is the only Window on screen.
+let cachedBounds: Bounds | null = null
+let cachedMaximized = false
+
 export default function Window({
   title,
   children,
@@ -29,6 +35,7 @@ export default function Window({
   chrome?: 'system' | 'app'
 }) {
   const [bounds, setBounds] = useState<Bounds>(() => {
+    if (cachedBounds) return cachedBounds
     const w = Math.max(MIN_W, Math.min(960, window.innerWidth - 80))
     const h = Math.max(MIN_H, Math.min(680, window.innerHeight - 80))
     return {
@@ -38,7 +45,11 @@ export default function Window({
       y: Math.max(0, (window.innerHeight - h) / 2),
     }
   })
-  const [maximized, setMaximized] = useState(false)
+  const [maximized, setMaximized] = useState(cachedMaximized)
+  useEffect(() => {
+    cachedBounds = bounds
+    cachedMaximized = maximized
+  }, [bounds, maximized])
 
   const track = (
     e: ReactPointerEvent,

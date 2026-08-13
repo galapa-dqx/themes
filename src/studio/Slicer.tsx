@@ -89,9 +89,19 @@ function BoxFields({
   );
 }
 
+// The slicer is a route now, so it unmounts on tab/view switches; keep the
+// document (the real work-in-progress) alive at module level. View prefs
+// (zoom, selection, preview size) intentionally reset.
+let cachedDoc: SlicerDoc | null = null;
+
 export default function Slicer() {
   const { theme } = useOSSettings();
-  const [doc, setDoc] = useState<SlicerDoc>(() => defaultDoc(DEMO_SOURCE));
+  const [doc, setDoc] = useState<SlicerDoc>(
+    () => cachedDoc ?? defaultDoc(DEMO_SOURCE),
+  );
+  useEffect(() => {
+    cachedDoc = doc;
+  }, [doc]);
   const [selection, setSelection] = useState<CellSel | null>(null);
   const [loadNote, setLoadNote] = useState<string | null>(null);
   const [previewW, setPreviewW] = useState(300);

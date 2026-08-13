@@ -78,6 +78,20 @@ h6 {
   display: none;
 }
 
+/* Unknown-theme / 404 notices: unthemed chrome, like the top nav. */
+.route-notice {
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  height: 100%;
+  text-align: center;
+  color: #c8d0dc;
+}
+
+.route-notice a {
+  color: #7fb2ff;
+}
+
 /* Any element carrying theme vars (themeStyle() inline) plus this class is
    a self-contained themed subtree. The desktop root uses it, and the Studio
    gallery uses it to sandbox specimens — the aliases must resolve on the

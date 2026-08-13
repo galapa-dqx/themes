@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, FileButton, Slider } from '@mantine/core';
 import SliceGrid from '@/components/SliceGrid';
 import { useOSSettings } from '@/context/os-settings';
@@ -7,9 +7,15 @@ import styles from './Studio.module.css';
 
 type ParseResult = { set?: SliceSet; error?: string };
 
+// Pasted markup survives route switches (the validator unmounts on them).
+let cachedSource = '';
+
 export default function Validator() {
   const { theme } = useOSSettings();
-  const [source, setSource] = useState('');
+  const [source, setSource] = useState(cachedSource);
+  useEffect(() => {
+    cachedSource = source;
+  }, [source]);
   const [previewW, setPreviewW] = useState(300);
   const [previewH, setPreviewH] = useState(170);
 

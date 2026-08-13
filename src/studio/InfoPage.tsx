@@ -1,5 +1,6 @@
 import { Button, FileButton, Textarea, TextInput } from '@mantine/core';
-import { useOSSettings } from '@/context/os-settings';
+import { useNavigate } from '@tanstack/react-router';
+import { FALLBACK_THEME_ID, useOSSettings } from '@/context/os-settings';
 import type { ThemeMeta } from '@/theme';
 import styles from './Studio.module.css';
 
@@ -7,6 +8,7 @@ import styles from './Studio.module.css';
 export default function InfoPage() {
   const { theme, themeId, isCustomTheme, updateCustomTheme, deleteTheme } =
     useOSSettings();
+  const navigate = useNavigate();
   const disabled = !isCustomTheme;
 
   const setMeta = (patch: Partial<ThemeMeta>) =>
@@ -25,6 +27,10 @@ export default function InfoPage() {
   const remove = () => {
     if (window.confirm(`Delete theme "${theme.label}"? This cannot be undone.`)) {
       deleteTheme(themeId);
+      void navigate({
+        to: '/themes/$themeId/editor/info',
+        params: { themeId: FALLBACK_THEME_ID },
+      });
     }
   };
 

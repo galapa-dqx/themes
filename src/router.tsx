@@ -5,24 +5,120 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import RootLayout from './RootLayout.tsx'
+import { ThemeScope, NotFound } from './RouteNotices.tsx'
+import DesktopPreview from './components/DesktopPreview.tsx'
 import Home from './pages/Home/Home.tsx'
 import SettingsLayout from './pages/Settings/SettingsLayout.tsx'
 import GraphicsSettings from './pages/Settings/GraphicsSettings.tsx'
 import AboutSettings from './pages/Settings/AboutSettings.tsx'
 import SettingsPlaceholder from './pages/Settings/SettingsPlaceholder.tsx'
+import StudioWorkspace from './studio/StudioWorkspace.tsx'
+import InfoPage from './studio/InfoPage.tsx'
+import Palette from './studio/Palette.tsx'
+import FontsPage from './studio/FontsPage.tsx'
+import ControlsPage from './studio/ControlsPage.tsx'
+import Gallery from './studio/Gallery.tsx'
+import Slicer from './studio/Slicer.tsx'
+import Validator from './studio/Validator.tsx'
+import { resolveInitialThemeId } from './context/os-settings'
 
 const rootRoute = createRootRoute({
   component: RootLayout,
+  notFoundComponent: NotFound,
 })
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  beforeLoad: () => {
+    throw redirect({
+      to: '/themes/$themeId/editor',
+      params: { themeId: resolveInitialThemeId() },
+    })
+  },
+})
+
+/** Everything about one theme lives under /themes/$themeId — the editor
+ *  (unthemed tooling) and the preview (the themed desktop). */
+const themeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'themes/$themeId',
+  component: ThemeScope,
+})
+
+const themeIndexRoute = createRoute({
+  getParentRoute: () => themeRoute,
+  path: '/',
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: '/themes/$themeId/editor', params })
+  },
+})
+
+const editorRoute = createRoute({
+  getParentRoute: () => themeRoute,
+  path: 'editor',
+  component: StudioWorkspace,
+})
+
+const editorIndexRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: '/',
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: '/themes/$themeId/editor/palette', params })
+  },
+})
+
+/* Spelled out one by one so the router keeps literal path types. */
+const editorInfoRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'info',
+  component: InfoPage,
+})
+const editorPaletteRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'palette',
+  component: Palette,
+})
+const editorFontsRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'fonts',
+  component: FontsPage,
+})
+const editorControlsRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'controls',
+  component: ControlsPage,
+})
+const editorGalleryRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'gallery',
+  component: Gallery,
+})
+const editorSlicerRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'slicer',
+  component: Slicer,
+})
+const editorValidatorRoute = createRoute({
+  getParentRoute: () => editorRoute,
+  path: 'validator',
+  component: Validator,
+})
+
+const previewRoute = createRoute({
+  getParentRoute: () => themeRoute,
+  path: 'preview',
+  component: DesktopPreview,
+})
+
+const previewIndexRoute = createRoute({
+  getParentRoute: () => previewRoute,
+  path: '/',
   component: Home,
 })
 
 const settingsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => previewRoute,
   path: 'settings',
   component: SettingsLayout,
 })
@@ -30,8 +126,8 @@ const settingsRoute = createRoute({
 const settingsIndexRoute = createRoute({
   getParentRoute: () => settingsRoute,
   path: '/',
-  beforeLoad: () => {
-    throw redirect({ to: '/settings/graphics' })
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: '/themes/$themeId/preview/settings/graphics', params })
   },
 })
 
@@ -82,15 +178,31 @@ const claritySettingsRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  settingsRoute.addChildren([
-    settingsIndexRoute,
-    graphicsSettingsRoute,
-    aboutSettingsRoute,
-    gameSettingsRoute,
-    playersSettingsRoute,
-    controlsSettingsRoute,
-    soundSettingsRoute,
-    claritySettingsRoute,
+  themeRoute.addChildren([
+    themeIndexRoute,
+    editorRoute.addChildren([
+      editorIndexRoute,
+      editorInfoRoute,
+      editorPaletteRoute,
+      editorFontsRoute,
+      editorControlsRoute,
+      editorGalleryRoute,
+      editorSlicerRoute,
+      editorValidatorRoute,
+    ]),
+    previewRoute.addChildren([
+      previewIndexRoute,
+      settingsRoute.addChildren([
+        settingsIndexRoute,
+        graphicsSettingsRoute,
+        aboutSettingsRoute,
+        gameSettingsRoute,
+        playersSettingsRoute,
+        controlsSettingsRoute,
+        soundSettingsRoute,
+        claritySettingsRoute,
+      ]),
+    ]),
   ]),
 ])
 

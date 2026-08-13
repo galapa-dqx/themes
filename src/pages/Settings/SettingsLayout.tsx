@@ -2,21 +2,21 @@ import { Outlet, useLocation } from '@tanstack/react-router';
 import TabBar, { type TabItem } from '@/components/TabBar';
 import styles from './SettingsLayout.module.css';
 
+/** $themeId is inherited from the current location's params. */
 const SECTIONS: TabItem[] = [
-  { id: 'game', label: 'Game', to: '/settings/game' },
-  { id: 'players', label: 'Players', to: '/settings/players' },
-  { id: 'graphics', label: 'Graphics', to: '/settings/graphics' },
-  { id: 'controls', label: 'Controls', to: '/settings/controls' },
-  { id: 'sound', label: 'Sound', to: '/settings/sound' },
-  { id: 'clarity', label: 'Clarity', to: '/settings/clarity' },
-  { id: 'about', label: 'About', to: '/settings/about' },
+  { id: 'game', label: 'Game', to: '/themes/$themeId/preview/settings/game' },
+  { id: 'players', label: 'Players', to: '/themes/$themeId/preview/settings/players' },
+  { id: 'graphics', label: 'Graphics', to: '/themes/$themeId/preview/settings/graphics' },
+  { id: 'controls', label: 'Controls', to: '/themes/$themeId/preview/settings/controls' },
+  { id: 'sound', label: 'Sound', to: '/themes/$themeId/preview/settings/sound' },
+  { id: 'clarity', label: 'Clarity', to: '/themes/$themeId/preview/settings/clarity' },
+  { id: 'about', label: 'About', to: '/themes/$themeId/preview/settings/about' },
 ];
 
 export default function SettingsLayout() {
   const { pathname } = useLocation();
-  const activeId =
-    SECTIONS.find((section) => pathname.startsWith(String(section.to)))?.id ??
-    'graphics';
+  const section = pathname.split('/').filter(Boolean).pop();
+  const activeId = SECTIONS.find((s) => s.id === section)?.id ?? 'graphics';
 
   return (
     <div className={styles.Settings}>
