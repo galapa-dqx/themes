@@ -3,7 +3,7 @@ import Button from '@/components/Button';
 import NewsList from '@/components/NewsList';
 import PlayOrnament from '@/components/PlayOrnament';
 import SettingRow from '@/components/SettingRow';
-import Skin from '@/components/Skin';
+import Themed from '@/components/Themed';
 import Switch from '@/components/Switch';
 import TextInput from '@/components/TextInput';
 import { useOSSettings } from '@/context/os-settings';
@@ -13,13 +13,16 @@ import styles from './Studio.module.css';
 /** The live themed sandbox shared by the editor pages: every edit should be
  *  visible here immediately. The one themed subtree inside the studio. */
 export default function SpecimenIsland() {
-  const { theme } = useOSSettings();
+  const { compiled } = useOSSettings();
   const [checked, setChecked] = useState(true);
   const [username, setUsername] = useState('anlucialuvr69');
   const [activeRow, setActiveRow] = useState('first');
 
   return (
-    <div className={`theme-scope ${styles.Island}`} style={themeStyle(theme)}>
+    <div
+      className={`theme-scope ${styles.Island}`}
+      style={compiled ? themeStyle(compiled) : undefined}
+    >
       <div className={styles.IslandRow}>
         <PlayOrnament />
         <Button>Play</Button>
@@ -53,9 +56,9 @@ export default function SpecimenIsland() {
           ]}
         />
       </div>
-      <Skin part="panel" className={styles.IslandCard}>
+      <Themed part="panel" className={styles.IslandCard}>
         <span className={styles.IslandLabel}>panel surface</span>
-      </Skin>
+      </Themed>
     </div>
   );
 }

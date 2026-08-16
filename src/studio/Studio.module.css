@@ -293,12 +293,6 @@
   opacity: 1;
 }
 
-/* Inspector inset fields: four abreast, never wrapping. */
-.BoxRow {
-  display: flex;
-  gap: 6px;
-}
-
 .Legend {
   color: #9fb0c3;
   font-size: 11px;
@@ -425,32 +419,38 @@
   color: #ff9b9b;
 }
 
-/* The gallery's themed sandbox: the one place theme vars apply in here. */
+/* The gallery's themed sandbox: the one place theme vars apply in here. The
+   backdrop and text are the `window` control — the app's own background and
+   text baseline. */
 .Island {
   display: flex;
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  color: var(--app-text, #333333);
-  background: var(--app-bg, #ffffff);
+  color: var(--g-window-content);
+  background: var(--g-window-fill);
   border-radius: 8px;
 }
 
+/* The caption is studio chrome, not part of the specimen — a neutral label
+   tinted from the theme's own text so it stays legible on either backdrop. */
 .IslandLabel {
-  color: var(--app-muted, #777777);
-  font-family: var(--font-heading, serif);
+  color: var(--g-window-content);
+  opacity: 0.6;
+  font-family: system-ui, sans-serif;
   font-size: 11px;
-  font-style: var(--heading-style, normal);
-  font-weight: var(--heading-weight, 600);
-  text-transform: var(--label-case, uppercase);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
+/* No colour of its own: specimens inside inherit the theme's text colour,
+   which is what a part with no declared contentColor is asking for. */
 .IslandRow {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  color: var(--app-border, #cccccc);
 }
 
 .IslandCard {

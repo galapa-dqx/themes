@@ -4,13 +4,13 @@ import Carousel from '@/components/Carousel';
 import NewsList from '@/components/NewsList';
 import ScrollPanel from '@/components/ScrollPanel';
 import SettingRow from '@/components/SettingRow';
-import Skin from '@/components/Skin';
+import Themed from '@/components/Themed';
 import Switch from '@/components/Switch';
 import TabBar from '@/components/TabBar';
 import TextInput from '@/components/TextInput';
 import TitleBar from '@/components/TitleBar';
 import { useOSSettings } from '@/context/os-settings';
-import { themeStyle, type PartState } from '@/theme';
+import { themeStyle, type ControlId, type PartState } from '@/theme';
 import styles from './Studio.module.css';
 
 const SLIDES = [
@@ -58,16 +58,36 @@ export default function PartSpecimen({
   partId,
   state,
 }: {
-  partId: string;
+  partId: ControlId;
   state: 'base' | PartState;
 }) {
-  const { theme } = useOSSettings();
+  const { compiled } = useOSSettings();
   const disabled = state === 'disabled';
   const selected = state === 'selected';
   const checked = state === 'checked';
 
   let node: ReactNode;
   switch (partId) {
+    case 'window':
+      // The window renders as a plain framed surface, not via <Themed> — so
+      // the specimen shows exactly that: fill, text baseline, and border.
+      node = (
+        <div
+          style={{
+            background: 'var(--g-window-fill)',
+            color: 'var(--g-window-content)',
+            border: '1px solid var(--g-window-bc)',
+            borderRadius: 6,
+            padding: 24,
+            minHeight: 72,
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          Window surface — fill, text baseline and border.
+        </div>
+      );
+      break;
     case 'button':
       node = (
         <div className={styles.IslandRow}>
@@ -147,11 +167,14 @@ export default function PartSpecimen({
       );
       break;
     default:
-      node = <Skin part={partId} style={{ height: 120 }} />;
+      node = <Themed part={partId} style={{ height: 120 }} />;
   }
 
   return (
-    <div className={`theme-scope ${styles.Island}`} style={themeStyle(theme)}>
+    <div
+      className={`theme-scope ${styles.Island}`}
+      style={compiled ? themeStyle(compiled) : undefined}
+    >
       {node}
     </div>
   );

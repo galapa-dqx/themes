@@ -1,0 +1,93 @@
+/* Studio chrome, so it matches Mantine's input styling rather than the
+   themes — the editor around a theme is deliberately unthemed. */
+.Field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.Label {
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+}
+
+.Controls {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+/* One input to look at, whatever it's split into. The boxes flex, so
+   toggling 1 → 2 → 4 redistributes the same total width. */
+.Boxes {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: var(--input-height-xs, 30px);
+  overflow: hidden;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-default);
+}
+
+.Boxes:focus-within {
+  border-color: var(--mantine-primary-color-filled);
+}
+
+.Boxes[data-disabled] {
+  opacity: 0.6;
+}
+
+.Box {
+  flex: 1;
+  min-width: 0;
+  padding: 0 2px;
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--mantine-font-size-xs);
+  text-align: center;
+  background: none;
+  border: 0;
+}
+
+/* The dividers that make it read as one field split up, not four fields. */
+.Box + .Box {
+  border-left: 1px solid var(--mantine-color-default-border);
+}
+
+.Box:focus {
+  outline: none;
+  background: var(--mantine-color-default-hover);
+}
+
+.Box::placeholder {
+  color: var(--mantine-color-dimmed);
+}
+
+.Cycle {
+  flex: none;
+  width: var(--input-height-xs, 30px);
+  color: var(--mantine-color-dimmed);
+  font-size: 13px;
+  line-height: 1;
+  background: var(--mantine-color-default);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-default);
+  cursor: pointer;
+}
+
+.Cycle:hover:not(:disabled) {
+  color: var(--mantine-color-text);
+  background: var(--mantine-color-default-hover);
+}
+
+.Cycle:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.Hint {
+  color: #9fb0c3;
+  font-size: 11px;
+}

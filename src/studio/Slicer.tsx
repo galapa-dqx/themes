@@ -3,15 +3,15 @@ import {
   Button,
   Checkbox,
   FileButton,
-  NumberInput,
   Select,
   Slider,
   Switch,
 } from '@mantine/core';
 import SliceGrid from '@/components/SliceGrid';
+import EdgeInput from './EdgeInput';
 import { useOSSettings } from '@/context/os-settings';
-import { parseNineSlice, substituteTokens, type SliceSet } from '@/theme/nineSlice';
-import type { ThemeColors } from '@/theme/themes';
+import { parseNineSlice, type SliceSet } from '@/theme/nineSlice';
+import { SIDES, substituteTokens, type Side } from '@/theme';
 import {
   cellName,
   cellRects,
@@ -51,8 +51,6 @@ type BuildResult = {
   error?: string;
 };
 
-const SIDES = ['top', 'right', 'bottom', 'left'] as const;
-
 function BoxFields({
   legend,
   value,
@@ -62,30 +60,28 @@ function BoxFields({
 }: {
   legend: string;
   value: Box;
-  sides: readonly (typeof SIDES)[number][];
+  sides: readonly Side[];
   min: number;
   onChange: (box: Box) => void;
 }) {
   return (
-    <fieldset className={styles.Frame}>
-      <legend>{legend}</legend>
-      <div className={styles.BoxRow}>
-        {sides.map((side) => (
-          <NumberInput
-            key={side}
-            size="xs"
-            hideControls
-            style={{ flex: 1, minWidth: 0 }}
-            label={side}
-            min={min}
-            value={value[side]}
-            onChange={(v) =>
-              typeof v === 'number' && onChange({ ...value, [side]: v })
-            }
-          />
-        ))}
-      </div>
-    </fieldset>
+    <EdgeInput
+      label={legend}
+      // Which side each box drives isn't guessable at a glance the way it is
+      // on a padding field, and this is where you're matching numbers to art.
+      hint={sides.join(' / ')}
+      // A grid with only one band per axis has no meaningful edge on the
+      // other, so those sides are pinned out rather than shown as zeroes.
+      sides={sides}
+      min={min}
+      value={[value.top, value.right, value.bottom, value.left]}
+      onChange={(next) => {
+        const [top, right, bottom, left] = Array.isArray(next)
+          ? next
+          : [next ?? 0, next ?? 0, next ?? 0, next ?? 0];
+        onChange({ top, right, bottom, left });
+      }}
+    />
   );
 }
 
@@ -120,11 +116,15 @@ export default function Slicer() {
   const built: BuildResult = useMemo(() => {
     try {
       const { text, warnings } = sliceNineSvg(buildDoc);
-      return { text, warnings, set: parseNineSlice(text, theme.colors) };
+      return {
+        text,
+        warnings,
+        set: parseNineSlice(substituteTokens(text, theme.palette)),
+      };
     } catch (err) {
       return { error: err instanceof Error ? err.message : String(err) };
     }
-  }, [buildDoc, theme.colors]);
+  }, [buildDoc, theme.palette]);
 
   const viewBox = useMemo(() => {
     try {
@@ -135,12 +135,12 @@ export default function Slicer() {
   }, [doc.source]);
 
   const art = useMemo(
-    () => substituteTokens(innerMarkup(doc.source), theme.colors),
-    [doc.source, theme.colors],
+    () => substituteTokens(innerMarkup(doc.source), theme.palette),
+    [doc.source, theme.palette],
   );
 
   const palette = useMemo(() => extractPalette(doc.source), [doc.source]);
-  const roles = Object.keys(theme.colors);
+  const roles = Object.keys(theme.palette);
   const roleOptions = roles.map((r) => ({ value: r, label: `--theme-${r}` }));
 
   const loadText = (text: string, name: string) => {
@@ -386,10 +386,7 @@ export default function Slicer() {
             <div key={`t:${entry.role}`} className={styles.SwatchRow}>
               <span
                 className={styles.TokenSwatch}
-                style={{
-                  background:
-                    theme.colors[entry.role as keyof ThemeColors] ?? '#ff00ff',
-                }}
+                style={{ background: theme.palette[entry.role] ?? '#ff00ff' }}
               />
               <Select
                 size="xs"
@@ -404,7 +401,7 @@ export default function Slicer() {
                   if (!v || v === entry.role) return;
                   const to =
                     v === '__literal'
-                      ? (theme.colors[entry.role as keyof ThemeColors] ?? '#ff00ff')
+                      ? (theme.palette[entry.role] ?? '#ff00ff')
                       : `var(--theme-${v})`;
                   setDoc({
                     ...doc,

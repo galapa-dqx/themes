@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Button,
   FileButton,
-  NumberInput,
   SegmentedControl,
   Select,
   TextInput,
@@ -10,17 +9,20 @@ import {
 import { useOSSettings } from '@/context/os-settings';
 import { parseNineSlice } from '@/theme/nineSlice';
 import {
-  DEFAULT_GEOMETRY,
-  resolveGeometry,
+  CONTROL_IDS,
+  resolveColorValue,
+  substituteTokens,
+  type ColorValue,
+  type ControlId,
   type CornerShape,
-  type Edges,
-  type Part,
   type PartState,
-  type PathPart,
+  type PathControl,
   type PathStateOverride,
-  type ThemeColors,
+  type ThemeControls,
+  type ThemePalette,
   type ThemeToken,
 } from '@/theme';
+import EdgeInput from './EdgeInput';
 import PartSpecimen from './PartSpecimen';
 import styles from './Studio.module.css';
 
@@ -34,24 +36,12 @@ const STATES: PartState[] = [
 ];
 const INTERACTIVE_STATES: readonly string[] = ['hover', 'pressed', 'focused'];
 const CORNERS: CornerShape[] = ['round', 'bevel', 'scoop', 'notch', 'squircle'];
-const ROLES = [
-  'bg',
-  'surface',
-  'surface-2',
-  'border',
-  'text',
-  'muted',
-  'accent',
-  'success',
-  'danger',
-] as const;
 
-function resolveToken(
-  token: ThemeToken | undefined,
-  colors: ThemeColors,
-): string {
-  if (!token || token === 'none') return 'transparent';
-  return colors[token.slice('--theme-'.length) as keyof ThemeColors] ?? '#ff00ff';
+/** A colour a control asks for → a swatch. Tokens and derivations both
+ *  resolve; an unset value is transparent. */
+function swatch(value: ColorValue | undefined, palette: ThemePalette): string {
+  if (value === undefined) return 'transparent';
+  return resolveColorValue(value, palette, []);
 }
 
 /** Strip undefined fields so overrides stay minimal and serialisable. */
@@ -63,126 +53,125 @@ function prune<T extends object>(obj: T): T {
   return out;
 }
 
-function parseThickness(text: string): number | Edges | undefined {
-  const parts = text.trim().split(/\s+/).filter(Boolean).map(Number);
-  if (!parts.length || parts.some(Number.isNaN)) return undefined;
-  if (parts.length === 1) return parts[0];
-  if (parts.length === 4) return parts as Edges;
-  return undefined;
-}
-
-const thicknessText = (bt: number | Edges | undefined): string =>
-  bt === undefined ? '' : typeof bt === 'number' ? String(bt) : bt.join(' ');
-
-const TOKEN_OPTIONS = [
-  { value: 'unset', label: '(default)' },
-  { value: 'none', label: 'none' },
-  ...ROLES.map((role) => ({
-    value: `--theme-${role}`,
-    label: `--theme-${role}`,
-  })),
-];
-
 function TokenField({
   label,
   value,
-  colors,
+  palette,
   disabled,
   onChange,
 }: {
   label: string;
-  value: ThemeToken | undefined;
-  colors: ThemeColors;
+  value: ColorValue | undefined;
+  palette: ThemePalette;
   disabled: boolean;
   onChange: (token: ThemeToken | undefined) => void;
 }) {
+  // Derivations (mix/alpha) are authored in code; the picker edits tokens.
+  const derived = typeof value === 'object' && value !== null;
+  const token = typeof value === 'string' ? value : undefined;
+  const options = [
+    { value: 'unset', label: '(default)' },
+    { value: 'none', label: 'none' },
+    ...Object.keys(palette).map((role) => ({
+      value: `--theme-${role}`,
+      label: `--theme-${role}`,
+    })),
+  ];
   return (
     <div className={styles.Row}>
       <span className={styles.Label}>{label}</span>
       <span
         className={styles.TokenSwatch}
-        style={{ background: resolveToken(value, colors) }}
+        style={{ background: swatch(value, palette) }}
       />
-      <Select
-        size="xs"
-        w={170}
-        data={TOKEN_OPTIONS}
-        value={value ?? 'unset'}
-        disabled={disabled}
-        allowDeselect={false}
-        onChange={(next) =>
-          next &&
-          onChange(next === 'unset' ? undefined : (next as ThemeToken))
-        }
-        aria-label={label}
-      />
+      {derived ? (
+        <span className={styles.Meta}>derived — edit in code</span>
+      ) : (
+        <Select
+          size="xs"
+          w={170}
+          data={options}
+          value={token ?? 'unset'}
+          disabled={disabled}
+          allowDeselect={false}
+          onChange={(next) =>
+            next && onChange(next === 'unset' ? undefined : (next as ThemeToken))
+          }
+          aria-label={label}
+        />
+      )}
     </div>
   );
 }
 
-/** Pick a part and a state in the page header; the frames below show what
+/** Pick a control and a state in the page header; the frames below show what
  *  each edit scope covers, with a specimen of just that component. */
 export default function ControlsPage() {
   const { theme, themeId, isCustomTheme, updateCustomTheme } = useOSSettings();
   const disabled = !isCustomTheme;
+  const palette = theme.palette;
 
-  const geometry = resolveGeometry(theme.geometry);
-  const partIds = [
-    ...new Set([
-      ...Object.keys(DEFAULT_GEOMETRY),
-      ...Object.keys(theme.geometry ?? {}),
-    ]),
-  ];
-  const [partId, setPartId] = useState('button');
+  const [partId, setPartId] = useState<ControlId>('button');
   const [stateSel, setStateSel] = useState<'base' | PartState>('base');
   const [assetDraft, setAssetDraft] = useState('');
   const [uploadNote, setUploadNote] = useState<{
     kind: 'error' | 'ok';
     text: string;
   } | null>(null);
-  const part: Part | undefined = geometry[partId];
 
-  const writePart = (next: Part | undefined, assets?: Record<string, string>) => {
-    const nextGeometry = { ...(theme.geometry ?? {}) };
-    if (next) nextGeometry[partId] = next;
-    else delete nextGeometry[partId];
+  const control = theme.controls[partId];
+  const isWindow = partId === 'window';
+  const shape = isWindow ? 'Window' : 'shape' in control ? control.shape : 'Text';
+  const isPath = shape === 'Path';
+  const path = isPath ? (control as PathControl) : undefined;
+
+  const editWindow = (patch: { fill?: ColorValue; contentColor?: ColorValue; borderColor?: ColorValue }) => {
     updateCustomTheme(themeId, {
-      geometry: nextGeometry,
-      ...(assets ? { assets } : {}),
+      controls: {
+        ...theme.controls,
+        window: prune({ ...control, ...patch }),
+      } as ThemeControls,
     });
   };
 
-  const editBase = (patch: Partial<PathPart>) => {
-    if (part?.shape !== 'Path') return;
-    writePart(prune({ ...part, ...patch }));
+  const writeControl = (
+    next: PathControl | { shape: 'Asset'; asset: string; contentColor?: ColorValue },
+    assets?: Record<string, string>,
+  ) => {
+    updateCustomTheme(themeId, {
+      controls: { ...theme.controls, [partId]: next } as ThemeControls,
+      ...(assets ? { assets: { ...theme.assets, ...assets } } : {}),
+    });
+  };
+
+  const editBase = (patch: Partial<PathControl>) => {
+    if (!path) return;
+    writeControl(prune({ ...path, ...patch }) as PathControl);
   };
 
   const editState = (state: PartState, patch: Partial<PathStateOverride>) => {
-    if (part?.shape !== 'Path') return;
-    const states = { ...(part.states ?? {}) };
+    if (!path) return;
+    const states = { ...(path.states ?? {}) };
     const merged = prune({ ...(states[state] ?? {}), ...patch });
     if (Object.keys(merged).length === 0) delete states[state];
     else states[state] = merged;
-    writePart(
+    writeControl(
       prune({
-        ...part,
+        ...path,
         states: Object.keys(states).length ? states : undefined,
-      }),
+      }) as PathControl,
     );
   };
 
-  /** Validate an uploaded .9.svg, store it as a data URL, wire it to the
-   *  part under `assetKey`. Data URLs persist with the theme. */
+  /** Validate an uploaded .9.svg, store its raw text as a data URL, wire it to
+   *  the control under `assetKey`. The resolver substitutes tokens later. */
   const applyAssetFile = (file: File | null, assetKey: string) => {
     if (!file) return;
     void file.text().then((text) => {
       try {
-        const set = parseNineSlice(text, theme.colors);
+        const set = parseNineSlice(substituteTokens(text, palette));
         const url = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
-        writePart(
-          { shape: 'Asset', asset: assetKey },
-          { ...theme.assets, [assetKey]: url },
-        );
+        writeControl({ shape: 'Asset', asset: assetKey }, { [assetKey]: url });
         const warn = set.warnings.length
           ? ` (${set.warnings.length} warning${set.warnings.length > 1 ? 's' : ''} — see console)`
           : '';
@@ -199,38 +188,32 @@ export default function ControlsPage() {
     });
   };
 
-  const overridden = partId in (theme.geometry ?? {});
-  const isPath = part?.shape === 'Path';
   const stateOverride =
-    isPath && stateSel !== 'base' ? part.states?.[stateSel] : undefined;
-  const scopeFields =
-    stateSel === 'base'
-      ? isPath
-        ? part
-        : undefined
-      : stateOverride ?? {};
+    path && stateSel !== 'base' ? path.states?.[stateSel] : undefined;
+  const scopeFields: PathStateOverride | PathControl | undefined =
+    stateSel === 'base' ? path : (stateOverride ?? {});
 
   return (
     <div className={styles.Tool}>
-      {/* Page header: which component, which state — governs everything below. */}
+      {/* Page header: which control, which state — governs everything below. */}
       <div className={styles.PageHeader}>
         <Select
           size="xs"
-          w={180}
+          w={200}
           searchable
-          data={partIds.map((id) => ({
+          data={CONTROL_IDS.map((id) => ({
             value: id,
-            label: id + (id in (theme.geometry ?? {}) ? ' •' : ''),
+            label: id + (theme.controls[id] && 'shape' in theme.controls[id] ? '' : ' ·'),
           }))}
           value={partId}
           allowDeselect={false}
           onChange={(id) => {
             if (!id) return;
-            setPartId(id);
+            setPartId(id as ControlId);
             setStateSel('base');
             setUploadNote(null);
           }}
-          aria-label="Component part"
+          aria-label="Control"
         />
         {isPath && (
           <SegmentedControl
@@ -239,36 +222,106 @@ export default function ControlsPage() {
             onChange={(value) => setStateSel(value as 'base' | PartState)}
             data={(['base', ...STATES] as const).map((s) => ({
               value: s,
-              label: s + (s !== 'base' && part.states?.[s] ? ' •' : ''),
+              label: s + (s !== 'base' && path?.states?.[s] ? ' •' : ''),
             }))}
           />
         )}
         <span className={styles.Meta} style={{ marginLeft: 'auto' }}>
-          {overridden ? 'themed override' : 'app default'} ·{' '}
-          {part?.shape ?? 'missing'}
+          {shape}
         </span>
-        {overridden && !disabled && (
-          <Button size="xs" variant="default" onClick={() => writePart(undefined)}>
-            Reset to default
-          </Button>
-        )}
       </div>
 
-      {part?.shape === 'Asset' && (
+      {shape === 'Window' && (
+        <fieldset className={styles.Frame}>
+          <legend>Window</legend>
+          <span className={styles.Meta}>
+            The app frame: its fill is the background, its content colour the
+            text baseline, and its border wraps the whole window. No corners,
+            states or art — a native window has none.
+          </span>
+          <TokenField
+            label="Fill"
+            value={(control as { fill?: ColorValue }).fill}
+            palette={palette}
+            disabled={disabled}
+            onChange={(fill) => editWindow({ fill })}
+          />
+          <TokenField
+            label="Content"
+            value={(control as { contentColor?: ColorValue }).contentColor}
+            palette={palette}
+            disabled={disabled}
+            onChange={(contentColor) => editWindow({ contentColor })}
+          />
+          <TokenField
+            label="Border"
+            value={(control as { borderColor?: ColorValue }).borderColor}
+            palette={palette}
+            disabled={disabled}
+            onChange={(borderColor) => editWindow({ borderColor })}
+          />
+          <PartSpecimen partId={partId} state="base" />
+        </fieldset>
+      )}
+
+      {shape === 'Text' && (
+        <fieldset className={styles.Frame}>
+          <legend>Text control</legend>
+          <span className={styles.Meta}>
+            A text control carries colour and type only. Type (family, size,
+            case) is authored in code; the colour is editable here.
+          </span>
+          {'contentColor' in control && (
+            <TokenField
+              label="Content"
+              value={control.contentColor}
+              palette={palette}
+              disabled={disabled}
+              onChange={(contentColor) =>
+                updateCustomTheme(themeId, {
+                  controls: {
+                    ...theme.controls,
+                    [partId]: prune({ ...control, contentColor }),
+                  } as ThemeControls,
+                })
+              }
+            />
+          )}
+          {'borderColor' in control && (
+            <TokenField
+              label="Border"
+              value={control.borderColor}
+              palette={palette}
+              disabled={disabled}
+              onChange={(borderColor) =>
+                updateCustomTheme(themeId, {
+                  controls: {
+                    ...theme.controls,
+                    [partId]: prune({ ...control, borderColor }),
+                  } as ThemeControls,
+                })
+              }
+            />
+          )}
+          <PartSpecimen partId={partId} state="base" />
+        </fieldset>
+      )}
+
+      {shape === 'Asset' && 'shape' in control && control.shape === 'Asset' && (
         <fieldset className={styles.Frame}>
           <legend>Asset surface</legend>
           <span className={styles.Meta}>
-            This part renders the .9.svg asset "{part.asset}".
+            This control renders the .9.svg asset "{control.asset}".
           </span>
           <div className={styles.Row}>
             <TextInput
               size="xs"
               style={{ flex: 1, minWidth: 220 }}
-              value={theme.assets?.[part.asset] ?? ''}
+              value={theme.assets?.[control.asset] ?? ''}
               disabled={disabled}
               onChange={(e) =>
                 updateCustomTheme(themeId, {
-                  assets: { ...theme.assets, [part.asset]: e.target.value },
+                  assets: { ...theme.assets, [control.asset]: e.target.value },
                 })
               }
               aria-label="Asset URL"
@@ -276,7 +329,7 @@ export default function ControlsPage() {
             {!disabled && (
               <>
                 <FileButton
-                  onChange={(file) => applyAssetFile(file, part.asset)}
+                  onChange={(file) => applyAssetFile(file, control.asset)}
                   accept=".svg,image/svg+xml"
                 >
                   {(props) => (
@@ -289,7 +342,7 @@ export default function ControlsPage() {
                   size="xs"
                   variant="default"
                   onClick={() =>
-                    writePart({
+                    writeControl({
                       shape: 'Path',
                       fill: '--theme-surface',
                       borderColor: '--theme-border',
@@ -302,6 +355,17 @@ export default function ControlsPage() {
               </>
             )}
           </div>
+          <TokenField
+            label="Content"
+            value={control.contentColor}
+            palette={palette}
+            disabled={disabled}
+            onChange={(contentColor) =>
+              writeControl(
+                prune({ ...control, contentColor }) as unknown as PathControl,
+              )
+            }
+          />
           {uploadNote && (
             <span
               className={uploadNote.kind === 'error' ? styles.Error : styles.Good}
@@ -313,7 +377,7 @@ export default function ControlsPage() {
         </fieldset>
       )}
 
-      {isPath && scopeFields && (
+      {isPath && path && scopeFields && (
         <>
           <fieldset className={styles.Frame}>
             <legend>
@@ -329,7 +393,7 @@ export default function ControlsPage() {
             <TokenField
               label="Fill"
               value={scopeFields.fill}
-              colors={theme.colors}
+              palette={palette}
               disabled={disabled}
               onChange={(fill) =>
                 stateSel === 'base'
@@ -340,7 +404,7 @@ export default function ControlsPage() {
             <TokenField
               label="Border"
               value={scopeFields.borderColor}
-              colors={theme.colors}
+              palette={palette}
               disabled={disabled}
               onChange={(borderColor) =>
                 stateSel === 'base'
@@ -351,7 +415,7 @@ export default function ControlsPage() {
             <TokenField
               label="Content"
               value={scopeFields.contentColor}
-              colors={theme.colors}
+              palette={palette}
               disabled={disabled}
               onChange={(contentColor) =>
                 stateSel === 'base'
@@ -360,16 +424,12 @@ export default function ControlsPage() {
               }
             />
             <div className={styles.Row}>
-              <TextInput
-                key={`bw-${partId}-${stateSel}`}
-                size="xs"
-                w={130}
+              <EdgeInput
                 label="Border width"
-                placeholder="1 or 0 0 2 0"
-                defaultValue={thicknessText(scopeFields.borderThickness)}
+                width={130}
+                value={scopeFields.borderThickness}
                 disabled={disabled}
-                onBlur={(e) => {
-                  const borderThickness = parseThickness(e.target.value);
+                onChange={(borderThickness) => {
                   if (stateSel === 'base') editBase({ borderThickness });
                   else editState(stateSel, { borderThickness });
                 }}
@@ -385,6 +445,7 @@ export default function ControlsPage() {
                       borderColor: undefined,
                       contentColor: undefined,
                       borderThickness: undefined,
+                      opacity: undefined,
                     })
                   }
                 >
@@ -404,9 +465,7 @@ export default function ControlsPage() {
                 w={90}
                 label="Radius"
                 placeholder="0 | pill"
-                defaultValue={
-                  part.radius === undefined ? '' : String(part.radius)
-                }
+                defaultValue={path.radius === undefined ? '' : String(path.radius)}
                 disabled={disabled}
                 onBlur={(e) => {
                   const text = e.target.value.trim();
@@ -427,35 +486,27 @@ export default function ControlsPage() {
                 w={120}
                 label="Corner"
                 data={[{ value: 'unset', label: '(default)' }, ...CORNERS]}
-                value={part.corner ?? 'unset'}
+                value={path.corner ?? 'unset'}
                 disabled={disabled}
                 allowDeselect={false}
                 onChange={(value) =>
                   value &&
                   editBase({
-                    corner:
-                      value === 'unset' ? undefined : (value as CornerShape),
+                    corner: value === 'unset' ? undefined : (value as CornerShape),
                   })
                 }
               />
-              <NumberInput
-                size="xs"
-                w={120}
-                label="Transition ms"
-                min={0}
-                max={2000}
-                value={part.transition?.duration ?? ''}
+              <EdgeInput
+                label="Padding"
+                width={130}
+                value={path.padding}
                 disabled={disabled}
-                onChange={(value) =>
-                  editBase({
-                    transition:
-                      typeof value === 'number'
-                        ? { duration: value }
-                        : undefined,
-                  })
-                }
+                onChange={(padding) => editBase({ padding })}
               />
             </div>
+            <span className={styles.Meta}>
+              Clear every box and the component keeps its own layout padding.
+            </span>
           </fieldset>
 
           <fieldset className={styles.Frame}>
@@ -487,9 +538,9 @@ export default function ControlsPage() {
                 variant="default"
                 disabled={disabled || !assetDraft.trim()}
                 onClick={() => {
-                  writePart(
+                  writeControl(
                     { shape: 'Asset', asset: partId },
-                    { ...theme.assets, [partId]: assetDraft.trim() },
+                    { [partId]: assetDraft.trim() },
                   );
                   setAssetDraft('');
                 }}
@@ -499,9 +550,7 @@ export default function ControlsPage() {
             </div>
             {uploadNote && (
               <span
-                className={
-                  uploadNote.kind === 'error' ? styles.Error : styles.Good
-                }
+                className={uploadNote.kind === 'error' ? styles.Error : styles.Good}
               >
                 {uploadNote.text}
               </span>

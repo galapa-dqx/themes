@@ -3,7 +3,7 @@ import Button from '@/components/Button';
 import NewsList from '@/components/NewsList';
 import PlayOrnament from '@/components/PlayOrnament';
 import SettingRow from '@/components/SettingRow';
-import Skin from '@/components/Skin';
+import Themed from '@/components/Themed';
 import Switch from '@/components/Switch';
 import TextInput from '@/components/TextInput';
 import { useOSSettings } from '@/context/os-settings';
@@ -13,7 +13,7 @@ import styles from './Studio.module.css';
 /** Every themed part in one place. The studio chrome is unthemed; only the
  *  sandbox below carries the active theme's variables. */
 export default function Gallery() {
-  const { theme } = useOSSettings();
+  const { theme, compiled } = useOSSettings();
   const [switchOn, setSwitchOn] = useState(true);
   const [switchOff, setSwitchOff] = useState(false);
   const [username, setUsername] = useState('anlucialuvr69');
@@ -26,7 +26,10 @@ export default function Gallery() {
         {theme.label}). The studio chrome around them is deliberately
         unthemed.
       </p>
-      <div className={`theme-scope ${styles.Island}`} style={themeStyle(theme)}>
+      <div
+        className={`theme-scope ${styles.Island}`}
+        style={compiled ? themeStyle(compiled) : undefined}
+      >
         <span className={styles.IslandLabel}>Button + ornament</span>
         <div className={styles.IslandRow}>
           <PlayOrnament />
@@ -72,9 +75,9 @@ export default function Gallery() {
         </div>
 
         <span className={styles.IslandLabel}>Panel surface</span>
-        <Skin part="panel" className={styles.IslandCard}>
+        <Themed part="panel" className={styles.IslandCard}>
           <span className={styles.IslandLabel}>panel content box</span>
-        </Skin>
+        </Themed>
       </div>
     </div>
   );

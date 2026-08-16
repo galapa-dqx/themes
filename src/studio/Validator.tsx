@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, FileButton, Slider } from '@mantine/core';
 import SliceGrid from '@/components/SliceGrid';
 import { useOSSettings } from '@/context/os-settings';
+import { substituteTokens } from '@/theme';
 import { parseNineSlice, type SliceSet } from '@/theme/nineSlice';
 import styles from './Studio.module.css';
 
@@ -22,11 +23,13 @@ export default function Validator() {
   const result: ParseResult = useMemo(() => {
     if (!source.trim()) return {};
     try {
-      return { set: parseNineSlice(source, theme.colors) };
+      // Pasted art still carries `var(--theme-*)` tokens; substitute them
+      // against the active palette (as the resolver does) before parsing.
+      return { set: parseNineSlice(substituteTokens(source, theme.palette)) };
     } catch (err) {
       return { error: err instanceof Error ? err.message : String(err) };
     }
-  }, [source, theme.colors]);
+  }, [source, theme.palette]);
 
   const onFile = (file: File | null) => {
     if (file) void file.text().then(setSource);

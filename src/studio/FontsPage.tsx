@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
-import {
-  Autocomplete,
-  Checkbox,
-  NumberInput,
-  Select,
-} from '@mantine/core';
+import { Autocomplete, Checkbox, NumberInput, Select } from '@mantine/core';
 import { useOSSettings } from '@/context/os-settings';
-import type { LabelCase, ThemeFont, ThemeFonts } from '@/theme';
+import type { ThemeFont, ThemeFonts } from '@/theme';
 import { ensureFontLoaded, fetchGoogleFonts } from './googleFonts';
 import SpecimenIsland from './SpecimenIsland';
 import styles from './Studio.module.css';
@@ -19,7 +14,11 @@ const SEED_FAMILIES = [
   'Playfair Display',
 ];
 
-const CASES: LabelCase[] = ['uppercase', 'lowercase', 'capitalize', 'none'];
+const FALLBACK_FONT: ThemeFont = {
+  family: '',
+  fallback: 'sans-serif',
+  weight: 400,
+};
 
 function FontEditor({
   title,
@@ -114,6 +113,7 @@ export default function FontsPage() {
   }, []);
 
   const setFonts = (fonts: ThemeFonts) => updateCustomTheme(themeId, { fonts });
+  const role = (name: string): ThemeFont => theme.fonts[name] ?? FALLBACK_FONT;
   const hasStrong = theme.fonts.strong !== undefined;
 
   return (
@@ -121,18 +121,19 @@ export default function FontsPage() {
       <h3 className={styles.SectionTitle}>Font roles</h3>
       <span className={styles.Meta}>
         Any Google Fonts family works — it loads on pick. Weights the family
-        doesn't ship render synthesized.
+        doesn't ship render synthesized. Case and size are per-control, on the
+        Controls page.
       </span>
       <FontEditor
         title="Heading"
-        font={theme.fonts.heading}
+        font={role('heading')}
         families={families}
         disabled={disabled}
         onChange={(heading) => setFonts({ ...theme.fonts, heading })}
       />
       <FontEditor
         title="Body"
-        font={theme.fonts.body}
+        font={role('body')}
         families={families}
         disabled={disabled}
         onChange={(body) => setFonts({ ...theme.fonts, body })}
@@ -143,70 +144,27 @@ export default function FontsPage() {
           label="Separate emphasis font (news titles, buttons)"
           checked={hasStrong}
           disabled={disabled}
-          onChange={(e) =>
-            setFonts({
-              ...theme.fonts,
-              strong: e.currentTarget.checked
-                ? { ...theme.fonts.heading, style: undefined, weight: 700 }
-                : undefined,
-            })
-          }
+          onChange={(e) => {
+            const next = { ...theme.fonts };
+            if (e.currentTarget.checked) {
+              const h = role('heading');
+              next.strong = { family: h.family, fallback: h.fallback, weight: 700 };
+            } else {
+              delete next.strong;
+            }
+            setFonts(next);
+          }}
         />
       </div>
-      {hasStrong && theme.fonts.strong && (
+      {hasStrong && (
         <FontEditor
           title="Strong"
-          font={theme.fonts.strong}
+          font={role('strong')}
           families={families}
           disabled={disabled}
           onChange={(strong) => setFonts({ ...theme.fonts, strong })}
         />
       )}
-
-      <h3 className={styles.SectionTitle}>Case filters & sizes</h3>
-      <div className={styles.Row}>
-        <Select
-          size="xs"
-          w={130}
-          label="Label case"
-          data={CASES}
-          value={theme.labelCase}
-          disabled={disabled}
-          allowDeselect={false}
-          onChange={(value) =>
-            value &&
-            updateCustomTheme(themeId, { labelCase: value as LabelCase })
-          }
-        />
-        <Select
-          size="xs"
-          w={130}
-          label="Field labels"
-          data={CASES}
-          value={theme.fieldLabelCase ?? 'none'}
-          disabled={disabled}
-          allowDeselect={false}
-          onChange={(value) =>
-            value &&
-            updateCustomTheme(themeId, { fieldLabelCase: value as LabelCase })
-          }
-        />
-        <NumberInput
-          size="xs"
-          w={110}
-          label="Tab size px"
-          min={10}
-          max={24}
-          placeholder="16"
-          value={theme.tabSize ?? ''}
-          disabled={disabled}
-          onChange={(value) =>
-            updateCustomTheme(themeId, {
-              tabSize: typeof value === 'number' ? value : undefined,
-            })
-          }
-        />
-      </div>
 
       <h3 className={styles.SectionTitle}>Live specimen</h3>
       <SpecimenIsland />
