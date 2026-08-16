@@ -8,7 +8,7 @@ import {
   loadPersisted,
   resolveInitialThemeId,
 } from './persistence';
-import { THEMES, type Theme } from '@/theme';
+import { THEMES, resolveTheme, type AuthoringTheme, type CompiledTheme } from '@/theme';
 import { ensureFontLoaded } from '@/studio/googleFonts';
 
 export function OSSettingsProvider({ children }: { children: ReactNode }) {
@@ -52,18 +52,38 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
   }, [themeId, settings.customThemes]);
 
   // Persisted custom themes may reference Google Fonts that aren't bundled;
-  // load whatever the active theme needs.
+  // load whatever font roles the active theme names.
   useEffect(() => {
-    const { heading, body, strong } = theme.fonts;
-    void ensureFontLoaded(heading.family);
-    void ensureFontLoaded(body.family);
-    if (strong) void ensureFontLoaded(strong.family);
+    for (const role of Object.values(theme.fonts)) {
+      void ensureFontLoaded(role.family);
+    }
+  }, [theme]);
+
+  // Resolution is async (inlining art means fetching it), so the compiled
+  // theme lags the authoring one by a microtask-or-fetch. Keep the last good
+  // result while a new one resolves — on a theme switch that means the old
+  // theme stays painted until the new one is ready, so there's no flash of
+  // unstyled chrome. The Studio drives this on every keystroke.
+  const [resolved, setResolved] = useState<{
+    compiled: CompiledTheme;
+    warnings: string[];
+  } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void resolveTheme(theme).then((result) => {
+      if (alive) setResolved(result);
+    });
+    return () => {
+      alive = false;
+    };
   }, [theme]);
 
   const value = {
     ...settings,
     themeId,
     theme,
+    compiled: resolved?.compiled ?? null,
+    themeWarnings: resolved?.warnings ?? [],
     isCustomTheme: themeId in settings.customThemes,
     isKnownTheme,
     setWinStyle: (winStyle: OSSettings['winStyle']) =>
@@ -80,7 +100,7 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
       });
       return id;
     },
-    updateCustomTheme: (id: string, patch: Partial<Theme>) =>
+    updateCustomTheme: (id: string, patch: Partial<AuthoringTheme>) =>
       setSettings((s) => {
         const existing = s.customThemes[id];
         if (!existing) return s;
