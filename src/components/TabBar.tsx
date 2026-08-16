@@ -5,6 +5,7 @@ import {
   GamepadTriggerLeft,
   GamepadTriggerRight,
 } from './icons';
+import Themed from './Themed';
 import styles from './TabBar.module.css';
 
 export type TabItem = {
@@ -38,14 +39,16 @@ export default function TabBar({
       {HintLeft && <HintLeft className={styles.Hint} />}
       <div className={styles.Tabs}>
         {items.map((item) => (
-          <Link
+          <Themed
             key={item.id}
+            as={Link}
+            part="tab"
+            state={item.id === activeId ? 'selected' : undefined}
             to={item.to}
             className={styles.Tab}
-            data-active={item.id === activeId || undefined}
           >
             {item.label}
-          </Link>
+          </Themed>
         ))}
       </div>
       {HintRight && <HintRight className={styles.Hint} />}

@@ -28,5 +28,5 @@
   align-items: center;
   justify-content: center;
   gap: 15px;
-  color: var(--app-border);
+  color: var(--g-play-row-content);
 }

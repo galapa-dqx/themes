@@ -1,6 +1,7 @@
 import { useLocation } from '@tanstack/react-router';
 import type { DOMAttributes } from 'react';
 import TabBar, { type TabItem } from './TabBar';
+import Themed from './Themed';
 import { IconDismiss, IconMaximize, IconMinimize } from './icons';
 import { useOptionalWindowContext } from '@/context/window';
 import styles from './TitleBar.module.css';
@@ -27,7 +28,9 @@ export default function TitleBar() {
   const activeId = pathname.includes('/settings') ? 'settings' : 'launcher';
 
   return (
-    <header
+    <Themed
+      as="header"
+      part="titlebar"
       className={styles.TitleBar}
       onPointerDown={win?.startMove}
       onDoubleClick={win?.toggleMaximize}
@@ -37,26 +40,36 @@ export default function TitleBar() {
         <TabBar items={TABS} activeId={activeId} hints="bumper" />
       </div>
       <div className={styles.Captions} {...inert}>
-        <button type="button" className={styles.CaptionBtn} aria-label="Minimize">
+        <Themed
+          as="button"
+          part="titlebar.caption"
+          type="button"
+          className={styles.CaptionBtn}
+          aria-label="Minimize"
+        >
           <IconMinimize />
-        </button>
-        <button
+        </Themed>
+        <Themed
+          as="button"
+          part="titlebar.caption"
           type="button"
           className={styles.CaptionBtn}
           aria-label={win?.isMaximized ? 'Restore' : 'Maximize'}
           onClick={win?.toggleMaximize}
         >
           <IconMaximize />
-        </button>
-        <button
+        </Themed>
+        <Themed
+          as="button"
+          part="titlebar.close"
           type="button"
-          className={`${styles.CaptionBtn} ${styles.Close}`}
+          className={styles.CaptionBtn}
           aria-label="Close"
           onClick={win?.close}
         >
           <IconDismiss />
-        </button>
+        </Themed>
       </div>
-    </header>
+    </Themed>
   );
 }

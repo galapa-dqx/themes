@@ -8,27 +8,11 @@
 }
 
 .NewsItem {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   height: 43px;
-  padding: 0 12px;
-  background: var(--g-news-item-fill, var(--app-surface));
-  border: var(--g-news-item-bw-t, 1px) solid
-    var(--g-news-item-bc, var(--app-border));
-  border-radius: var(--g-news-item-radius, var(--radius));
   text-decoration: none;
-  transition: border-color var(--g-news-item-t, 0s) var(--g-news-item-te, ease);
-}
-
-.NewsItem:hover {
-  border-color: var(--g-news-item-hover-bc, var(--app-muted));
-}
-
-.NewsItem:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: -1px;
 }
 
 /* Category shape straddles the card's left border. */
@@ -41,21 +25,26 @@
   transform: translate(-50%, -50%);
 }
 
+/* The gem strokes itself with the card's live border (--part-edge); fade it in
+   step with the card so the outline stays welded through hover. */
+.Badge :is(path, circle, rect) {
+  transition: stroke var(--motion) var(--motion-ease);
+}
+
 .Title {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--g-news-item-content, var(--app-muted));
-  font-family: var(--font-strong);
-  font-size: var(--text-lg);
-  font-style: var(--strong-style);
-  font-weight: var(--strong-weight);
+  font-family: var(--g-news-item-font, var(--font-heading));
+  font-size: var(--g-news-item-size, var(--text-lg));
+  font-style: var(--g-news-item-style, var(--heading-style));
+  font-weight: var(--g-news-item-weight, var(--heading-weight));
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .Date {
   flex: none;
-  color: var(--app-border);
-  font-size: var(--text-sm);
+  color: var(--g-news-item-date-content);
+  font-size: var(--g-news-item-date-size, var(--text-sm));
 }

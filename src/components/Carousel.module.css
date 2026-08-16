@@ -5,35 +5,29 @@
 }
 
 .Frame {
-  position: relative;
   margin: 0;
-  padding: 2px;
-  border: var(--g-carousel-bw-t, 1px) solid
-    var(--g-carousel-bc, var(--app-border));
-  border-radius: var(--g-carousel-radius, var(--radius));
 }
 
 .Banner {
   display: block;
   width: 100%;
+
+  /* A content constraint (the banner art's ratio), not chrome — stays fixed. */
   aspect-ratio: 728 / 185;
   object-fit: cover;
-  border-radius: var(--radius);
+  border-radius: var(--g-carousel-radius);
 }
 
-/* Prev/next straddle the frame edges, vertically centered. */
+/* Prev/next straddle the frame edges, vertically centered — layout and size
+   only; fill, stroke and hover are the carousel.nav control's business. */
 .Nav {
   position: absolute;
   top: 50%;
   display: grid;
   place-items: center;
-  width: 31px;
-  height: 31px;
+  width: var(--g-carousel-nav-w);
+  height: var(--g-carousel-nav-h);
   padding: 0;
-  color: var(--app-border);
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: 50%;
   transform: translateY(-50%);
   cursor: pointer;
 }
@@ -44,16 +38,6 @@
 
 .NavNext {
   right: -15px;
-}
-
-.Nav:hover {
-  color: var(--app-accent);
-  border-color: var(--app-accent);
-}
-
-.Nav:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 2px;
 }
 
 .Flip {
@@ -69,22 +53,23 @@
 }
 
 .Pip {
-  width: 9px;
-  height: 9px;
+  width: var(--g-pip-w);
+  height: var(--g-pip-h);
+
+  /* A pip is all box and no content: zero it explicitly, since "the control
+     declares no insets" leaves the element's own padding — and a <button>'s
+     own padding is the UA's, not nothing. The diamond is now the control's
+     beveled corners, not a rotate here. */
   padding: 0;
-  background: var(--g-pip-fill, transparent);
-  border: var(--g-pip-bw-t, 1px) solid var(--g-pip-bc, var(--app-border));
-  border-radius: var(--g-pip-radius, 0);
-  rotate: 45deg;
   cursor: pointer;
 }
 
-.Pip[data-active] {
-  background: var(--g-pip-selected-fill, var(--app-accent));
-  border-color: var(--g-pip-selected-bc, var(--app-accent));
-}
-
-.Pip:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: 2px;
+/* When a theme hands the pip real art, it sits over the (usually transparent)
+   frame, centred and filling the pip box. */
+.PipArt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

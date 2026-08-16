@@ -7,7 +7,7 @@ import { themeStyle } from '@/theme'
 /** The themed desktop preview at /themes/$themeId/preview. The in-app pages
  *  (launcher, settings) render into AppShell's outlet as child routes. */
 export default function DesktopPreview() {
-  const { theme, themeId, winStyle, mode } = useOSSettings()
+  const { theme, compiled, themeId, winStyle, mode } = useOSSettings()
 
   return (
     <div
@@ -16,7 +16,9 @@ export default function DesktopPreview() {
       data-app-theme={themeId}
       data-win-style={winStyle}
       data-mode={mode}
-      style={themeStyle(theme)}
+      // Null only until the first resolve; the provider then holds the last
+      // compiled theme across switches, so this never flashes back to bare.
+      style={compiled ? themeStyle(compiled) : undefined}
     >
       {mode === 'desktop' ? (
         <Window title="Galapa" chrome="app">

@@ -6,21 +6,21 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
+import Themed from './Themed';
 import styles from './ScrollPanel.module.css';
 
 /**
- * Scroll container with the themed 8px scrollbar from the design: rounded
- * pill or square with 45° beveled caps, sitting 8px off the content.
+ * Scroll container with the themed 8px scrollbar, sitting 8px off the content.
+ * The scrollbar's shape — a pill, or square with beveled caps — is the
+ * scrollbar.track/thumb controls' business now, not a prop here.
  */
 export default function ScrollPanel({
   children,
-  rounded = false,
   fade = false,
   bleedLeft = 0,
   className,
 }: {
   children: ReactNode;
-  rounded?: boolean;
   /** Fade the last few percent of the viewport (news list treatment). */
   fade?: boolean;
   /** Extra room (px) on the left so content decorations that straddle the
@@ -103,19 +103,20 @@ export default function ScrollPanel({
       >
         {children}
       </div>
-      <div
+      <Themed
         ref={trackRef}
+        part="scrollbar.track"
         className={styles.Track}
-        data-rounded={rounded || undefined}
         onPointerDown={jumpToTrackPosition}
         aria-hidden="true"
       >
-        <div
+        <Themed
+          part="scrollbar.thumb"
           className={styles.Thumb}
           style={{ top: `${thumb.top}%`, height: `${thumb.height}%` }}
           onPointerDown={dragThumb}
         />
-      </div>
+      </Themed>
     </div>
   );
 }

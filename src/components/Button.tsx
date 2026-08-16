@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Themed from './Themed';
 import styles from './Button.module.css';
 
 export default function Button({
@@ -13,13 +14,16 @@ export default function Button({
   disabled?: boolean;
 }) {
   return (
-    <button
+    <Themed
+      as="button"
+      part="button"
+      state={disabled ? 'disabled' : undefined}
       type={type}
       className={styles.Button}
-      onClick={onClick}
       disabled={disabled}
+      onClick={onClick}
     >
       {children}
-    </button>
+    </Themed>
   );
 }

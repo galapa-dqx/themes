@@ -9,10 +9,9 @@
   display: flex;
   flex: none;
   justify-content: center;
-  height: 34px;
-  background: var(--g-titlebar-fill, var(--app-surface-2));
-  border-bottom: var(--g-titlebar-bw-b, 1px) solid
-    var(--g-titlebar-bc, var(--app-border));
+  height: var(--g-subtabs-h);
+  background: var(--g-subtabs-fill);
+  border-bottom: var(--g-subtabs-bw-b) solid var(--g-subtabs-bc);
 }
 
 .Body {

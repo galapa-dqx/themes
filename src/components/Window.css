@@ -1,8 +1,10 @@
-/* Desktop backdrop (Win11 "Bloom"-ish wallpaper) */
+/* Desktop backdrop (Win11 "Bloom"-ish wallpaper). This is the simulated OS,
+   not a themed surface: it reads no --app-* / theme values, only its own
+   literals, flipping with the window's light/dark mode below. */
 .win-desktop {
-  --surface: var(--app-surface, #f3f3f3);
-  --surface-text: var(--app-text, #1b1b1b);
-  --win-border: var(--app-border, rgb(0 0 0 / 32%));
+  --surface: #f3f3f3;
+  --surface-text: #1b1b1b;
+  --win-border: rgb(0 0 0 / 32%);
   --win-radius: 8px;
   --btn-hover: rgb(0 0 0 / 5%);
   --btn-active: rgb(0 0 0 / 3%);
@@ -24,9 +26,12 @@
     #1d4fa1;
 }
 
-/* Surface/text/border come from the palette; these are the neutral overlays
-   that have to flip with the variant regardless of which theme is active. */
+/* The dark OS variant: neutral chrome surfaces, independent of which theme is
+   active (the app itself is themed inside the window; this is just the OS). */
 .win-desktop[data-theme='dark'] {
+  --surface: #2b2b2b;
+  --surface-text: #e6e6e6;
+  --win-border: rgb(255 255 255 / 18%);
   --btn-hover: rgb(255 255 255 / 6%);
   --btn-active: rgb(255 255 255 / 4%);
   --btn-active-text: rgb(255 255 255 / 60%);
@@ -76,7 +81,10 @@
   overflow: hidden;
   background: var(--surface);
   color: var(--surface-text);
-  border: 1px solid var(--win-border);
+
+  /* The one OS-frame detail the theme reaches: the window control's border
+     colour wraps the whole window. Radius and shadow stay OS chrome. */
+  border: 1px solid var(--g-window-bc, var(--win-border));
   border-radius: var(--win-radius);
   box-shadow:
     0 25px 50px -12px rgb(0 0 0 / 45%),

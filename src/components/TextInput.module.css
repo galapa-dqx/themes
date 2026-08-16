@@ -1,47 +1,26 @@
 .TextInput {
-  /* fieldsets default to min-content width; opt back into normal sizing */
-  min-inline-size: 0;
   inline-size: 100%;
-  margin: 0;
-  padding: 0 10px 4px;
-  border: 1px solid var(--g-input-bc, var(--app-border));
-  border-radius: var(--g-input-radius, var(--radius));
 }
 
-/* Focus thickens the frame to 2px, like the design's focused variant. */
-.TextInput:focus-within {
-  padding: 0 9px 3px;
-  border-color: var(--g-input-focused-bc, var(--app-accent));
-  border-width: 2px;
-}
-
-.TextInput:has(.Input:disabled) {
-  opacity: 0.5;
-}
-
+/* Type from the input.label control; <Themed> seats this in the stroke and
+   colours it to match. The side padding opens air either side of the glyphs —
+   the width of the gap in the stroke — and is this element's own business. */
 .Label {
-  margin-inline-start: 4px;
-  padding-inline: 6px;
-  color: var(--g-input-bc, var(--app-border));
-  font-family: var(--font-heading);
-  font-size: var(--text-xs);
-  font-style: var(--heading-style);
-  font-weight: var(--heading-weight);
-  text-transform: var(--field-label-case);
-}
-
-.TextInput:focus-within .Label {
-  color: var(--g-input-focused-bc, var(--app-accent));
+  padding-inline: 5px;
+  font-family: var(--g-input-label-font, var(--font-heading));
+  font-size: var(--g-input-label-size, var(--text-xs));
+  font-style: var(--g-input-label-style, var(--heading-style));
+  font-weight: var(--g-input-label-weight, var(--heading-weight));
+  text-transform: var(--g-input-label-case, none);
 }
 
 .Input {
   display: block;
   inline-size: 100%;
-  padding: 3px 0 5px;
-  color: var(--g-input-content, var(--app-text));
-  caret-color: var(--app-accent);
-  font-family: var(--font-body);
-  font-size: var(--text-lg);
+  color: inherit;
+  caret-color: var(--g-input-caret-content);
+  font-family: var(--g-input-font, var(--font-body));
+  font-size: var(--g-input-size, var(--text-lg));
   line-height: 1.5;
   background: none;
   border: none;
@@ -51,7 +30,9 @@
   outline: none;
 }
 
+/* The placeholder control bakes its own translucency into the colour, so the
+   opacity here is neutral. */
 .Input::placeholder {
-  color: var(--app-muted);
-  opacity: 0.6;
+  color: var(--g-input-placeholder-content);
+  opacity: 1;
 }

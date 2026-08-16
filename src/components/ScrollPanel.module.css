@@ -1,6 +1,6 @@
 .ScrollPanel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 8px;
+  grid-template-columns: minmax(0, 1fr) var(--g-scrollbar-track-w);
   column-gap: 8px;
   min-height: 0;
   height: 100%;
@@ -17,8 +17,8 @@
 }
 
 .Viewport:focus-visible {
-  outline: 2px solid var(--app-accent);
-  outline-offset: -2px;
+  outline: var(--app-focus-width) solid var(--app-focus-color);
+  outline-offset: var(--app-focus-offset);
 }
 
 .Viewport[data-fade] {
@@ -26,8 +26,6 @@
 }
 
 .Track {
-  position: relative;
-  background: var(--g-scrollbar-track-fill, var(--app-surface-2));
   touch-action: none;
 }
 
@@ -35,24 +33,4 @@
   position: absolute;
   right: 0;
   left: 0;
-  background: var(--g-scrollbar-thumb-fill, var(--app-muted));
-}
-
-/* Square scrollbars get the design's 45° beveled caps... */
-.Track:not([data-rounded]),
-.Track:not([data-rounded]) .Thumb {
-  clip-path: polygon(
-    50% 0,
-    100% 4px,
-    100% calc(100% - 4px),
-    50% 100%,
-    0 calc(100% - 4px),
-    0 4px
-  );
-}
-
-/* ...rounded ones are full pills. */
-.Track[data-rounded],
-.Track[data-rounded] .Thumb {
-  border-radius: 15px;
 }

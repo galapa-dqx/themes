@@ -122,11 +122,14 @@ export function Flourish(props: IconProps) {
   );
 }
 
-/* News category shapes — content colors from --cat-*, outline from theme. */
+/* News category shapes — fills from the app-owned --cat-* palette. The outline
+   defaults to the news item's own live border (--part-edge), so the gem stays
+   welded to the card's edge through hover and selection; a theme can still
+   pin a fixed stroke with news-item.gem.borderColor. */
 
 export type NewsCategory = 'events' | 'updates' | 'maintenance' | 'news';
 
-const CATEGORY_STROKE = 'var(--app-border)';
+const CATEGORY_STROKE = 'var(--g-news-item-gem-bc, var(--part-edge))';
 
 export function CategoryShape({ category, ...props }: IconProps & { category: NewsCategory }) {
   switch (category) {

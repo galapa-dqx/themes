@@ -1,3 +1,4 @@
+import Themed from './Themed';
 import styles from './Switch.module.css';
 
 export default function Switch({
@@ -12,7 +13,10 @@ export default function Switch({
   disabled?: boolean;
 }) {
   return (
-    <button
+    <Themed
+      as="button"
+      part="switch.track"
+      state={disabled ? 'disabled' : undefined}
       type="button"
       role="switch"
       aria-checked={checked}
@@ -21,7 +25,12 @@ export default function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
     >
-      <span className={styles.Knob} />
-    </button>
+      <Themed
+        as="span"
+        part="switch.thumb"
+        state={checked ? 'checked' : undefined}
+        className={styles.Knob}
+      />
+    </Themed>
   );
 }

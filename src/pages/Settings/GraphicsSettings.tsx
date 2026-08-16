@@ -181,7 +181,7 @@ export default function GraphicsSettings() {
 
   return (
     <div className={shared.Section}>
-      <ScrollPanel rounded>
+      <ScrollPanel>
         <div className={shared.Column}>
           <h2 className={shared.SectionHeading}>Application</h2>
           {SETTINGS.map((setting) => {

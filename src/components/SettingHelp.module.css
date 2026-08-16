@@ -6,17 +6,17 @@
 
 .Title {
   margin: 0 0 19px;
-  color: var(--app-text);
-  font-family: var(--font-heading);
-  font-size: var(--text-lg);
-  font-style: var(--heading-style);
-  font-weight: var(--heading-weight);
-  text-transform: var(--label-case);
+  color: var(--g-setting-help-title-content);
+  font-family: var(--g-setting-help-title-font, var(--font-heading));
+  font-size: var(--g-setting-help-title-size, var(--text-lg));
+  font-style: var(--g-setting-help-title-style, var(--heading-style));
+  font-weight: var(--g-setting-help-title-weight, var(--heading-weight));
+  text-transform: var(--g-setting-help-title-case, none);
 }
 
 .Body {
-  color: var(--app-text);
-  font-size: var(--text-sm);
+  color: var(--g-setting-help-body-content);
+  font-size: var(--g-setting-help-body-size, var(--text-sm));
   line-height: 1.45;
 }
 

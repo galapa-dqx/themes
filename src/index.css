@@ -1,13 +1,13 @@
 :root {
-  /* Static defaults; the themed desktop root re-aliases these from --app-*. */
+  /* The type floor. Controls override each of these per surface via
+     `--g-<control>-font/-size/-weight/-style`; where a control is silent about
+     type, the reader falls back to the floor. */
   --font-heading: 'Crimson Pro', georgia, 'Times New Roman', serif;
   --font-body:
     'Source Sans 3', 'Segoe UI Variable Text', 'Segoe UI', system-ui,
     -apple-system, sans-serif;
   --heading-weight: 600;
   --heading-style: normal;
-  --label-case: uppercase;
-  --radius: 0px;
 
   /* Type scale — every font-size in the app routes through these. */
   --text-xs: 12px; /* input labels */
@@ -16,14 +16,17 @@
   --text-lg: 16px; /* tabs, body copy, news titles */
   --text-xl: 20px; /* app wordmark */
 
+  /* State-change timing. App-level rather than per-control: across the themes
+     and controls every crossfade was 120ms and no theme ever set an easing, so
+     the knob was never turned. */
+  --motion: 120ms;
+  --motion-ease: ease;
+
   /* News category colors — content colors, deliberately theme-independent. */
   --cat-events: #a96beb;
   --cat-updates: #20ae77;
   --cat-maintenance: #e12b3f;
   --cat-news: #5e63e2;
-
-  --app-bg: #060d0b;
-  --app-surface: #0c1a18;
 }
 
 *,
@@ -92,27 +95,15 @@ h6 {
   color: #7fb2ff;
 }
 
-/* Any element carrying theme vars (themeStyle() inline) plus this class is
-   a self-contained themed subtree. The desktop root uses it, and the Studio
-   gallery uses it to sandbox specimens — the aliases must resolve on the
-   element that carries the --app-* side, not on :root. */
+/* Any element carrying theme vars (themeStyle() inline) plus this class is a
+   self-contained themed subtree. The desktop root uses it, and the Studio
+   gallery uses it to sandbox specimens. The theme now speaks entirely through
+   `--g-<control>-*` and `--app-focus-*`; the only scope-level value is the
+   inheritance baseline, which the `window` control's content colour supplies —
+   a surface that declares no content colour inherits the theme's text, not the
+   surrounding chrome. */
 .theme-scope {
-  --font-heading: var(--app-font-heading, 'Crimson Pro', georgia, serif);
-  --font-body: var(--app-font-body, 'Source Sans 3', system-ui, sans-serif);
-  --heading-weight: var(--app-heading-weight, 600);
-  --heading-style: var(--app-heading-style, normal);
-  --font-strong: var(--app-font-strong, var(--font-heading));
-  --strong-weight: var(--app-strong-weight, var(--heading-weight));
-  --strong-style: var(--app-strong-style, var(--heading-style));
-  --label-case: var(--app-label-case, uppercase);
-  --field-label-case: var(--app-field-label-case, none);
-  --radius: var(--app-radius, 0px);
+  color: var(--g-window-content);
 }
 
-/* Themed surface card. Geometry parts override via --g-panel-*; the
-   fallbacks are the app default (missing entry = default look). */
-.panel {
-  background: var(--g-panel-fill, var(--app-surface));
-  border: var(--g-panel-bw-t, 1px) solid var(--g-panel-bc, var(--app-border));
-  border-radius: var(--g-panel-radius, var(--radius));
-}
+/* Themed surfaces are <Themed part="…">, not a class — see Themed.tsx. */

@@ -4,7 +4,7 @@ import Carousel, { type CarouselSlide } from '@/components/Carousel';
 import NewsList, { type NewsEntry } from '@/components/NewsList';
 import PlayOrnament from '@/components/PlayOrnament';
 import ScrollPanel from '@/components/ScrollPanel';
-import Skin from '@/components/Skin';
+import Themed from '@/components/Themed';
 import TextInput from '@/components/TextInput';
 import styles from './Home.module.css';
 
@@ -90,7 +90,7 @@ export default function Home() {
           <NewsList items={NEWS} />
         </ScrollPanel>
       </section>
-      <Skin
+      <Themed
         part="panel"
         className={styles.LoginPanel}
         role="complementary"
@@ -108,7 +108,7 @@ export default function Home() {
           <Button>Play</Button>
           <PlayOrnament flip />
         </div>
-      </Skin>
+      </Themed>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Themed from './Themed';
 import styles from './SettingRow.module.css';
 
 export default function SettingRow({
@@ -15,15 +16,16 @@ export default function SettingRow({
   children: ReactNode;
 }) {
   return (
-    <div
-      className={`panel ${styles.SettingRow}`}
-      data-active={active || undefined}
+    <Themed
+      part="setting-row"
+      state={active ? 'selected' : undefined}
+      className={styles.SettingRow}
       tabIndex={onActivate ? 0 : undefined}
       onClick={onActivate}
       onFocus={onActivate}
     >
       <span className={styles.Label}>{label}</span>
       <span className={styles.Value}>{children}</span>
-    </div>
+    </Themed>
   );
 }

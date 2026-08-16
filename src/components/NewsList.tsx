@@ -1,3 +1,5 @@
+import Themed from './Themed';
+import ThemedArt from './ThemedArt';
 import { CategoryShape, type NewsCategory } from './icons';
 import styles from './NewsList.module.css';
 
@@ -13,17 +15,23 @@ export default function NewsList({ items }: { items: NewsEntry[] }) {
     <ul className={styles.NewsList}>
       {items.map((item) => (
         <li key={item.id}>
-          <a
+          <Themed
+            as="a"
+            part="news-item"
             href="#"
             className={styles.NewsItem}
-            onClick={(e) => e.preventDefault()}
+            onClick={(e: React.MouseEvent) => e.preventDefault()}
           >
             <span className={styles.Badge}>
-              <CategoryShape category={item.category} />
+              <ThemedArt
+                part="news-item.gem"
+                variant={item.category}
+                fallback={<CategoryShape category={item.category} />}
+              />
             </span>
             <span className={styles.Title}>{item.title}</span>
             <time className={styles.Date}>{item.date}</time>
-          </a>
+          </Themed>
         </li>
       ))}
     </ul>
