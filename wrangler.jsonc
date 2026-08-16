@@ -3,6 +3,14 @@
   "name": "galapa-themes",
   "compatibility_date": "2026-08-01",
 
+  // Build the Vite SPA before every deploy. `wrangler deploy` runs this first,
+  // so the ./dist assets always exist — locally, and in Cloudflare Workers
+  // Builds where main auto-deploys on push (its default `npx wrangler deploy`
+  // deploy command needs no separate build step because of this).
+  "build": {
+    "command": "pnpm build"
+  },
+
   // Static SPA: serve the Vite build directly (no Worker script needed), and
   // fall back to index.html for client-side routes (TanStack Router).
   "assets": {
