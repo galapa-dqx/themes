@@ -1,22 +1,38 @@
-export { THEMES, themeStyle } from './themes';
+export { THEMES } from './themes';
+export { compileControls, themeStyle } from './compile';
+export { resolveTheme, resolveColorValue, substituteTokens } from './resolve';
+export { SIDES, CONTROL_IDS } from './types';
 export type {
-  Theme,
+  AuthoringTheme,
+  CompiledTheme,
   ThemeMode,
-  ThemeColors,
+  ThemePalette,
   ThemeFont,
   ThemeFonts,
   ThemeMeta,
+  FocusRing,
   LabelCase,
-} from './themes';
-export { DEFAULT_GEOMETRY, resolveGeometry, compileGeometry } from './geometry';
-export type {
-  Part,
-  PathPart,
+  Control,
+  PathControl,
+  AssetControl,
   PathStateOverride,
-  AssetPart,
+  TextControl,
   PartState,
-  ThemeGeometry,
+  ThemeControls,
+  ControlId,
   ThemeToken,
+  ColorValue,
+  Operand,
+  LiteralColor,
+  TypeSpec,
+  ResolvedType,
   CornerShape,
   Edges,
-} from './geometry';
+  Side,
+  CompiledControl,
+  CompiledControls,
+  CompiledPaint,
+  CompiledPathControl,
+  CompiledAssetControl,
+  CompiledTextControl,
+} from './types';

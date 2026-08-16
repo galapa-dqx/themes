@@ -1,5 +1,4 @@
-import type { Edges } from './geometry';
-import type { ThemeColors } from './themes';
+import type { Edges } from './types';
 
 /**
  * `.9.svg` profile parser.
@@ -21,9 +20,11 @@ import type { ThemeColors } from './themes';
  *  - `data-slice-repeat` per slice: stretch (default), repeat, round or
  *    space — the CSS border-image-repeat vocabulary. Tiled slices ignore
  *    preserveAspectRatio
- *  - colours reference `var(--theme-*)` tokens, substituted against the
- *    palette at load (pre-substitution keeps us honest for the Skia port,
- *    which has no CSS cascade)
+ *  - colours are already literal by the time the art reaches this parser: the
+ *    resolver substitutes `var(--theme-*)` tokens against the palette while
+ *    inlining the art (see resolve.ts). Pre-substitution keeps us honest for
+ *    the Skia port, which has no CSS cascade — so this parser never sees a
+ *    token, and parsing is a pure, synchronous function of the SVG text.
  */
 
 export type RepeatMode = 'stretch' | 'repeat' | 'round' | 'space';
@@ -58,29 +59,9 @@ export type SliceSet = {
   warnings: string[];
 };
 
-export function substituteTokens(
-  svgText: string,
-  colors: ThemeColors,
-  warnings?: string[],
-): string {
-  return svgText.replace(/var\(--theme-([a-z0-9-]+)\)/g, (_, role: string) => {
-    const hex = colors[role as keyof ThemeColors];
-    if (!hex) {
-      const msg = `references unknown token --theme-${role}`;
-      warnings?.push(msg);
-      console.warn(`[theme] .9.svg ${msg}`);
-      return '#ff00ff';
-    }
-    return hex;
-  });
-}
-
-export function parseNineSlice(svgText: string, colors: ThemeColors): SliceSet {
+export function parseNineSlice(svgText: string): SliceSet {
   const warnings: string[] = [];
-  const doc = new DOMParser().parseFromString(
-    substituteTokens(svgText, colors, warnings),
-    'image/svg+xml',
-  );
+  const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
   const root = doc.documentElement;
   if (root.tagName !== 'svg') throw new Error('not an SVG document');
 
@@ -187,20 +168,16 @@ export function parseNineSlice(svgText: string, colors: ThemeColors): SliceSet {
   };
 }
 
-const cache = new Map<string, Promise<SliceSet>>();
+// Art arrives already inlined and substituted on the compiled theme, so a set
+// is a pure function of its SVG text — memoise by that text to avoid
+// re-parsing the same (large, stable) string on every render.
+const parseCache = new Map<string, SliceSet>();
 
-export function loadSliceSet(url: string, colors: ThemeColors): Promise<SliceSet> {
-  const key = `${url}|${Object.values(colors).join(',')}`;
-  let pending = cache.get(key);
-  if (!pending) {
-    pending = fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error(`${res.status} fetching ${url}`);
-        return res.text();
-      })
-      .then((text) => parseNineSlice(text, colors));
-    pending.catch(() => cache.delete(key));
-    cache.set(key, pending);
+export function getSliceSet(svgText: string): SliceSet {
+  let set = parseCache.get(svgText);
+  if (!set) {
+    set = parseNineSlice(svgText);
+    parseCache.set(svgText, set);
   }
-  return pending;
+  return set;
 }
