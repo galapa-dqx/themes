@@ -1,0 +1,316 @@
+/* The themed box. Every value here comes from the geometry object via the
+   --part-* aliases <Themed> sets; there are no fallbacks, because the
+   compiler already resolved "unspecified" to "unstyled".
+
+   The host paints nothing at all. Fill, stroke and corners live on .Frame, a
+   layer behind the content — the same arrangement an Asset part has always
+   had with its slice grid.
+
+   The stroke is two bands stacked vertically: .TopEdge owns the top border
+   AND both top corners; .Body owns the other three sides and the bottom
+   corners. That split is what makes the label-in-the-border work — .TopEdge
+   is a flex row, so a node dropped into it pushes the stroke aside with no
+   measuring. Crucially each corner arc belongs to exactly one element and
+   both its borders are the same colour, so there's no seam where two halves
+   of an arc meet.
+
+   State rules take `> .Frame` on the first hop so a nested part (the switch's
+   thumb inside its track) is never restyled by its parent's hover. */
+.Themed {
+  position: relative;
+
+  /* New stacking context so the frame can sit at z-index -1 without falling
+     behind the app background. */
+  isolation: isolate;
+  color: var(--part-content);
+
+  /* Dims the whole composited control — children and frame art included — the
+     mechanism the deleted `opacity: 0.5` disabled rules used. Switches per
+     state alongside colour, below. */
+  opacity: var(--part-opacity);
+
+  /* The current border colour, exposed to non-Themed children so a mark that
+     sits on the edge (the news gem) can stroke itself to match — and follow
+     the frame through its states. Unlike the frame's own --part-bc (which
+     switches on .Frame, deliberately out of the children's reach), this lives
+     on the host and updates per state below. A nested Themed control resets it
+     from its own border, so only plain children inherit the parent's. */
+  --part-edge: var(--part-bc);
+
+  /* The host paints nothing, and a UA border here would both show and push
+     the frame inwards — .Frame's inset resolves against the padding box. */
+  background: none;
+  border: 0;
+  transition:
+    color var(--motion) var(--motion-ease),
+    opacity var(--motion) var(--motion-ease);
+}
+
+/* Carries the fill, so it sits under every stroke and is shaped by the same
+   radius the strokes curve to. */
+.Frame {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  /* Where the top band ends and the body begins. Tall enough to hold the
+     corner arcs; a square corner only needs the stroke itself, and a concave
+     one needs a stroke more than its radius (see CONCAVE_CORNERS). Capped at
+     half the frame, because that's where a radius stops growing — 'pill'
+     compiles to 999px, and uncapped the band would be 999px tall on a 28px
+     control. Defined once here so the band and the body can never disagree
+     about where the seam is; the focused state just redefines it. */
+  --band: min(
+    max(var(--part-radius), var(--part-bw-t)) + var(--part-corner-pad),
+    50%
+  );
+
+  background: var(--part-fill);
+  border-radius: var(--part-radius);
+  pointer-events: none;
+  transition: background-color var(--motion) var(--motion-ease);
+}
+
+.TopEdge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  height: var(--band);
+}
+
+/* Longhands, not the shorthand: --part-bw is four values and `border`
+   accepts only one width. Each piece then drops the edges it doesn't own. */
+.Lead,
+.Trail,
+.Body {
+  border-style: solid;
+  border-width: var(--part-bw);
+  border-color: var(--part-bc);
+  transition: border-color var(--motion) var(--motion-ease);
+}
+
+/* The top-left corner plus the run of stroke up to the label. The square
+   aspect makes it exactly as wide as the band is tall — i.e. the capped
+   radius — and min-width widens it when the part's left inset is bigger. */
+.Lead {
+  flex: none;
+  height: 100%;
+  min-width: var(--part-lead);
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-top-left-radius: var(--part-radius);
+  aspect-ratio: 1;
+}
+
+/* The rest of the top edge, plus the top-right corner. */
+.Trail {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-top-right-radius: var(--part-radius);
+}
+
+/* The other three sides, starting below the top band so its left and right
+   strokes carry on exactly where the corners left off. */
+.Body {
+  position: absolute;
+  inset: var(--band) 0 0;
+  border-top-width: 0;
+  border-bottom-right-radius: var(--part-radius);
+  border-bottom-left-radius: var(--part-radius);
+}
+
+@supports (corner-shape: bevel) {
+  .Frame,
+  .Lead,
+  .Trail,
+  .Body {
+    corner-shape: var(--part-corner); /* stylelint-disable-line property-no-unknown */
+  }
+}
+
+/* Seated in the stroke, centred on it, and clickable again — it holds a real
+   <label for=…>, which is the one part of the frame that isn't decoration. */
+.Label {
+  flex: none;
+  align-self: flex-start;
+  color: var(--part-label-content);
+  white-space: nowrap;
+  pointer-events: auto;
+  transition: color var(--motion) var(--motion-ease);
+  translate: 0 calc(var(--part-bw-t) / 2 - 50%);
+}
+
+/* The seated label's colour is its own (a control can set a higher-contrast
+   mix that reads better than the faint stroke it sits in) but it still follows
+   the frame's focus: on focus it tracks the focused stroke. Custom properties
+   resolve their var() at the host, so --part-label-content can't see the
+   focused border on its own — this rule restores what reading --part-bc
+   directly used to give for free. */
+.Themed:focus-visible > .Frame .Label,
+.Themed:has(:focus-visible) > .Frame .Label {
+  color: var(--part-focused-bc);
+}
+
+/* Interaction states. A state never restates how the frame is painted — it
+   re-points the paint aliases at its own scope, and every rule above then
+   follows on its own: the fill, all four stroke widths with each piece still
+   dropping the edges it doesn't own, the band the corners need, the label's
+   seat in the top stroke. Restating them is what left hover and pressed
+   honouring a state's colours but not its thickness.
+
+   The aliases land on .Frame, one hop down, so a nested part (the switch's
+   thumb inside its track) is never restyled by its parent's hover. Content
+   colour is the exception — real children inherit it, so it belongs on the
+   host. When a prop state is active these aliases already point at it, so
+   these rules resolve to the same values rather than fighting it. */
+.Themed:hover > .Frame {
+  --part-fill: var(--part-hover-fill);
+  --part-bc: var(--part-hover-bc);
+  --part-bw: var(--part-hover-bw);
+  --part-bw-t: var(--part-hover-bw-t);
+  --part-corner-pad: var(--part-hover-corner-pad);
+}
+
+.Themed:hover {
+  color: var(--part-hover-content);
+  opacity: var(--part-hover-opacity);
+  --part-edge: var(--part-hover-bc);
+}
+
+.Themed:active > .Frame {
+  --part-fill: var(--part-pressed-fill);
+  --part-bc: var(--part-pressed-bc);
+  --part-bw: var(--part-pressed-bw);
+  --part-bw-t: var(--part-pressed-bw-t);
+  --part-corner-pad: var(--part-pressed-corner-pad);
+}
+
+.Themed:active {
+  color: var(--part-pressed-content);
+  opacity: var(--part-pressed-opacity);
+  --part-edge: var(--part-pressed-bc);
+}
+
+/* :has() covers parts that frame a focusable child rather than taking focus
+   themselves — an input's frame wears the focused stroke when its <input>
+   is focused. Last of the three, so focus outranks a lingering hover. */
+.Themed:focus-visible > .Frame,
+.Themed:has(:focus-visible) > .Frame {
+  --part-fill: var(--part-focused-fill);
+  --part-bc: var(--part-focused-bc);
+  --part-bw: var(--part-focused-bw);
+  --part-bw-t: var(--part-focused-bw-t);
+  --part-corner-pad: var(--part-focused-corner-pad);
+}
+
+.Themed:focus-visible,
+.Themed:has(:focus-visible) {
+  color: var(--part-focused-content);
+  opacity: var(--part-focused-opacity);
+  --part-edge: var(--part-focused-bc);
+}
+
+/* The ring, though, only ever goes on the thing actually focused. It reads the
+   theme's resolved focus vars; when the theme opts out (focusRing: null) those
+   vars are absent, the shorthand is invalid-at-computed-value, and no ring is
+   drawn — the one indicator the app owns, silenced cleanly. */
+.Themed:focus-visible {
+  outline: var(--app-focus-width) solid var(--app-focus-color);
+  outline-offset: var(--app-focus-offset);
+}
+
+/* ── Asset controls: stacked layers, CSS-driven crossfade ──────────────────
+   An Asset control paints its base art plus one layer per declared state, all
+   absolutely stacked. The stack is its own isolated group so `plus-lighter`
+   composites only these layers, not the page behind them. Each layer is
+   positioned by usePartSkin (inset = negative outset); this file only drives
+   which layer shows.
+
+   Normal source-over compositing dips mid-fade (two half-opaque layers cover
+   only 0.75), so at t=0.5 the page shows through. `plus-lighter` adds
+   premultiplied colour and alpha, so the paired ramps (1−t) and t sum coverage
+   to 1 at every t — a true linear replacement with no dip. Where the base and
+   the active state both ramp, that pairing needs the base to fade out as the
+   state fades in. Browsers without `plus-lighter` keep the base opaque and let
+   the state cross-dissolve over it (source-over) — the documented fallback. */
+.LayerStack {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.Layer {
+  opacity: 0;
+  transition: opacity var(--motion) var(--motion-ease);
+}
+
+.Layer[data-state='base'] {
+  opacity: 1;
+}
+
+.LayerFill {
+  position: absolute;
+  inset: 0;
+}
+
+@supports (mix-blend-mode: plus-lighter) {
+  .Layer:not([data-state='base']) {
+    mix-blend-mode: plus-lighter;
+  }
+}
+
+/* Raise the layer whose state is active. */
+.Themed:hover > .LayerStack > [data-state='hover'] {
+  opacity: 1;
+}
+
+.Themed:active > .LayerStack > [data-state='pressed'] {
+  opacity: 1;
+}
+
+.Themed:focus-visible > .LayerStack > [data-state='focused'],
+.Themed:has(:focus-visible) > .LayerStack > [data-state='focused'] {
+  opacity: 1;
+}
+
+.Themed[data-prop-state='selected'] > .LayerStack > [data-state='selected'],
+.Themed[data-prop-state='checked'] > .LayerStack > [data-state='checked'],
+.Themed[data-prop-state='disabled'] > .LayerStack > [data-state='disabled'] {
+  opacity: 1;
+}
+
+/* And fade the base out for a true replacement, but only where the crossfade
+   sums coverage back to 1 (plus-lighter) and a matching state layer is present
+   (:has). Without either, the base stays put. */
+@supports (mix-blend-mode: plus-lighter) {
+  .Themed:hover:has(> .LayerStack > [data-state='hover'])
+    > .LayerStack
+    > [data-state='base'],
+  .Themed:active:has(> .LayerStack > [data-state='pressed'])
+    > .LayerStack
+    > [data-state='base'],
+  .Themed:focus-visible:has(> .LayerStack > [data-state='focused'])
+    > .LayerStack
+    > [data-state='base'],
+  .Themed:has(:focus-visible):has(> .LayerStack > [data-state='focused'])
+    > .LayerStack
+    > [data-state='base'],
+  .Themed[data-prop-state='selected']:has(> .LayerStack > [data-state='selected'])
+    > .LayerStack
+    > [data-state='base'],
+  .Themed[data-prop-state='checked']:has(> .LayerStack > [data-state='checked'])
+    > .LayerStack
+    > [data-state='base'],
+  .Themed[data-prop-state='disabled']:has(> .LayerStack > [data-state='disabled'])
+    > .LayerStack
+    > [data-state='base'] {
+    opacity: 0;
+  }
+}

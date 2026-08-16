@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { SliceCell, SliceSet } from '@/theme/nineSlice';
 
 /** Renders a parsed .9.svg as a grid of slice viewports. CSS does all the
@@ -55,10 +55,15 @@ function tileStyle(
 
 export default function SliceGrid({
   set,
+  label,
   className,
   style,
 }: {
   set: SliceSet;
+  /** Node to seat in the top edge, between the top-left corner slice and the
+   *  edge art. The art reflows beside it, which is the whole trick behind the
+   *  label-in-the-border look: no measuring, no masking, just flex. */
+  label?: ReactNode;
   className?: string;
   style?: CSSProperties;
 }) {
@@ -66,7 +71,6 @@ export default function SliceGrid({
   return (
     <div
       className={className}
-      aria-hidden="true"
       // Positioning/sizing stays the caller's business (class or style);
       // adding e.g. an inline position here would override their class.
       style={{ containerType: 'size', ...style }}
@@ -81,23 +85,39 @@ export default function SliceGrid({
         }}
       >
         {set.cells.map((cell) => {
+          const key = `${cell.col}_${cell.row}`;
           const placement: CSSProperties = {
             minWidth: 0,
             minHeight: 0,
             gridColumn: cell.col + 1,
             gridRow: cell.row + 1,
           };
+          // The labelled cell hands its placement to a flex wrapper and lets
+          // the art take the space left over.
+          const seats = label !== undefined && cell.col === 1 && cell.row === 0;
+          const box = seats ? { flex: 1, minWidth: 0 } : placement;
           const tiled = tileStyle(cell, set, caps);
-          return tiled ? (
-            <div key={`${cell.col}_${cell.row}`} style={{ ...placement, ...tiled }} />
+          const art = tiled ? (
+            <div key={key} aria-hidden="true" style={{ ...box, ...tiled }} />
           ) : (
             <svg
-              key={`${cell.col}_${cell.row}`}
+              key={key}
+              aria-hidden="true"
               viewBox={cell.vb}
               preserveAspectRatio={cell.par}
-              style={{ display: 'block', width: '100%', height: '100%', ...placement }}
+              style={{ display: 'block', width: '100%', height: '100%', ...box }}
               dangerouslySetInnerHTML={{ __html: cell.markup }}
             />
+          );
+          if (!seats) return art;
+          return (
+            <div
+              key={key}
+              style={{ ...placement, display: 'flex', alignItems: 'center' }}
+            >
+              {label}
+              {art}
+            </div>
           );
         })}
       </div>
