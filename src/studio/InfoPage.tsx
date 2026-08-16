@@ -1,15 +1,29 @@
 import { Button, FileButton, Textarea, TextInput } from '@mantine/core';
 import { useNavigate } from '@tanstack/react-router';
 import { FALLBACK_THEME_ID, useOSSettings } from '@/context/os-settings';
-import type { ThemeMeta } from '@/theme';
+import { compiledBundle, type ThemeMeta } from '@/theme';
 import styles from './Studio.module.css';
 
 /** Theme identity & release metadata — everything a bundled theme ships. */
 export default function InfoPage() {
-  const { theme, themeId, isCustomTheme, updateCustomTheme, deleteTheme } =
+  const { theme, themeId, compiled, isCustomTheme, updateCustomTheme, deleteTheme } =
     useOSSettings();
   const navigate = useNavigate();
   const disabled = !isCustomTheme;
+
+  // The compiled bundle: the theme resolved to literals, self-contained. Works
+  // for built-ins too — you're downloading its rendered form, not editing it —
+  // so this is the one action here that isn't gated on `disabled`.
+  const downloadCompiled = () => {
+    if (!compiled) return;
+    const { filename, json } = compiledBundle(compiled);
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const setMeta = (patch: Partial<ThemeMeta>) =>
     updateCustomTheme(themeId, { meta: { ...theme.meta, ...patch } });
@@ -110,6 +124,22 @@ export default function InfoPage() {
           alt={`${theme.label} preview`}
         />
       )}
+
+      <h3 className={styles.SectionTitle}>Compiled bundle</h3>
+      <span className={styles.Meta}>
+        The theme resolved to literals — palette tokens, font roles and art all
+        inlined — as a self-contained JSON file with nothing left to fetch.
+      </span>
+      <div className={styles.Row}>
+        <Button
+          size="xs"
+          variant="default"
+          disabled={!compiled}
+          onClick={downloadCompiled}
+        >
+          Download compiled theme
+        </Button>
+      </div>
 
       {isCustomTheme && (
         <>

@@ -1,6 +1,7 @@
 export { THEMES } from './themes';
 export { compileControls, themeStyle } from './compile';
 export { resolveTheme, resolveColorValue, substituteTokens } from './resolve';
+export { compiledBundle, themeSlug } from './bundle';
 export { SIDES, CONTROL_IDS } from './types';
 export type {
   AuthoringTheme,
