@@ -244,5 +244,8 @@ export const lushenda: AuthoringTheme = {
     },
     'input.caret': { contentColor: '--theme-accent' },
     'play-row': { contentColor: '--theme-border' },
+    'progress.track': { shape: 'Path', size: { height: 4 }, radius: 'pill', fill: '--theme-surface-2' },
+    'progress.indicator': { shape: 'Path', size: { height: 4 }, radius: 'pill', fill: '--theme-accent' },
+    'input.error': { contentColor: '--theme-danger', text: { role: 'body', size: 13 } },
   },
 };

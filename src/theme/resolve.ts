@@ -345,8 +345,7 @@ export async function resolveTheme(
   const warnings: string[] = [];
   const { fonts } = theme;
 
-  const controls = {} as CompiledControls;
-  await Promise.all(
+  const resolvedControls = await Promise.all(
     CONTROL_IDS.map(async (id: ControlId) => {
       const entry = theme.controls[id];
       let compiled: CompiledControl;
@@ -365,9 +364,13 @@ export async function resolveTheme(
       } else {
         compiled = await resolveTextControl(entry, theme, fonts, warnings);
       }
-      controls[id] = compiled;
+      return [id, compiled] as const;
     }),
   );
+  // Asset controls resolve asynchronously. Assign only after every promise
+  // completes so object/JSON order remains the stable CONTROL_IDS contract
+  // instead of whichever fetch happened to finish first.
+  const controls = Object.fromEntries(resolvedControls) as CompiledControls;
 
   const compiled: CompiledTheme = {
     label: theme.label,

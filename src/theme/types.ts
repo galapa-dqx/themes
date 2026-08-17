@@ -227,6 +227,10 @@ export type ThemeControls = {
   'scrollbar.track': Control & FixedWidth;
   'scrollbar.thumb': Control & FixedWidth;
 
+  /* progress feedback */
+  'progress.track': Control & FixedHeight;
+  'progress.indicator': Control & FixedHeight;
+
   /* pure art — a themeable mark with an app-drawn default */
   'play-ornament': Control & FixedSize; // flanks the Play button (default: Flourish)
 
@@ -244,6 +248,7 @@ export type ThemeControls = {
   'setting-help.body': TextControl;
   'input.placeholder': TextControl;
   'input.caret': TextControl;
+  'input.error': TextControl;
   'play-row': TextControl;
 };
 
@@ -274,6 +279,8 @@ export const CONTROL_IDS = [
   'subtabs',
   'scrollbar.track',
   'scrollbar.thumb',
+  'progress.track',
+  'progress.indicator',
   'play-ornament',
   'input.label',
   'news-item.date',
@@ -285,6 +292,7 @@ export const CONTROL_IDS = [
   'setting-help.body',
   'input.placeholder',
   'input.caret',
+  'input.error',
   'play-row',
 ] as const satisfies readonly ControlId[];
 
