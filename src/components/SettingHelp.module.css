@@ -11,12 +11,14 @@
   font-size: var(--g-setting-help-title-size, var(--text-lg));
   font-style: var(--g-setting-help-title-style, var(--heading-style));
   font-weight: var(--g-setting-help-title-weight, var(--heading-weight));
+  letter-spacing: var(--g-setting-help-title-tracking, 0);
   text-transform: var(--g-setting-help-title-case, none);
 }
 
 .Body {
   color: var(--g-setting-help-body-content);
   font-size: var(--g-setting-help-body-size, var(--text-sm));
+  letter-spacing: var(--g-setting-help-body-tracking, 0);
   line-height: 1.45;
 }
 

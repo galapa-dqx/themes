@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "compile-themes": "node scripts/export-compiled-themes.mjs",
-    "compile-themes": "node scripts/export-compiled-themes.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "wrangler deploy",
