@@ -122,6 +122,19 @@ export type PathStateOverride = {
   image?: string;
 };
 
+/** Only the focused state may decide whether the app-owned focus ring is
+ *  drawn. Keeping this inside `focused` makes suppressing the ring an explicit
+ *  promise that the same state supplies another visible focus treatment. */
+export type FocusedStateOverride<T extends object> = T & {
+  showRing?: boolean;
+};
+
+export type ControlStates<T extends object> = {
+  [State in PartState]?: State extends 'focused'
+    ? FocusedStateOverride<T>
+    : T;
+};
+
 export type PathControl = {
   shape: 'Path';
   /** Corner radius in logical px; 'pill' = stadium at any size. @default 0 */
@@ -150,7 +163,7 @@ export type PathControl = {
    *  (so it follows the content colour and its states). Where a control leaves
    *  this silent, the app draws its own default glyph (the "icon floor"). */
   image?: string;
-  states?: Partial<Record<PartState, PathStateOverride>>;
+  states?: ControlStates<PathStateOverride>;
 };
 
 export type AssetControl = {
@@ -165,7 +178,7 @@ export type AssetControl = {
   opacity?: number;
   text?: TypeSpec;
   /** Per-state art: a whole second `.9.svg` that crossfades over the base. */
-  states?: Partial<Record<PartState, { asset?: string }>>;
+  states?: ControlStates<{ asset?: string }>;
 };
 
 export type Control = PathControl | AssetControl;
@@ -323,9 +336,9 @@ export type ThemeMeta = {
   previewImage?: string;
 };
 
-/** The focus indicator. It is the one thing the app draws that no theme need
- *  declare: `undefined` gives the default accent ring; an object overrides it;
- *  `null` opts out entirely. */
+/** The app-owned focus indicator style. Omit it for the default accent ring or
+ *  provide an object to restyle it. Individual controls may suppress it only
+ *  from a focused state that supplies another visible focus treatment. */
 export type FocusRing = {
   color?: ColorValue;
   width?: number;
@@ -338,8 +351,8 @@ export type AuthoringTheme = {
   mode: ThemeMode;
   palette: ThemePalette;
   fonts: ThemeFonts;
-  /** @see FocusRing — undefined = default ring, null = no ring. */
-  focusRing?: FocusRing | null;
+  /** @see FocusRing — undefined = default ring. */
+  focusRing?: FocusRing;
   /** Asset key → URL. Referenced by controls (nine-slice `Asset` surfaces, or
    *  plain-image `image`/`images` marks). */
   assets?: Record<string, string>;
@@ -376,6 +389,16 @@ export type CompiledPaint = {
   image?: string;
 };
 
+export type CompiledFocusedState<T extends object> = T & {
+  showRing?: boolean;
+};
+
+export type CompiledControlStates<T extends object> = {
+  [State in PartState]?: State extends 'focused'
+    ? CompiledFocusedState<T>
+    : T;
+};
+
 type CompiledSize = { width?: number; height?: number };
 
 export type CompiledPathControl = CompiledPaint & {
@@ -385,7 +408,7 @@ export type CompiledPathControl = CompiledPaint & {
   padding?: number | Edges;
   text?: ResolvedType;
   size?: CompiledSize;
-  states?: Partial<Record<PartState, CompiledPaint>>;
+  states?: CompiledControlStates<CompiledPaint>;
 };
 
 export type CompiledAssetControl = {
@@ -396,7 +419,7 @@ export type CompiledAssetControl = {
   opacity?: number;
   text?: ResolvedType;
   size?: CompiledSize;
-  states?: Partial<Record<PartState, { art: string }>>;
+  states?: CompiledControlStates<{ art?: string }>;
 };
 
 export type CompiledTextControl = {
@@ -431,7 +454,7 @@ export type CompiledTheme = {
   label: string;
   meta?: ThemeMeta;
   mode: ThemeMode;
-  /** Resolved focus indicator, or `null` when the theme opts out. */
-  focusRing: { color: LiteralColor; width: number; offset: number } | null;
+  /** Resolved app-owned focus indicator style. */
+  focusRing: { color: LiteralColor; width: number; offset: number };
   controls: CompiledControls;
 };

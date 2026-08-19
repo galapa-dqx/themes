@@ -101,6 +101,12 @@ export function compileControls(theme: CompiledTheme): Record<string, string> {
     // never chain a fallback back to the base value.
     for (const [state, override] of Object.entries(c.states ?? {})) {
       emitPaint(`${prefix}-${state}`, { ...paintOf(c), ...override }, c.corner);
+      const showRing =
+        state === 'focused'
+          ? (override as CompiledPaint & { showRing?: boolean }).showRing
+          : undefined;
+      if (showRing !== undefined)
+        vars[`${prefix}-focused-ring-style`] = showRing ? 'solid' : 'none';
     }
   };
 
@@ -126,6 +132,10 @@ export function compileControls(theme: CompiledTheme): Record<string, string> {
       vars[`${prefix}-opacity`] = `${control.opacity ?? 1}`;
       emitSize(prefix, control.size);
       emitType(prefix, control.text);
+      if (control.states?.focused?.showRing !== undefined)
+        vars[`${prefix}-focused-ring-style`] = control.states.focused.showRing
+          ? 'solid'
+          : 'none';
     } else if (control.shape === 'Window') {
       // The whole surface, read by AppShell (fill, content) and the OS window
       // frame (border) — nothing else, since a native window has nothing else.
@@ -152,16 +162,14 @@ const paintOf = (c: CompiledPaint): CompiledPaint => ({
 /**
  * Every custom property a themed scope needs: the compiled controls, and the
  * focus ring. That's the whole surface now — no palette, no type, no chrome
- * scalars. When the theme opts out of the ring (`focusRing: null`), the
- * `--app-focus-*` vars are simply absent and the outline that reads them
- * becomes invalid-at-computed-value, i.e. no ring.
+ * scalars. The focus vars are always present: `focusRing` styles the app-owned
+ * indicator, while a focused control state decides whether that indicator is
+ * shown for that control.
  */
 export function themeStyle(theme: CompiledTheme): CSSProperties {
   const vars = compileControls(theme);
-  if (theme.focusRing) {
-    vars['--app-focus-color'] = theme.focusRing.color;
-    vars['--app-focus-width'] = px(theme.focusRing.width);
-    vars['--app-focus-offset'] = px(theme.focusRing.offset);
-  }
+  vars['--app-focus-color'] = theme.focusRing.color;
+  vars['--app-focus-width'] = px(theme.focusRing.width);
+  vars['--app-focus-offset'] = px(theme.focusRing.offset);
   return vars as CSSProperties;
 }
