@@ -1,27 +1,29 @@
 /**
  * Font embedding: fetch the TrueType files a compiled theme's controls name,
- * from the Google Fonts catalog, and return them as ZIP entries plus the
- * relative paths that will be written into `theme.json`.
+ * from the Google Fonts catalog. Returns the ZIP entries plus a lookup from
+ * (family, weight, style) to the archive-relative path, so the caller can
+ * collapse each control's text spec down to a single `font` pointer.
  */
 
 import { fetchGoogleFonts } from './googleFonts';
 import type { CompiledTheme, ResolvedType } from './types';
 import { CONTROL_IDS } from './types';
 
-/** One embedded face, as it appears in `theme.json`. */
-export type BundledFace = {
-  family: string;
-  weight: number;
-  style: 'normal' | 'italic';
-  /** Relative path inside the archive, e.g. `./crimson-pro-700.ttf`. */
-  src: string;
-};
+export type FontStyle = 'normal' | 'italic';
 
 export type FontBundle = {
   /** Archive path → TTF bytes. Paths are bare filenames at the ZIP root. */
   files: Record<string, Uint8Array>;
-  faces: BundledFace[];
+  /** `family|weight|style` → archive-relative path (e.g. `./crimson-pro-700.ttf`). */
+  paths: Map<string, string>;
 };
+
+/** Key for the `paths` map. */
+export const faceKey = (
+  family: string,
+  weight: number,
+  style: FontStyle,
+): string => `${family}|${weight}|${style}`;
 
 /** CSS generic families and system stacks: named, never downloadable. */
 const GENERIC_FAMILIES = new Set([
@@ -74,17 +76,16 @@ function requestedFaces(theme: CompiledTheme): Triple[] {
 }
 
 /**
- * Fetch every face the theme names. Throws on the first face it can't
- * embed — a `.galapatheme` missing a font is a broken theme, not a shipped
- * one.
+ * Fetch every face the theme names. Throws on the first face it can't embed
+ * — a `.galapatheme` missing a font is a broken theme, not a shipped one.
  */
 export async function bundleFonts(theme: CompiledTheme): Promise<FontBundle> {
   const requested = requestedFaces(theme);
-  if (!requested.length) return { files: {}, faces: [] };
+  if (!requested.length) return { files: {}, paths: new Map() };
 
   const catalog = await fetchGoogleFonts();
   const files: Record<string, Uint8Array> = {};
-  const faces: BundledFace[] = [];
+  const paths = new Map<string, string>();
 
   for (const { family, weight, italic } of requested) {
     const entry = catalog.find((c) => c.family === family);
@@ -112,13 +113,11 @@ export async function bundleFonts(theme: CompiledTheme): Promise<FontBundle> {
 
     const name = `${slug(family)}-${weight}${italic ? 'i' : ''}.ttf`;
     files[name] = bytes;
-    faces.push({
-      family,
-      weight,
-      style: italic ? 'italic' : 'normal',
-      src: `./${name}`,
-    });
+    paths.set(
+      faceKey(family, weight, italic ? 'italic' : 'normal'),
+      `./${name}`,
+    );
   }
 
-  return { files, faces };
+  return { files, paths };
 }

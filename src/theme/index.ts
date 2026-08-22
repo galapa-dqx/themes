@@ -10,10 +10,10 @@ export {
   GALAPATHEME_MIME,
   THEME_ENTRY,
 } from './galapatheme';
-export { bundleFonts } from './fontBundle';
+export { bundleFonts, faceKey } from './fontBundle';
 export { SIDES, CONTROL_IDS } from './types';
 export type { GalapathemeHeader } from './galapatheme';
-export type { BundledFace, FontBundle } from './fontBundle';
+export type { FontBundle, FontStyle } from './fontBundle';
 export type {
   AuthoringTheme,
   CompiledTheme,
