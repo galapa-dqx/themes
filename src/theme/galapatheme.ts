@@ -36,10 +36,6 @@ export const THEME_ENTRY = 'theme.json';
 
 const FIXED_HEADER_BYTES = 8 + 2 + 4;
 
-/** 1980-01-01 (the ZIP DOS-timestamp floor) built from local components, so
- *  the stored mtime is byte-identical across timezones. */
-const EPOCH = new Date(1980, 0, 1);
-
 /**
  * The prepended index. Every field is identity — nothing that grows with the
  * theme, so the header stays cheap however large the payload gets.
@@ -127,13 +123,10 @@ export async function galapathemeBundle(
     controls: rewriteControls(theme.controls, paths),
   };
 
-  const payload = zipSync(
-    {
-      [THEME_ENTRY]: encoder.encode(JSON.stringify(themeJson, null, 2) + '\n'),
-      ...files,
-    },
-    { mtime: EPOCH },
-  );
+  const payload = zipSync({
+    [THEME_ENTRY]: encoder.encode(JSON.stringify(themeJson, null, 2) + '\n'),
+    ...files,
+  });
 
   const meta = theme.meta;
   const header: GalapathemeHeader = {
