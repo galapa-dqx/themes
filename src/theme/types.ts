@@ -323,7 +323,6 @@ export type ThemeMode = 'light' | 'dark';
 export type ThemeMeta = {
   description?: string;
   maintainer?: string;
-  version?: string;
   /** Where bundled releases check for updates. */
   updateUrl?: string;
   /** Preview image (data URL or path). */

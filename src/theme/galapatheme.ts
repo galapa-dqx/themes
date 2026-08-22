@@ -7,10 +7,13 @@
  *   header    N B   UTF-8 JSON — see {@link GalapathemeHeader}
  *   payload         ZIP archive to end of file
  *
- * The prefix carries identity (id, label, version, updateUrl) so a catalog
- * scan doesn't need to open the archive. A prefixed ZIP still opens with any
- * reader — the central directory sits at the tail and readers compensate for
- * the leading bytes.
+ * The header carries only what an update loop needs (`format`, `id`,
+ * `publishedAt`) so a catalog scan doesn't open the archive. Everything
+ * user-facing lives in `metadata.json`; rendering data lives in `theme.json`;
+ * anything else (fonts, preview image) is a file alongside them.
+ *
+ * A prefixed ZIP still opens with any reader — the central directory sits at
+ * the tail and readers compensate for the leading bytes.
  */
 
 import { zipSync } from 'fflate';
@@ -19,7 +22,6 @@ import type {
   CompiledControl,
   CompiledTheme,
   ResolvedType,
-  ThemeMode,
 } from './types';
 
 /** ASCII `GLPTHEME`. */
@@ -31,26 +33,32 @@ export const GALAPATHEME_VERSION = 1;
 export const GALAPATHEME_EXTENSION = '.galapatheme';
 export const GALAPATHEME_MIME = 'application/vnd.galapa.theme+zip';
 
-/** The path the compiled theme takes inside the archive. */
+/** Payload entry names. */
 export const THEME_ENTRY = 'theme.json';
+export const METADATA_ENTRY = 'metadata.json';
 
 const FIXED_HEADER_BYTES = 8 + 2 + 4;
 
-/**
- * The prepended index. Every field is identity — nothing that grows with the
- * theme, so the header stays cheap however large the payload gets.
- */
+/** The minimum an update loop needs. Everything else lives in `metadata.json`. */
 export type GalapathemeHeader = {
   format: typeof GALAPATHEME_VERSION;
-  /** Stable identifier for the theme (a UUID for custom themes, a slug for
-   *  built-ins). */
+  /** Stable identifier for the theme. */
+  id: string;
+  /** ISO 8601 timestamp of when this bundle was written. */
+  publishedAt: string;
+};
+
+/** The user-facing metadata for the theme — the `metadata.json` payload. */
+export type GalapathemeMetadata = {
+  format: typeof GALAPATHEME_VERSION;
   id: string;
   label: string;
-  mode: ThemeMode;
-  version?: string;
   description?: string;
+  publishedAt: string;
   maintainer?: string;
   updateUrl?: string;
+  /** Relative archive path to the preview image, if one was bundled. */
+  previewImage?: string;
 };
 
 /** Filesystem-safe slug from a theme label. */
@@ -108,6 +116,33 @@ function rewriteControls(
   return out;
 }
 
+const PREVIEW_EXTS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/svg+xml': 'svg',
+};
+
+/** Turn the stored preview data URL into a ZIP entry plus the relative path
+ *  the metadata will point at. Unknown MIME types are dropped rather than
+ *  guessed; an author who cares can re-upload a supported format. */
+function decodePreview(
+  dataUrl: string | undefined,
+):
+  | { path: string; bytes: Uint8Array }
+  | undefined {
+  if (!dataUrl) return undefined;
+  const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(dataUrl);
+  if (!match) return undefined;
+  const ext = PREVIEW_EXTS[match[1].toLowerCase()];
+  if (!ext) return undefined;
+  const binary = atob(match[2]);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return { path: `preview.${ext}`, bytes };
+}
+
 /**
  * Build the container. Fetches fonts, so it's async — and it throws on any
  * font it can't embed rather than shipping a broken theme.
@@ -119,28 +154,38 @@ export async function galapathemeBundle(
   const encoder = new TextEncoder();
   const { files, paths } = await bundleFonts(theme);
   const { id } = options;
+  const publishedAt = new Date().toISOString();
+  const preview = decodePreview(theme.meta?.previewImage);
 
   const themeJson = {
-    id,
-    ...theme,
+    mode: theme.mode,
+    focusRing: theme.focusRing,
     controls: rewriteControls(theme.controls, paths),
   };
 
-  const payload = zipSync({
-    [THEME_ENTRY]: encoder.encode(JSON.stringify(themeJson, null, 2) + '\n'),
-    ...files,
-  });
-
   const meta = theme.meta;
-  const header: GalapathemeHeader = {
+  const metadata: GalapathemeMetadata = {
     format: GALAPATHEME_VERSION,
     id,
     label: theme.label,
-    mode: theme.mode,
-    ...(meta?.version ? { version: meta.version } : {}),
     ...(meta?.description ? { description: meta.description } : {}),
+    publishedAt,
     ...(meta?.maintainer ? { maintainer: meta.maintainer } : {}),
     ...(meta?.updateUrl ? { updateUrl: meta.updateUrl } : {}),
+    ...(preview ? { previewImage: `./${preview.path}` } : {}),
+  };
+
+  const payload = zipSync({
+    [METADATA_ENTRY]: encoder.encode(JSON.stringify(metadata, null, 2) + '\n'),
+    [THEME_ENTRY]: encoder.encode(JSON.stringify(themeJson, null, 2) + '\n'),
+    ...(preview ? { [preview.path]: preview.bytes } : {}),
+    ...files,
+  });
+
+  const header: GalapathemeHeader = {
+    format: GALAPATHEME_VERSION,
+    id,
+    publishedAt,
   };
   const headerJson = encoder.encode(JSON.stringify(header));
 
@@ -151,9 +196,8 @@ export async function galapathemeBundle(
   view.setUint32(10, headerJson.length, false);
   prefix.set(headerJson, FIXED_HEADER_BYTES);
 
-  const version = meta?.version ? `-${meta.version}` : '';
   return {
-    filename: `${themeSlug(theme.label)}${version}${GALAPATHEME_EXTENSION}`,
+    filename: `${themeSlug(theme.label)}${GALAPATHEME_EXTENSION}`,
     blob: new Blob([prefix, payload], { type: GALAPATHEME_MIME }),
   };
 }

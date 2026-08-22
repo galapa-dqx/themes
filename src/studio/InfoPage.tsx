@@ -82,16 +82,7 @@ export default function InfoPage() {
         />
         <TextInput
           size="xs"
-          w={110}
-          label="Version"
-          placeholder="0.1.0"
-          value={theme.meta?.version ?? ''}
-          disabled={disabled}
-          onChange={(e) => setMeta({ version: e.target.value })}
-        />
-        <TextInput
-          size="xs"
-          w={240}
+          w={280}
           label="Maintainer"
           placeholder="you@example.com or a name"
           value={theme.meta?.maintainer ?? ''}

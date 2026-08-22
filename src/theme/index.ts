@@ -8,11 +8,12 @@ export {
   GALAPATHEME_VERSION,
   GALAPATHEME_EXTENSION,
   GALAPATHEME_MIME,
+  METADATA_ENTRY,
   THEME_ENTRY,
 } from './galapatheme';
 export { bundleFonts, faceKey } from './fontBundle';
 export { SIDES, CONTROL_IDS } from './types';
-export type { GalapathemeHeader } from './galapatheme';
+export type { GalapathemeHeader, GalapathemeMetadata } from './galapatheme';
 export type { FontBundle, FontStyle } from './fontBundle';
 export type {
   AuthoringTheme,
