@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Button from '@/components/Button';
 import NewsList from '@/components/NewsList';
 import PlayOrnament from '@/components/PlayOrnament';
+import ProgressBar from '@/components/ProgressBar';
 import SettingRow from '@/components/SettingRow';
 import Themed from '@/components/Themed';
 import Switch from '@/components/Switch';
@@ -41,6 +42,12 @@ export default function Gallery() {
         <div className={styles.IslandRow}>
           <Switch checked={switchOn} onChange={setSwitchOn} aria-label="Demo on" />
           <Switch checked={switchOff} onChange={setSwitchOff} aria-label="Demo off" />
+        </div>
+
+        <span className={styles.IslandLabel}>Progress</span>
+        <div className={styles.IslandColumn}>
+          <ProgressBar value={0.62} aria-label="Demo progress, 62 percent" />
+          <ProgressBar aria-label="Demo progress, indeterminate" />
         </div>
 
         <span className={styles.IslandLabel}>Text input</span>

@@ -221,6 +221,23 @@ export const duston: AuthoringTheme = {
       fill: '--theme-muted',
     },
 
+    'progress.track': {
+      shape: 'Path',
+      size: { height: 10 },
+      corner: 'bevel',
+      radius: 5,
+      fill: '--theme-surface-2',
+      borderColor: '--theme-border',
+      borderThickness: 1,
+      padding: [2, 2.83, 2, 2.83], // 2 × √2 across the 45° ends
+    },
+    'progress.indicator': {
+      shape: 'Path',
+      corner: 'bevel',
+      radius: 3,
+      fill: '--theme-accent',
+    },
+
     /* Text controls — colour and type only. */
     'play-ornament': { shape: 'Path' },
     'input.label': {

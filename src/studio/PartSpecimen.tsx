@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import Button from '@/components/Button';
 import Carousel from '@/components/Carousel';
 import NewsList from '@/components/NewsList';
+import ProgressBar from '@/components/ProgressBar';
 import ScrollPanel from '@/components/ScrollPanel';
 import SettingRow from '@/components/SettingRow';
 import Themed from '@/components/Themed';
@@ -163,6 +164,15 @@ export default function PartSpecimen({
               thumb move.
             </div>
           </ScrollPanel>
+        </div>
+      );
+      break;
+    case 'progress.track':
+    case 'progress.indicator':
+      node = (
+        <div className={styles.IslandColumn}>
+          <ProgressBar value={0.62} aria-label="Determinate progress specimen" />
+          <ProgressBar aria-label="Indeterminate progress specimen" />
         </div>
       );
       break;

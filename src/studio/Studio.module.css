@@ -453,6 +453,14 @@
   align-items: center;
 }
 
+/* The row's stacking twin, for specimens that want the full island width
+   (a progress bar is only itself once it can stretch). */
+.IslandColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .IslandCard {
   display: flex;
   flex-direction: column;
