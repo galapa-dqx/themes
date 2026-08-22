@@ -24,7 +24,7 @@ export default function InfoPage() {
     setExportError(null);
     try {
       const { filename, blob } = await galapathemeBundle(compiled, {
-        uuid: themeId,
+        id: themeId,
       });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

@@ -7,7 +7,7 @@
  *   header    N B   UTF-8 JSON — see {@link GalapathemeHeader}
  *   payload         ZIP archive to end of file
  *
- * The prefix carries identity (uuid, label, version, updateUrl) so a catalog
+ * The prefix carries identity (id, label, version, updateUrl) so a catalog
  * scan doesn't need to open the archive. A prefixed ZIP still opens with any
  * reader — the central directory sits at the tail and readers compensate for
  * the leading bytes.
@@ -46,8 +46,9 @@ const EPOCH = new Date(1980, 0, 1);
  */
 export type GalapathemeHeader = {
   format: typeof GALAPATHEME_VERSION;
-  /** Stable identifier for the theme. */
-  uuid?: string;
+  /** Stable identifier for the theme. Falls back to the label slug when the
+   *  caller doesn't supply one. */
+  id: string;
   label: string;
   mode: ThemeMode;
   version?: string;
@@ -114,13 +115,14 @@ function rewriteControls(
  */
 export async function galapathemeBundle(
   theme: CompiledTheme,
-  options: { uuid?: string } = {},
+  options: { id?: string } = {},
 ): Promise<{ filename: string; blob: Blob }> {
   const encoder = new TextEncoder();
   const { files, paths } = await bundleFonts(theme);
+  const id = options.id ?? themeSlug(theme.label);
 
   const themeJson = {
-    ...(options.uuid ? { uuid: options.uuid } : {}),
+    id,
     ...theme,
     controls: rewriteControls(theme.controls, paths),
   };
@@ -136,7 +138,7 @@ export async function galapathemeBundle(
   const meta = theme.meta;
   const header: GalapathemeHeader = {
     format: GALAPATHEME_VERSION,
-    ...(options.uuid ? { uuid: options.uuid } : {}),
+    id,
     label: theme.label,
     mode: theme.mode,
     ...(meta?.version ? { version: meta.version } : {}),
