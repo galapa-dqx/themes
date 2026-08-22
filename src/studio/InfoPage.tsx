@@ -1,7 +1,8 @@
 import { Button, FileButton, Textarea, TextInput } from '@mantine/core';
+import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { FALLBACK_THEME_ID, useOSSettings } from '@/context/os-settings';
-import { compiledBundle, type ThemeMeta } from '@/theme';
+import { galapathemeBundle, type ThemeMeta } from '@/theme';
 import styles from './Studio.module.css';
 
 /** Theme identity & release metadata — everything a bundled theme ships. */
@@ -11,18 +12,31 @@ export default function InfoPage() {
   const navigate = useNavigate();
   const disabled = !isCustomTheme;
 
-  // The compiled bundle: the theme resolved to literals, self-contained. Works
-  // for built-ins too — you're downloading its rendered form, not editing it —
-  // so this is the one action here that isn't gated on `disabled`.
-  const downloadCompiled = () => {
+  // Exporting fetches the theme's font files, so it takes a moment and can
+  // come back with things it couldn't embed. Works for built-ins too — you're
+  // downloading their rendered form, not editing them — so this is the one
+  // action here that isn't gated on `disabled`.
+  const [exporting, setExporting] = useState(false);
+  const [exportWarnings, setExportWarnings] = useState<string[]>([]);
+
+  const downloadTheme = async () => {
     if (!compiled) return;
-    const { filename, json } = compiledBundle(compiled);
-    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    setExporting(true);
+    setExportWarnings([]);
+    try {
+      const { filename, blob, warnings } = await galapathemeBundle(compiled);
+      setExportWarnings(warnings);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setExportWarnings([`Export failed: ${error}`]);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const setMeta = (patch: Partial<ThemeMeta>) =>
@@ -125,21 +139,28 @@ export default function InfoPage() {
         />
       )}
 
-      <h3 className={styles.SectionTitle}>Compiled bundle</h3>
+      <h3 className={styles.SectionTitle}>Export</h3>
       <span className={styles.Meta}>
-        The theme resolved to literals — palette tokens, font roles and art all
-        inlined — as a self-contained JSON file with nothing left to fetch.
+        A <code>.galapatheme</code> — the theme resolved to literals, with its
+        art inlined and its font files embedded, in one installable file with
+        nothing left to fetch.
       </span>
       <div className={styles.Row}>
         <Button
           size="xs"
           variant="default"
           disabled={!compiled}
-          onClick={downloadCompiled}
+          loading={exporting}
+          onClick={() => void downloadTheme()}
         >
-          Download compiled theme
+          Export .galapatheme
         </Button>
       </div>
+      {exportWarnings.map((warning) => (
+        <span key={warning} className={styles.Meta}>
+          {warning}
+        </span>
+      ))}
 
       {isCustomTheme && (
         <>
