@@ -24,10 +24,14 @@ export default function ProgressBar({
   'aria-label'?: string;
   className?: string;
 }) {
-  const determinate = value !== undefined;
-  const percent = determinate
-    ? Math.round(Math.min(1, Math.max(0, value)) * 100)
-    : 0;
+  // null is the indeterminate spelling, and a non-finite number resolves to it
+  // too: a NaN from `loaded / total` while total is still 0 is not a position
+  // on the bar, and reporting it as 0% would be a confident lie. "Busy, extent
+  // unknown" is the honest reading, and it's one the bar can already draw.
+  const percent =
+    value === undefined || !Number.isFinite(value)
+      ? null
+      : Math.round(Math.min(1, Math.max(0, value)) * 100);
 
   return (
     <Themed
@@ -39,16 +43,16 @@ export default function ProgressBar({
       aria-valuemax={100}
       // An indeterminate bar is spelled as a progressbar with no value at all,
       // which is what tells a screen reader to say "busy" rather than "0%".
-      aria-valuenow={determinate ? percent : undefined}
-      aria-valuetext={determinate ? `${percent}%` : undefined}
-      data-indeterminate={determinate ? undefined : ''}
+      aria-valuenow={percent ?? undefined}
+      aria-valuetext={percent === null ? undefined : `${percent}%`}
+      data-indeterminate={percent === null ? '' : undefined}
     >
       <Themed
         part="progress.indicator"
         className={styles.Indicator}
         // The one thing the theme has no opinion on. Left to the stylesheet
         // while indeterminate, where the sweep owns the width.
-        style={determinate ? { width: `${percent}%` } : undefined}
+        style={percent === null ? undefined : { width: `${percent}%` }}
       />
     </Themed>
   );
