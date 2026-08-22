@@ -125,19 +125,28 @@ const PREVIEW_EXTS: Record<string, string> = {
 };
 
 /** Turn the stored preview data URL into a ZIP entry plus the relative path
- *  the metadata will point at. Unknown MIME types are dropped rather than
- *  guessed; an author who cares can re-upload a supported format. */
+ *  the metadata will point at. Throws on anything it can't decode — a stored
+ *  preview that won't unpack is a bug the author should hear about, not a
+ *  silent hole in the exported archive. */
 function decodePreview(
   dataUrl: string | undefined,
-):
-  | { path: string; bytes: Uint8Array }
-  | undefined {
+): { path: string; bytes: Uint8Array } | undefined {
   if (!dataUrl) return undefined;
   const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(dataUrl);
-  if (!match) return undefined;
-  const ext = PREVIEW_EXTS[match[1].toLowerCase()];
-  if (!ext) return undefined;
-  const binary = atob(match[2]);
+  if (!match) {
+    throw new Error('Preview image is not a base64 data URL.');
+  }
+  const mime = match[1].toLowerCase();
+  const ext = PREVIEW_EXTS[mime];
+  if (!ext) {
+    throw new Error(`Preview image MIME "${mime}" is not supported.`);
+  }
+  let binary: string;
+  try {
+    binary = atob(match[2]);
+  } catch {
+    throw new Error('Preview image base64 is malformed.');
+  }
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return { path: `preview.${ext}`, bytes };
