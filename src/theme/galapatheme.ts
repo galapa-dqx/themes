@@ -65,25 +65,28 @@ export function themeSlug(label: string): string {
 
 /** Collapse a resolved text spec's (family, weight, style) into a single
  *  `font` pointer at the archive path — the reader hands that file to the
- *  font engine and doesn't need the metadata separately. */
+ *  font engine and doesn't need the metadata separately. A text spec with
+ *  no family (just size/case overrides) passes through untouched. */
 function rewriteText(
   text: ResolvedType,
   paths: Map<string, string>,
 ): Record<string, unknown> {
-  const family = text.family?.trim();
   const out: Record<string, unknown> = {};
   if (text.fallback !== undefined) out.fallback = text.fallback;
   if (text.size !== undefined) out.size = text.size;
   if (text.case !== undefined) out.case = text.case;
-  if (!family) {
-    if (text.family !== undefined) out.family = text.family;
-    if (text.weight !== undefined) out.weight = text.weight;
-    if (text.style !== undefined) out.style = text.style;
-    return out;
-  }
+  const family = text.family?.trim();
+  if (!family) return out;
   const style: FontStyle = text.style === 'italic' ? 'italic' : 'normal';
   const font = paths.get(faceKey(family, text.weight ?? 400, style));
-  if (font) out.font = font;
+  // `bundleFonts` throws on any face it can't embed, so a family that reaches
+  // here always has a path — this asserts that invariant.
+  if (!font) {
+    throw new Error(
+      `Missing bundled path for "${family}" ${text.weight ?? 400} ${style}.`,
+    );
+  }
+  out.font = font;
   return out;
 }
 

@@ -30,8 +30,14 @@ export default function InfoPage() {
       const a = document.createElement('a');
       a.href = url;
       a.download = filename;
+      a.style.display = 'none';
+      // Firefox won't fire a download from a detached anchor, and revoking
+      // the object URL on the same tick can cancel a download that hasn't
+      // started reading the blob yet.
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (error) {
       setExportError(error instanceof Error ? error.message : String(error));
     } finally {
@@ -156,7 +162,11 @@ export default function InfoPage() {
           Export .galapatheme
         </Button>
       </div>
-      {exportError && <span className={styles.Meta}>{exportError}</span>}
+      {exportError && (
+        <span className={styles.Meta} role="alert">
+          {exportError}
+        </span>
+      )}
 
       {isCustomTheme && (
         <>
