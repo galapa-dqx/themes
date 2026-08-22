@@ -12,20 +12,18 @@ export default function InfoPage() {
   const navigate = useNavigate();
   const disabled = !isCustomTheme;
 
-  // Exporting fetches the theme's font files, so it takes a moment and can
-  // come back with things it couldn't embed. Works for built-ins too — you're
-  // downloading their rendered form, not editing them — so this is the one
-  // action here that isn't gated on `disabled`.
+  // Exporting fetches the theme's font files, so it takes a moment. Works
+  // for built-ins too — you're downloading their rendered form, not editing
+  // them — so this action isn't gated on `disabled`.
   const [exporting, setExporting] = useState(false);
-  const [exportWarnings, setExportWarnings] = useState<string[]>([]);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const downloadTheme = async () => {
     if (!compiled) return;
     setExporting(true);
-    setExportWarnings([]);
+    setExportError(null);
     try {
-      const { filename, blob, warnings } = await galapathemeBundle(compiled);
-      setExportWarnings(warnings);
+      const { filename, blob } = await galapathemeBundle(compiled);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -33,7 +31,7 @@ export default function InfoPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      setExportWarnings([`Export failed: ${error}`]);
+      setExportError(error instanceof Error ? error.message : String(error));
     } finally {
       setExporting(false);
     }
@@ -156,11 +154,7 @@ export default function InfoPage() {
           Export .galapatheme
         </Button>
       </div>
-      {exportWarnings.map((warning) => (
-        <span key={warning} className={styles.Meta}>
-          {warning}
-        </span>
-      ))}
+      {exportError && <span className={styles.Meta}>{exportError}</span>}
 
       {isCustomTheme && (
         <>
