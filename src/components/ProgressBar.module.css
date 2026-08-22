@@ -1,0 +1,66 @@
+/* Layout only — the trough's height, corners, fill and the inset it holds the
+   indicator at all come from the progress controls, via <Themed>.
+
+   The indicator is a flow child rather than an absolutely-placed one (the
+   switch's knob's arrangement), so the track's declared padding insets it on
+   every side for free, and a theme that declares none gets a full-bleed fill. */
+.Track {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  height: var(--g-progress-track-h);
+}
+
+.Indicator {
+  flex: none;
+  width: 0;
+
+  /* The fill's own motion, not the theme's: progress arrives in steps, and the
+     slide between them reads better a little slower than a colour fade. */
+  transition: width 200ms var(--motion-ease);
+}
+
+/* Indeterminate: a sweep that grows out of the left edge, travels, and shrinks
+   into the right. Offset and width never sum past 100%, so it stays inside the
+   trough — no `overflow: hidden`, which would crop the overdraw an Asset
+   control's slices paint outside the host box. */
+.Track[data-indeterminate] .Indicator {
+  transition: none;
+  animation: sweep 1400ms var(--motion-ease) infinite;
+}
+
+@keyframes sweep {
+  0% {
+    margin-left: 0;
+    width: 0;
+  }
+
+  45% {
+    margin-left: 0;
+    width: 40%;
+  }
+
+  55% {
+    margin-left: 20%;
+    width: 40%;
+  }
+
+  100% {
+    margin-left: 100%;
+    width: 0;
+  }
+}
+
+/* No sweep to run, and nothing to report about how far along it is — so the
+   trough simply reads as busy-and-full rather than as an empty bar. */
+@media (prefers-reduced-motion: reduce) {
+  .Indicator {
+    transition: none;
+  }
+
+  .Track[data-indeterminate] .Indicator {
+    width: 100%;
+    margin-left: 0;
+    animation: none;
+  }
+}

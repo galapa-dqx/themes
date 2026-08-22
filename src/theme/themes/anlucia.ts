@@ -213,6 +213,23 @@ export const anlucia: AuthoringTheme = {
       fill: '--theme-muted',
     },
 
+    'progress.track': {
+      shape: 'Path',
+      size: { height: 10 },
+      corner: 'bevel',
+      radius: 5,
+      fill: '--theme-surface-2',
+      borderColor: '--theme-border',
+      borderThickness: 1,
+      padding: [2, 2.83, 2, 2.83], // 2 × √2 across the 45° ends
+    },
+    'progress.indicator': {
+      shape: 'Path',
+      corner: 'bevel',
+      radius: 3,
+      fill: '--theme-accent',
+    },
+
     'play-ornament': { shape: 'Path', image: 'sword' },
 
     /* Text controls — colour and type only. */

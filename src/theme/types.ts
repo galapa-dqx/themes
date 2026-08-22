@@ -227,6 +227,21 @@ export type ThemeControls = {
   'scrollbar.track': Control & FixedWidth;
   'scrollbar.thumb': Control & FixedWidth;
 
+  /* the progress bar: a fixed-height trough, and the fill inside it. The fill
+     is fluid in both axes on purpose — its width is the value, and its height
+     is whatever the trough's own padding leaves, the same inset the switch's
+     track holds its thumb at.
+
+     One wrinkle where the trough is chamfered (`corner: 'bevel'`): padding is
+     measured along the axis, but the eye reads the gap *perpendicular* to the
+     edge, and across a 45° end that is only 1/√2 of the number — an even 2 all
+     round renders as 2 on the flats and 1.41 at the points. A bevelled theme
+     therefore scales its left/right padding by √2, which is why the built-ins
+     spell a 2px inset as [2, 2.83, 2, 2.83]. Round corners need no correction:
+     concentric arcs are already an even distance apart. */
+  'progress.track': Control & FixedHeight;
+  'progress.indicator': Control;
+
   /* pure art — a themeable mark with an app-drawn default */
   'play-ornament': Control & FixedSize; // flanks the Play button (default: Flourish)
 
@@ -274,6 +289,8 @@ export const CONTROL_IDS = [
   'subtabs',
   'scrollbar.track',
   'scrollbar.thumb',
+  'progress.track',
+  'progress.indicator',
   'play-ornament',
   'input.label',
   'news-item.date',

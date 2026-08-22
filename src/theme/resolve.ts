@@ -350,7 +350,14 @@ export async function resolveTheme(
     CONTROL_IDS.map(async (id: ControlId) => {
       const entry = theme.controls[id];
       let compiled: CompiledControl;
-      if (id === 'window') {
+      if (entry === undefined) {
+        // A custom theme stored before this control existed has no entry for
+        // it. Compile it as an empty control rather than throwing: every var
+        // it would emit is then simply absent, which is exactly the "unstyled"
+        // the compiler resolves silence to everywhere else.
+        warnings.push(`control "${id}" is missing from the theme; compiled unstyled`);
+        compiled = { shape: 'Text' };
+      } else if (id === 'window') {
         compiled = resolveWindow(entry as WindowControl, theme.palette, warnings);
       } else if ('shape' in entry && entry.shape === 'Asset') {
         compiled = await resolveAssetControl(

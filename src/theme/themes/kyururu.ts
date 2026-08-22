@@ -219,6 +219,19 @@ export const kyururu: AuthoringTheme = {
       fill: '--theme-muted',
     },
 
+    'progress.track': {
+      shape: 'Path',
+      size: { height: 10 },
+      fill: '--theme-surface-2',
+      borderColor: '--theme-border',
+      borderThickness: 1,
+      padding: 2,
+    },
+    'progress.indicator': {
+      shape: 'Path',
+      fill: '--theme-accent',
+    },
+
     'play-ornament': { shape: 'Path', image: 'play-squares' },
 
     /* Text controls — colour and type only. */
