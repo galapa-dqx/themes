@@ -87,6 +87,7 @@ export default function Themed<E extends ElementType = 'div'>({
     ...scopeVars(prefix, state ? base : `${prefix}-hover`, 'hover-'),
     ...scopeVars(prefix, state ? base : `${prefix}-pressed`, 'pressed-'),
     ...scopeVars(prefix, state ? base : `${prefix}-focused`, 'focused-'),
+    '--part-focus-ring-style': `var(${prefix}-focused-ring-style, solid)`,
     '--part-radius': `var(${prefix}-radius)`,
     '--part-corner': `var(${prefix}-corner)`,
     // Where the top edge's label starts. Read from the seated-label control

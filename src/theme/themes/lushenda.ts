@@ -56,7 +56,11 @@ export const lushenda: AuthoringTheme = {
       padding: [6, 10, 6, 10],
       text: { role: 'body', size: 16 },
       states: {
-        focused: { borderColor: '--theme-accent', borderThickness: 2 },
+        focused: {
+          showRing: false,
+          borderColor: '--theme-accent',
+          borderThickness: 2,
+        },
         disabled: { opacity: 0.5 },
       },
     },
