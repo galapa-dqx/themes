@@ -210,21 +210,17 @@
   --part-corner-pad: var(--part-focused-corner-pad);
 }
 
-.Themed:focus-visible,
-.Themed:has(> :focus-visible) {
-  color: var(--part-focused-content);
-  opacity: var(--part-focused-opacity);
-  --part-edge: var(--part-focused-bc);
-}
-
 /* The app-owned ring surrounds the whole themed control, including wrappers
    whose child owns focus. A focused state may suppress it only when that same
    state supplies a visible replacement treatment. */
 .Themed:focus-visible,
 .Themed:has(> :focus-visible) {
-  outline-style: var(--part-focus-ring-style);
-  outline-color: var(--app-focus-color);
-  outline-width: var(--app-focus-width);
+  color: var(--part-focused-content);
+  opacity: var(--part-focused-opacity);
+  --part-edge: var(--part-focused-bc);
+
+  outline: var(--app-focus-width) var(--part-focus-ring-style)
+    var(--app-focus-color);
   outline-offset: var(--app-focus-offset);
 }
 
