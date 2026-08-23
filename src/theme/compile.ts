@@ -84,7 +84,7 @@ export function compileControls(theme: CompiledTheme): Record<string, string> {
     if (t.style) vars[`${prefix}-style`] = t.style;
     if (t.size !== undefined) vars[`${prefix}-size`] = px(t.size);
     if (t.letterSpacing !== undefined)
-      vars[`${prefix}-tracking`] = px(t.letterSpacing);
+      vars[`${prefix}-letter-spacing`] = px(t.letterSpacing);
     if (t.case) vars[`${prefix}-case`] = t.case;
   };
 

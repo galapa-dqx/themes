@@ -8,7 +8,7 @@
   font-size: var(--g-button-size, var(--text-lg));
   font-style: var(--g-button-style, var(--heading-style));
   font-weight: var(--g-button-weight, var(--heading-weight));
-  letter-spacing: var(--g-button-tracking, 0);
+  letter-spacing: var(--g-button-letter-spacing, 0);
 
   /* A flat line box, so the control's vertical inset alone sets the height. */
   line-height: 1;
