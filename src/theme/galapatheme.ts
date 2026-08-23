@@ -131,7 +131,7 @@ const PREVIEW_EXTS: Record<string, string> = {
 function decodePreview(
   dataUrl: string | undefined,
 ): { path: string; bytes: Uint8Array } | undefined {
-  if (!dataUrl) return undefined;
+  if (dataUrl === undefined) return undefined;
   const match = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(dataUrl);
   if (!match) {
     throw new Error('Preview image is not a base64 data URL.');
