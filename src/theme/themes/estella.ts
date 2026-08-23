@@ -38,7 +38,7 @@ export const estella: AuthoringTheme = {
       borderThickness: 1,
       padding: [6, 20, 6, 20],
       contentColor: '--theme-accent',
-      text: { role: 'strong', size: 16, case: 'uppercase' },
+      text: { role: 'strong', size: 16, letterSpacing: 0.2, case: 'uppercase' },
       states: {
         hover: { borderColor: '--theme-accent' },
         pressed: { fill: { alpha: '--theme-accent', value: 0.08 } },
@@ -65,7 +65,7 @@ export const estella: AuthoringTheme = {
       borderColor: 'none',
       borderThickness: [0, 0, 2, 0],
       padding: [0, 10, 0, 10],
-      text: { role: 'heading', size: 14 },
+      text: { role: 'heading', size: 14, letterSpacing: 0.3 },
       states: {
         hover: { contentColor: '--theme-accent' },
         selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
@@ -233,7 +233,7 @@ export const estella: AuthoringTheme = {
     },
     'news-item.date': {
       contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { size: 13 },
+      text: { size: 13, letterSpacing: 0.1 },
     },
     'news-item.gem': {},
     'titlebar.wordmark': {
@@ -243,7 +243,7 @@ export const estella: AuthoringTheme = {
     'tab-bar': { contentColor: '--theme-muted' },
     'settings.heading': {
       contentColor: '--theme-muted',
-      text: { role: 'heading', size: 16 },
+      text: { role: 'heading', size: 16, letterSpacing: 0.2 },
     },
     'setting-help.title': {
       contentColor: '--theme-text',

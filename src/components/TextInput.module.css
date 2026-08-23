@@ -11,6 +11,7 @@
   font-size: var(--g-input-label-size, var(--text-xs));
   font-style: var(--g-input-label-style, var(--heading-style));
   font-weight: var(--g-input-label-weight, var(--heading-weight));
+  letter-spacing: var(--g-input-label-letter-spacing, 0);
   text-transform: var(--g-input-label-case, none);
 }
 
@@ -21,6 +22,7 @@
   caret-color: var(--g-input-caret-content);
   font-family: var(--g-input-font, var(--font-body));
   font-size: var(--g-input-size, var(--text-lg));
+  letter-spacing: var(--g-input-letter-spacing, 0);
   line-height: 1.5;
   background: none;
   border: none;

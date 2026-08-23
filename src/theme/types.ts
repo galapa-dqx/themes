@@ -102,6 +102,8 @@ export type TypeSpec = {
   role?: string;
   /** Size in logical px; omitted leaves the app's `--text-*` floor. */
   size?: number;
+  /** Additional tracking in logical px. */
+  letterSpacing?: number;
   case?: LabelCase;
 };
 
@@ -365,6 +367,7 @@ export type ResolvedType = {
   weight?: number;
   style?: string;
   size?: number;
+  letterSpacing?: number;
   case?: LabelCase;
 };
 

@@ -22,5 +22,6 @@
   font-size: var(--g-settings-heading-size, var(--text-lg));
   font-style: var(--g-settings-heading-style, var(--heading-style));
   font-weight: var(--g-settings-heading-weight, var(--heading-weight));
+  letter-spacing: var(--g-settings-heading-letter-spacing, 0);
   text-transform: var(--g-settings-heading-case, none);
 }

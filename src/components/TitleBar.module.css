@@ -15,6 +15,7 @@
   font-size: var(--g-titlebar-wordmark-size, var(--text-xl));
   font-style: var(--g-titlebar-wordmark-style, var(--heading-style));
   font-weight: var(--g-titlebar-wordmark-weight, var(--heading-weight));
+  letter-spacing: var(--g-titlebar-wordmark-letter-spacing, 0);
   line-height: 1;
   text-transform: var(--g-titlebar-wordmark-case, none);
   white-space: nowrap;
