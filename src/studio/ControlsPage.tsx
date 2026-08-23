@@ -54,14 +54,6 @@ function prune<T extends object>(obj: T): T {
   return out;
 }
 
-const hasVisibleStateOverride = (state: PathStateOverride): boolean =>
-  state.fill !== undefined ||
-  state.borderColor !== undefined ||
-  state.contentColor !== undefined ||
-  state.borderThickness !== undefined ||
-  state.opacity !== undefined ||
-  state.image !== undefined;
-
 function TokenField({
   label,
   value,
@@ -165,12 +157,6 @@ export default function ControlsPage() {
     if (!path) return;
     const states = { ...(path.states ?? {}) };
     const merged = prune({ ...(states[state] ?? {}), ...patch });
-    if (
-      state === 'focused' &&
-      merged.showRing === false &&
-      !hasVisibleStateOverride(merged)
-    )
-      delete merged.showRing;
     if (Object.keys(merged).length === 0) delete states[state];
     else states[state] = merged;
     writeControl(
