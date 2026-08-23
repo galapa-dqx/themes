@@ -20,8 +20,8 @@ import {
   type PathControl,
   type PathStateOverride,
   type ThemeControls,
-  type ThemePalette,
-  type ThemeToken,
+  type ColorTokenRef,
+  type ThemeTokens,
 } from '@/theme';
 import EdgeInput from './EdgeInput';
 import PartSpecimen from './PartSpecimen';
@@ -40,9 +40,9 @@ const CORNERS: CornerShape[] = ['round', 'bevel', 'scoop', 'notch', 'squircle'];
 
 /** A colour a control asks for → a swatch. Tokens and derivations both
  *  resolve; an unset value is transparent. */
-function swatch(value: ColorValue | undefined, palette: ThemePalette): string {
+function swatch(value: ColorValue | undefined, tokens: ThemeTokens): string {
   if (value === undefined) return 'transparent';
-  return resolveColorValue(value, palette, []);
+  return resolveColorValue(value, tokens, []);
 }
 
 /** Strip undefined fields so overrides stay minimal and serialisable. */
@@ -57,15 +57,15 @@ function prune<T extends object>(obj: T): T {
 function TokenField({
   label,
   value,
-  palette,
+  tokens,
   disabled,
   onChange,
 }: {
   label: string;
   value: ColorValue | undefined;
-  palette: ThemePalette;
+  tokens: ThemeTokens;
   disabled: boolean;
-  onChange: (token: ThemeToken | undefined) => void;
+  onChange: (token: ColorTokenRef | undefined) => void;
 }) {
   // Derivations (mix/alpha) are authored in code; the picker edits tokens.
   const derived = typeof value === 'object' && value !== null;
@@ -73,9 +73,9 @@ function TokenField({
   const options = [
     { value: 'unset', label: '(default)' },
     { value: 'none', label: 'none' },
-    ...Object.keys(palette).map((role) => ({
-      value: `--theme-${role}`,
-      label: `--theme-${role}`,
+    ...Object.keys(tokens.colors).map((role) => ({
+      value: `--color-${role}`,
+      label: `--color-${role}`,
     })),
   ];
   return (
@@ -83,7 +83,7 @@ function TokenField({
       <span className={styles.Label}>{label}</span>
       <span
         className={styles.TokenSwatch}
-        style={{ background: swatch(value, palette) }}
+        style={{ background: swatch(value, tokens) }}
       />
       {derived ? (
         <span className={styles.Meta}>derived — edit in code</span>
@@ -96,7 +96,7 @@ function TokenField({
           disabled={disabled}
           allowDeselect={false}
           onChange={(next) =>
-            next && onChange(next === 'unset' ? undefined : (next as ThemeToken))
+            next && onChange(next === 'unset' ? undefined : (next as ColorTokenRef))
           }
           aria-label={label}
         />
@@ -110,7 +110,7 @@ function TokenField({
 export default function ControlsPage() {
   const { theme, themeId, isCustomTheme, updateCustomTheme } = useOSSettings();
   const disabled = !isCustomTheme;
-  const palette = theme.palette;
+  const tokens = theme.tokens;
 
   const [partId, setPartId] = useState<ControlId>('button');
   const [stateSel, setStateSel] = useState<'base' | PartState>('base');
@@ -173,7 +173,7 @@ export default function ControlsPage() {
     if (!file) return;
     void file.text().then((text) => {
       try {
-        const set = parseNineSlice(substituteTokens(text, palette));
+        const set = parseNineSlice(substituteTokens(text, tokens));
         const url = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         writeControl({ shape: 'Asset', asset: assetKey }, { [assetKey]: url });
         const warn = set.warnings.length
@@ -246,21 +246,21 @@ export default function ControlsPage() {
           <TokenField
             label="Fill"
             value={(control as { fill?: ColorValue }).fill}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(fill) => editWindow({ fill })}
           />
           <TokenField
             label="Content"
             value={(control as { contentColor?: ColorValue }).contentColor}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(contentColor) => editWindow({ contentColor })}
           />
           <TokenField
             label="Border"
             value={(control as { borderColor?: ColorValue }).borderColor}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(borderColor) => editWindow({ borderColor })}
           />
@@ -279,7 +279,7 @@ export default function ControlsPage() {
             <TokenField
               label="Content"
               value={control.contentColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(contentColor) =>
                 updateCustomTheme(themeId, {
@@ -295,7 +295,7 @@ export default function ControlsPage() {
             <TokenField
               label="Border"
               value={control.borderColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(borderColor) =>
                 updateCustomTheme(themeId, {
@@ -348,8 +348,8 @@ export default function ControlsPage() {
                   onClick={() =>
                     writeControl({
                       shape: 'Path',
-                      fill: '--theme-surface',
-                      borderColor: '--theme-border',
+                      fill: '--color-surface',
+                      borderColor: '--color-border',
                       borderThickness: 1,
                     })
                   }
@@ -362,7 +362,7 @@ export default function ControlsPage() {
           <TokenField
             label="Content"
             value={control.contentColor}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(contentColor) =>
               writeControl(
@@ -411,7 +411,7 @@ export default function ControlsPage() {
             <TokenField
               label="Fill"
               value={scopeFields.fill}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(fill) =>
                 stateSel === 'base'
@@ -422,7 +422,7 @@ export default function ControlsPage() {
             <TokenField
               label="Border"
               value={scopeFields.borderColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(borderColor) =>
                 stateSel === 'base'
@@ -433,7 +433,7 @@ export default function ControlsPage() {
             <TokenField
               label="Content"
               value={scopeFields.contentColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(contentColor) =>
                 stateSel === 'base'

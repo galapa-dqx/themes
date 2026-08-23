@@ -52,10 +52,10 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
   }, [themeId, settings.customThemes]);
 
   // Persisted custom themes may reference Google Fonts that aren't bundled;
-  // load whatever font roles the active theme names.
+  // load whatever families the active theme's text tokens name.
   useEffect(() => {
-    for (const role of Object.values(theme.fonts)) {
-      void ensureFontLoaded(role.family);
+    for (const style of Object.values(theme.tokens.text)) {
+      void ensureFontLoaded(style.family);
     }
   }, [theme]);
 

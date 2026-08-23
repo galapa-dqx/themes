@@ -329,7 +329,7 @@ export function extractPalette(source: string): PaletteEntry[] {
     if (!value) return;
     const lower = value.toLowerCase();
     if (NON_COLORS.has(lower) || lower.startsWith('url(')) return;
-    const token = /^var\(--theme-([a-z0-9-]+)\)$/.exec(lower);
+    const token = /^var\(--color-([a-z0-9-]+)\)$/.exec(lower);
     const key = token ? `t:${token[1]}` : `l:${lower}`;
     if (!seen.has(key)) {
       seen.set(

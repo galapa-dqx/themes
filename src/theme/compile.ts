@@ -14,7 +14,7 @@ import { CONTROL_IDS } from './types';
 /**
  * The theme compiler: a *compiled* theme in, the custom properties the browser
  * renders from out. Every colour it reads is already a literal — the resolver
- * did the palette/derivation/art work — so this module holds no colour logic
+ * did the token/derivation/art work — so this module holds no colour logic
  * at all. It is the browser adapter the Skia engine won't need: it turns the
  * literal control model into `--g-<control>-*` variables and the focus ring
  * into `--app-focus-*`. Nothing else is emitted; no theme value escapes a
@@ -165,7 +165,7 @@ const paintOf = (c: CompiledPaint): CompiledPaint => ({
 
 /**
  * Every custom property a themed scope needs: the compiled controls, and the
- * focus ring. That's the whole surface now — no palette, no type, no chrome
+ * focus ring. That's the whole surface now — no tokens, no type, no chrome
  * scalars. The focus vars are always present: `focusRing` styles the app-owned
  * indicator, while a focused control state decides whether that indicator is
  * shown for that control.
