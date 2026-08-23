@@ -135,18 +135,6 @@ function resolvePaint(
   return paint;
 }
 
-function assertVisibleFocusReplacement(
-  state: string,
-  override: Record<string, unknown>,
-  visibleFields: readonly string[],
-): void {
-  if (state !== 'focused' || override.showRing !== false) return;
-  if (visibleFields.some((field) => override[field] !== undefined)) return;
-  throw new Error(
-    'focused.showRing=false requires a visible focused-state override',
-  );
-}
-
 /* ── Art: fetched once by URL, substituted per palette ───────────────── */
 
 const rawCache = new Map<string, Promise<string>>();
@@ -255,14 +243,6 @@ async function resolvePathControl(
         state === 'focused'
           ? (override as PathStateOverride & { showRing?: boolean }).showRing
           : undefined;
-      assertVisibleFocusReplacement(state, override, [
-        'fill',
-        'borderColor',
-        'contentColor',
-        'borderThickness',
-        'opacity',
-        'image',
-      ]);
       const paint: CompiledPaint & { showRing?: boolean } = resolvePaint(
         override,
         palette,
@@ -302,7 +282,6 @@ async function resolveAssetControl(
         state === 'focused'
           ? (override as { asset?: string; showRing?: boolean }).showRing
           : undefined;
-      assertVisibleFocusReplacement(state, override, ['asset']);
       const compiledState: { art?: string; showRing?: boolean } = {};
       if (override.asset)
         compiledState.art = await inlineArt(override.asset, theme, warnings);
