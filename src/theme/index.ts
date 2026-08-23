@@ -11,8 +11,8 @@ export {
   METADATA_ENTRY,
   THEME_ENTRY,
 } from './galapatheme';
-export { bundleFonts, faceKey } from './fontBundle';
-export { SIDES, CONTROL_IDS } from './types';
+export { bundleFonts, faceKey, validateFontsAgainstCatalog } from './fontBundle';
+export { SIDES, CONTROL_IDS, TEXT_BEARING_CONTROLS } from './types';
 export type { GalapathemeHeader, GalapathemeMetadata } from './galapatheme';
 export type { FontBundle, FontStyle } from './fontBundle';
 export type {
@@ -35,6 +35,7 @@ export type {
   PartState,
   ThemeControls,
   ControlId,
+  TextBearingControlId,
   ThemeToken,
   ColorValue,
   Operand,

@@ -11,13 +11,13 @@
 
 .Wordmark {
   color: var(--g-titlebar-wordmark-content);
-  font-family: var(--g-titlebar-wordmark-font, var(--font-heading));
-  font-size: var(--g-titlebar-wordmark-size, var(--text-xl));
-  font-style: var(--g-titlebar-wordmark-style, var(--heading-style));
-  font-weight: var(--g-titlebar-wordmark-weight, var(--heading-weight));
-  letter-spacing: var(--g-titlebar-wordmark-letter-spacing, 0);
+  font-family: var(--g-titlebar-wordmark-font);
+  font-size: var(--g-titlebar-wordmark-size);
+  font-style: var(--g-titlebar-wordmark-style);
+  font-weight: var(--g-titlebar-wordmark-weight);
+  letter-spacing: var(--g-titlebar-wordmark-letter-spacing);
   line-height: 1;
-  text-transform: var(--g-titlebar-wordmark-case, none);
+  text-transform: var(--g-titlebar-wordmark-case);
   white-space: nowrap;
 }
 

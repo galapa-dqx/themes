@@ -81,7 +81,20 @@ export const fostail: AuthoringTheme = {
       borderColor: 'none',
       borderThickness: [0, 0, 2, 0],
       padding: [0, 10, 0, 10],
-      text: { role: 'heading', case: 'uppercase' },
+      text: { role: 'heading', size: 16, case: 'uppercase' },
+      states: {
+        hover: { contentColor: '--theme-accent' },
+        selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
+      },
+    },
+
+    subtab: {
+      shape: 'Path',
+      contentColor: '--theme-muted',
+      borderColor: 'none',
+      borderThickness: [0, 0, 2, 0],
+      padding: [0, 10, 0, 10],
+      text: { role: 'heading', size: 14, case: 'uppercase' },
       states: {
         hover: { contentColor: '--theme-accent' },
         selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
@@ -246,7 +259,7 @@ export const fostail: AuthoringTheme = {
     },
     'news-item.date': {
       contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { size: 13 },
+      text: { role: 'body', size: 13 },
     },
     'news-item.gem': {},
     'titlebar.wordmark': {
@@ -264,7 +277,7 @@ export const fostail: AuthoringTheme = {
     },
     'setting-help.body': {
       contentColor: '--theme-text',
-      text: { size: 13 },
+      text: { role: 'body', size: 13 },
     },
     'input.placeholder': {
       contentColor: { alpha: '--theme-muted', value: 0.6 },

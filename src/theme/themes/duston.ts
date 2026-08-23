@@ -81,7 +81,20 @@ export const duston: AuthoringTheme = {
       borderColor: 'none',
       borderThickness: [0, 0, 2, 0],
       padding: [0, 10, 0, 10],
-      text: { role: 'heading', letterSpacing: 0.8, case: 'uppercase' },
+      text: { role: 'heading', size: 16, letterSpacing: 0.8, case: 'uppercase' },
+      states: {
+        hover: { contentColor: '--theme-accent' },
+        selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
+      },
+    },
+
+    subtab: {
+      shape: 'Path',
+      contentColor: '--theme-muted',
+      borderColor: 'none',
+      borderThickness: [0, 0, 2, 0],
+      padding: [0, 10, 0, 10],
+      text: { role: 'heading', size: 14, case: 'uppercase' },
       states: {
         hover: { contentColor: '--theme-accent' },
         selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
@@ -251,7 +264,7 @@ export const duston: AuthoringTheme = {
     },
     'news-item.date': {
       contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { size: 13, letterSpacing: 0.1 },
+      text: { role: 'body', size: 13, letterSpacing: 0.1 },
     },
     'news-item.gem': {},
     'titlebar.wordmark': {
@@ -269,7 +282,7 @@ export const duston: AuthoringTheme = {
     },
     'setting-help.body': {
       contentColor: '--theme-text',
-      text: { size: 13 },
+      text: { role: 'body', size: 13 },
     },
     'input.placeholder': {
       contentColor: { alpha: '--theme-muted', value: 0.6 },

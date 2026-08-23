@@ -42,7 +42,7 @@ export default function TabBar({
           <Themed
             key={item.id}
             as={Link}
-            part="tab"
+            part={size === 'sm' ? 'subtab' : 'tab'}
             state={item.id === activeId ? 'selected' : undefined}
             to={item.to}
             className={styles.Tab}

@@ -94,13 +94,25 @@ export type ThemeFont = {
  *  control's `text.role` names one; nothing outside authoring reads these. */
 export type ThemeFonts = Record<string, ThemeFont>;
 
-/** Type a control asks for, in authoring form: a font role plus optional size
- *  and case overrides. Resolves to a {@link ResolvedType} with the role's
- *  family/weight/style inlined. */
+/** Type a control asks for, in authoring form. A `role` names a font from
+ *  `theme.fonts` — a Theme Builder shorthand for the family/weight/style/
+ *  fallback triple that resolves to literals at compile time. Any of the same
+ *  fields can also be spelled inline (`family`, `fallback`, `weight`, `style`)
+ *  to override or supply what no role names. `size`, `letterSpacing` and
+ *  `case` are always literal. After resolution every text-bearing control
+ *  must carry all six fields, so the runtime materializes what the control
+ *  declares without consulting a role or a family-source fallback. */
 export type TypeSpec = {
-  /** Key into `theme.fonts`; omitted leaves the app's static type floor. */
+  /** Key into `theme.fonts` — an authoring shorthand for family + fallback +
+   *  weight + style. The compiler inlines each of those and the role name
+   *  does not survive to the compiled theme. */
   role?: string;
-  /** Size in logical px; omitted leaves the app's `--text-*` floor. */
+  /** Family literal — either as-is, or an override on top of a role. */
+  family?: string;
+  fallback?: 'serif' | 'sans-serif';
+  weight?: number;
+  style?: 'normal' | 'italic';
+  /** Size in logical px. Required on any text-bearing control. */
   size?: number;
   /** Additional tracking in logical px. */
   letterSpacing?: number;
@@ -221,7 +233,13 @@ export type ThemeControls = {
   panel: Control;
   button: Control;
   input: Control;
+  /** The top-level window tabs (Launcher / Settings). Compiled separately from
+   *  {@link ThemeControls.subtab} so the two rows are independently themeable
+   *  — a font-size floor never falls back across them. */
   tab: Control;
+  /** The Settings section tabs. Its own compiled control so runtimes never
+   *  reach for a heading role or a --text-md floor to size it. */
+  subtab: Control;
   carousel: Control;
 
   /* fixed in both axes */
@@ -291,6 +309,7 @@ export const CONTROL_IDS = [
   'button',
   'input',
   'tab',
+  'subtab',
   'carousel',
   'pip',
   'switch.track',
@@ -324,6 +343,32 @@ export const CONTROL_IDS = [
 type _MissingControlId = Exclude<ControlId, (typeof CONTROL_IDS)[number]>;
 const _assertComplete: _MissingControlId extends never ? true : never = true;
 void _assertComplete;
+
+/**
+ * The controls that render their own text — the ones a compiled theme must
+ * carry complete typography for. Everything else in the model either has no
+ * text (a scrollbar thumb, a switch track), or is a text-adjacent leaf that
+ * borrows its font from a parent control (an input placeholder inherits the
+ * input's font; a play-row provides only colour). The resolver rejects a
+ * theme whose text-bearing control lacks a family/weight/size after roles
+ * and inline literals compose — see {@link ResolvedType}.
+ */
+export const TEXT_BEARING_CONTROLS = [
+  'button',
+  'input',
+  'tab',
+  'subtab',
+  'news-item',
+  'setting-row',
+  'input.label',
+  'news-item.date',
+  'titlebar.wordmark',
+  'settings.heading',
+  'setting-help.title',
+  'setting-help.body',
+] as const satisfies readonly ControlId[];
+
+export type TextBearingControlId = (typeof TEXT_BEARING_CONTROLS)[number];
 
 /* ── Authoring: theme ────────────────────────────────────────────────── */
 
@@ -370,18 +415,18 @@ export type AuthoringTheme = {
 
 /* ── Compiled: the engine's view ─────────────────────────────────────── */
 
-/** Type with the font role inlined — family/fallback/weight/style are now
- *  literal, the way the engine needs them. All optional: a control may
- *  override only `case` or `size` and leave the rest at the app's type floor,
- *  in which case the family group is simply absent. */
+/** Type after roles and inline literals have composed — every field is a
+ *  literal the engine renders from directly. A text-bearing control (see
+ *  {@link TEXT_BEARING_CONTROLS}) carries a complete `ResolvedType` after
+ *  compilation, with no field allowed to fall back to an app-level floor. */
 export type ResolvedType = {
-  family?: string;
-  fallback?: string;
-  weight?: number;
-  style?: string;
-  size?: number;
-  letterSpacing?: number;
-  case?: LabelCase;
+  family: string;
+  fallback: string;
+  weight: number;
+  style: string;
+  size: number;
+  letterSpacing: number;
+  case: LabelCase;
 };
 
 /** Paint, fully resolved. Every colour is a literal; absence means the

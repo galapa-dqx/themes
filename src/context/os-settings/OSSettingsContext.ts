@@ -26,6 +26,11 @@ export type OSSettingsContextValue = OSSettings & {
   compiled: CompiledTheme | null;
   /** Non-fatal issues from the last resolve (undefined tokens, failed art). */
   themeWarnings: string[];
+  /** Compilation errors from the last resolve — the ones that would make the
+   *  theme unshippable, chiefly text-bearing controls with incomplete
+   *  typography. The compiled theme still previews (whatever was resolvable
+   *  is painted), but export refuses these. */
+  themeErrors: string[];
   /** True when the selected theme is user-created (and thus editable). */
   isCustomTheme: boolean;
   /** False when the URL names a theme id that doesn't exist. */
