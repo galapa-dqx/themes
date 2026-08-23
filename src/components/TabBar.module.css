@@ -29,6 +29,7 @@
   font-size: var(--g-tab-size, var(--text-lg));
   font-style: var(--g-tab-style, var(--heading-style));
   font-weight: var(--g-tab-weight, var(--heading-weight));
+  letter-spacing: var(--g-tab-tracking, 0);
   text-decoration: none;
   text-transform: var(--g-tab-case, none);
 }

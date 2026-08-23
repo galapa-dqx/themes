@@ -39,6 +39,7 @@
   font-size: var(--g-news-item-size, var(--text-lg));
   font-style: var(--g-news-item-style, var(--heading-style));
   font-weight: var(--g-news-item-weight, var(--heading-weight));
+  letter-spacing: var(--g-news-item-tracking, 0);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -47,4 +48,5 @@
   flex: none;
   color: var(--g-news-item-date-content);
   font-size: var(--g-news-item-date-size, var(--text-sm));
+  letter-spacing: var(--g-news-item-date-tracking, 0);
 }

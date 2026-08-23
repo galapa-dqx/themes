@@ -114,6 +114,7 @@ function resolveType(
     }
   }
   if (spec.size !== undefined) out.size = spec.size;
+  if (spec.letterSpacing !== undefined) out.letterSpacing = spec.letterSpacing;
   if (spec.case !== undefined) out.case = spec.case;
   return Object.keys(out).length ? out : undefined;
 }

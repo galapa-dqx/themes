@@ -50,7 +50,7 @@ export const duston: AuthoringTheme = {
       fill: '--theme-accent',
       padding: [6, 20, 6, 20],
       contentColor: '--theme-surface',
-      text: { role: 'strong', size: 16, case: 'uppercase' },
+      text: { role: 'strong', size: 16, letterSpacing: 0.6, case: 'uppercase' },
       states: {
         hover: { fill: { mix: ['--theme-accent', '#ffffff'], amount: 0.12 } },
         pressed: { fill: { mix: ['--theme-accent', '#000000'], amount: 0.12 } },
@@ -77,7 +77,7 @@ export const duston: AuthoringTheme = {
       borderColor: 'none',
       borderThickness: [0, 0, 2, 0],
       padding: [0, 10, 0, 10],
-      text: { role: 'heading', case: 'uppercase' },
+      text: { role: 'heading', letterSpacing: 0.8, case: 'uppercase' },
       states: {
         hover: { contentColor: '--theme-accent' },
         selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
@@ -165,7 +165,7 @@ export const duston: AuthoringTheme = {
       borderThickness: 1,
       padding: [0, 12, 0, 12],
       contentColor: '--theme-muted',
-      text: { role: 'strong', size: 16 },
+      text: { role: 'strong', size: 16, letterSpacing: 0.4 },
       states: {
         hover: { borderColor: '--theme-muted' },
       },
@@ -243,21 +243,21 @@ export const duston: AuthoringTheme = {
     'input.label': {
       leftInset: 10,
       contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { role: 'heading', size: 12 },
+      text: { role: 'heading', size: 12, letterSpacing: 0.8 },
     },
     'news-item.date': {
       contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { size: 13 },
+      text: { size: 13, letterSpacing: 0.1 },
     },
     'news-item.gem': {},
     'titlebar.wordmark': {
       contentColor: '--theme-accent',
-      text: { role: 'heading', size: 20, case: 'uppercase' },
+      text: { role: 'heading', size: 20, letterSpacing: 0.4, case: 'uppercase' },
     },
     'tab-bar': { contentColor: '--theme-muted' },
     'settings.heading': {
       contentColor: '--theme-muted',
-      text: { role: 'heading', size: 16, case: 'uppercase' },
+      text: { role: 'heading', size: 16, letterSpacing: 0.8, case: 'uppercase' },
     },
     'setting-help.title': {
       contentColor: '--theme-text',

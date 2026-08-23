@@ -14,6 +14,7 @@
   font-size: var(--g-setting-row-size, var(--text-md));
   font-style: var(--g-setting-row-style, var(--heading-style));
   font-weight: var(--g-setting-row-weight, var(--heading-weight));
+  letter-spacing: var(--g-setting-row-tracking, 0);
   text-overflow: ellipsis;
   text-transform: var(--g-setting-row-case, none);
   white-space: nowrap;

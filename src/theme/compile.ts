@@ -83,6 +83,8 @@ export function compileControls(theme: CompiledTheme): Record<string, string> {
     if (t.weight !== undefined) vars[`${prefix}-weight`] = `${t.weight}`;
     if (t.style) vars[`${prefix}-style`] = t.style;
     if (t.size !== undefined) vars[`${prefix}-size`] = px(t.size);
+    if (t.letterSpacing !== undefined)
+      vars[`${prefix}-tracking`] = px(t.letterSpacing);
     if (t.case) vars[`${prefix}-case`] = t.case;
   };
 
