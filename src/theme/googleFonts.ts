@@ -16,6 +16,7 @@ export type GoogleFontEntry = {
   family: string;
   category: string; // serif | sans-serif | display | handwriting | monospace
   variants: string[]; // "regular" | "italic" | "500" | "700italic" | ...
+  files: Record<string, string>; // same variant keys → TrueType download URL
 };
 
 /** Families bundled via index.html (or generic) — never re-loaded. */
@@ -38,14 +39,16 @@ export function fetchGoogleFonts(): Promise<GoogleFontEntry[]> {
   if (!catalog) {
     catalog = fetch(API_URL)
       .then((res) => {
-        if (!res.ok) throw new Error(`${res.status} fetching Google Fonts list`);
+        if (!res.ok)
+          throw new Error(`${res.status} fetching Google Fonts list`);
         return res.json() as Promise<{ items: GoogleFontEntry[] }>;
       })
       .then((data) =>
-        data.items.map(({ family, category, variants }) => ({
+        data.items.map(({ family, category, variants, files }) => ({
           family,
           category,
           variants,
+          files,
         })),
       );
     catalog.catch((err) => {
@@ -57,14 +60,15 @@ export function fetchGoogleFonts(): Promise<GoogleFontEntry[]> {
 }
 
 /** css2 ital,wght tuples from API variants, sorted as the API requires. */
-function variantTuples(variants: string[]): [number, number][] {
+export function variantTuples(variants: string[]): [number, number][] {
   const tuples = new Map<string, [number, number]>();
   for (const variant of variants) {
     const italic = variant.includes('italic') ? 1 : 0;
     const weightText = variant.replace('italic', '');
     const weight =
       weightText === '' || weightText === 'regular' ? 400 : Number(weightText);
-    if (!Number.isNaN(weight)) tuples.set(`${italic},${weight}`, [italic, weight]);
+    if (!Number.isNaN(weight))
+      tuples.set(`${italic},${weight}`, [italic, weight]);
   }
   return [...tuples.values()].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
 }

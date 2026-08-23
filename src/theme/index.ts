@@ -1,8 +1,20 @@
 export { THEMES } from './themes';
 export { compileControls, themeStyle } from './compile';
 export { resolveTheme, resolveColorValue, substituteTokens } from './resolve';
-export { compiledBundle, themeSlug } from './bundle';
+export {
+  galapathemeBundle,
+  themeSlug,
+  GALAPATHEME_MAGIC,
+  GALAPATHEME_VERSION,
+  GALAPATHEME_EXTENSION,
+  GALAPATHEME_MIME,
+  METADATA_ENTRY,
+  THEME_ENTRY,
+} from './galapatheme';
+export { bundleFonts, faceKey } from './fontBundle';
 export { SIDES, CONTROL_IDS } from './types';
+export type { GalapathemeHeader, GalapathemeMetadata } from './galapatheme';
+export type { FontBundle, FontStyle } from './fontBundle';
 export type {
   AuthoringTheme,
   CompiledTheme,

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Autocomplete, Checkbox, NumberInput, Select } from '@mantine/core';
 import { useOSSettings } from '@/context/os-settings';
 import type { ThemeFont, ThemeFonts } from '@/theme';
-import { ensureFontLoaded, fetchGoogleFonts } from './googleFonts';
+import { ensureFontLoaded, fetchGoogleFonts } from '@/theme/googleFonts';
 import SpecimenIsland from './SpecimenIsland';
 import styles from './Studio.module.css';
 

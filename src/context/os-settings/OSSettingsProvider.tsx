@@ -9,7 +9,7 @@ import {
   resolveInitialThemeId,
 } from './persistence';
 import { THEMES, resolveTheme, type AuthoringTheme, type CompiledTheme } from '@/theme';
-import { ensureFontLoaded } from '@/studio/googleFonts';
+import { ensureFontLoaded } from '@/theme/googleFonts';
 
 export function OSSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<OSSettings>(() => ({
