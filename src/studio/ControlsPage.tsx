@@ -4,6 +4,7 @@ import {
   FileButton,
   SegmentedControl,
   Select,
+  Switch,
   TextInput,
 } from '@mantine/core';
 import { useOSSettings } from '@/context/os-settings';
@@ -149,7 +150,10 @@ export default function ControlsPage() {
     writeControl(prune({ ...path, ...patch }) as PathControl);
   };
 
-  const editState = (state: PartState, patch: Partial<PathStateOverride>) => {
+  const editState = (
+    state: PartState,
+    patch: Partial<PathStateOverride> & { showRing?: boolean },
+  ) => {
     if (!path) return;
     const states = { ...(path.states ?? {}) };
     const merged = prune({ ...(states[state] ?? {}), ...patch });
@@ -390,6 +394,20 @@ export default function ControlsPage() {
                   ` "${stateSel}" is interactive — hover, press, or focus the specimen to see it.`}
               </span>
             )}
+            {stateSel === 'focused' && (
+              <Switch
+                size="xs"
+                label="Show app focus ring"
+                description="Turn this off only when the focused state supplies its own visible treatment."
+                checked={path.states?.focused?.showRing !== false}
+                disabled={disabled}
+                onChange={(event) =>
+                  editState('focused', {
+                    showRing: event.currentTarget.checked ? undefined : false,
+                  })
+                }
+              />
+            )}
             <TokenField
               label="Fill"
               value={scopeFields.fill}
@@ -446,6 +464,7 @@ export default function ControlsPage() {
                       contentColor: undefined,
                       borderThickness: undefined,
                       opacity: undefined,
+                      showRing: undefined,
                     })
                   }
                 >

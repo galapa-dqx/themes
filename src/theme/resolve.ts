@@ -239,9 +239,19 @@ async function resolvePathControl(
   if (control.states) {
     const states: NonNullable<CompiledPathControl['states']> = {};
     for (const [state, override] of Object.entries(control.states)) {
-      const paint = resolvePaint(override, palette, warnings);
-      if (override.image) paint.image = await inlineImage(override.image, theme, warnings);
-      states[state as PartState] = paint;
+      const showRing =
+        state === 'focused'
+          ? (override as PathStateOverride & { showRing?: boolean }).showRing
+          : undefined;
+      const paint: CompiledPaint & { showRing?: boolean } = resolvePaint(
+        override,
+        palette,
+        warnings,
+      );
+      if (override.image)
+        paint.image = await inlineImage(override.image, theme, warnings);
+      if (showRing !== undefined) paint.showRing = showRing;
+      (states as Partial<Record<PartState, typeof paint>>)[state as PartState] = paint;
     }
     out.states = states;
   }
@@ -267,10 +277,19 @@ async function resolveAssetControl(
   if (control.states) {
     const states: NonNullable<CompiledAssetControl['states']> = {};
     for (const [state, override] of Object.entries(control.states)) {
-      if (override?.asset)
-        states[state as keyof typeof states] = {
-          art: await inlineArt(override.asset, theme, warnings),
-        };
+      if (!override) continue;
+      const showRing =
+        state === 'focused'
+          ? (override as { asset?: string; showRing?: boolean }).showRing
+          : undefined;
+      const compiledState: { art?: string; showRing?: boolean } = {};
+      if (override.asset)
+        compiledState.art = await inlineArt(override.asset, theme, warnings);
+      if (showRing !== undefined) compiledState.showRing = showRing;
+      if (Object.keys(compiledState).length)
+        (states as Partial<Record<PartState, typeof compiledState>>)[
+          state as PartState
+        ] = compiledState;
     }
     if (Object.keys(states).length) out.states = states;
   }
@@ -326,7 +345,6 @@ function resolveFocusRing(
   warnings: string[],
 ): CompiledTheme['focusRing'] {
   const ring = theme.focusRing;
-  if (ring === null) return null;
   const color = ring?.color
     ? resolveColorValue(ring.color, theme.palette, warnings)
     : resolveToken('--theme-accent', theme.palette, warnings);

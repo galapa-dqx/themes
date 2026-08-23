@@ -55,6 +55,7 @@ export function usePartSkin(
     const baseSet = getSliceSet(asset.art);
     const out: SkinLayer[] = [{ set: baseSet, style: layerStyle(baseSet) }];
     for (const [state, val] of Object.entries(asset.states ?? {})) {
+      if (!val.art) continue;
       const set = getSliceSet(val.art);
       out.push({ state: state as PartState, set, style: layerStyle(set) });
     }
