@@ -10,13 +10,13 @@
 
 .Label {
   overflow: hidden;
-  font-family: var(--g-setting-row-font, var(--font-heading));
-  font-size: var(--g-setting-row-size, var(--text-md));
-  font-style: var(--g-setting-row-style, var(--heading-style));
-  font-weight: var(--g-setting-row-weight, var(--heading-weight));
-  letter-spacing: var(--g-setting-row-letter-spacing, 0);
+  font-family: var(--g-setting-row-font);
+  font-size: var(--g-setting-row-size);
+  font-style: var(--g-setting-row-style);
+  font-weight: var(--g-setting-row-weight);
+  letter-spacing: var(--g-setting-row-letter-spacing);
   text-overflow: ellipsis;
-  text-transform: var(--g-setting-row-case, none);
+  text-transform: var(--g-setting-row-case);
   white-space: nowrap;
 }
 
@@ -24,6 +24,6 @@
   display: inline-flex;
   flex: none;
   align-items: center;
-  font-size: var(--text-md);
+  font-size: var(--g-setting-row-size);
   font-weight: 500;
 }

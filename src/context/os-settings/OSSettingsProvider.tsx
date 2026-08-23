@@ -67,6 +67,7 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
   const [resolved, setResolved] = useState<{
     compiled: CompiledTheme;
     warnings: string[];
+    errors: string[];
   } | null>(null);
   useEffect(() => {
     let alive = true;
@@ -84,6 +85,7 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
     theme,
     compiled: resolved?.compiled ?? null,
     themeWarnings: resolved?.warnings ?? [],
+    themeErrors: resolved?.errors ?? [],
     isCustomTheme: themeId in settings.customThemes,
     isKnownTheme,
     setWinStyle: (winStyle: OSSettings['winStyle']) =>

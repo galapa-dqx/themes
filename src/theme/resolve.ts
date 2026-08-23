@@ -18,13 +18,14 @@ import type {
   PathControl,
   PathStateOverride,
   ResolvedType,
+  TextBearingControlId,
   ThemeFonts,
   ThemePalette,
   TextControl,
   TypeSpec,
   WindowControl,
 } from './types';
-import { CONTROL_IDS } from './types';
+import { CONTROL_IDS, TEXT_BEARING_CONTROLS } from './types';
 
 /**
  * The resolver: an authoring theme in, a compiled theme out. This is the one
@@ -97,12 +98,16 @@ export function resolveColorValue(
   return format(base ? { ...base, alpha: cv.value } : undefined, warnings);
 }
 
+/** Compose a role's face with inline literals into a single partial type.
+ *  Inline fields win over the role — a control that names `role: 'heading'`
+ *  but sets `weight: 400` gets the heading family at 400. The role name is
+ *  gone by the time this returns; the compiled theme carries only literals. */
 function resolveType(
   spec: TypeSpec,
   fonts: ThemeFonts,
   warnings: string[],
-): ResolvedType | undefined {
-  const out: ResolvedType = {};
+): Partial<ResolvedType> {
+  const out: Partial<ResolvedType> = {};
   if (spec.role) {
     const font = fonts[spec.role];
     if (!font) warnings.push(`references undefined font role "${spec.role}"`);
@@ -113,10 +118,64 @@ function resolveType(
       out.style = font.style ?? 'normal';
     }
   }
+  if (spec.family !== undefined) out.family = spec.family;
+  if (spec.fallback !== undefined) out.fallback = spec.fallback;
+  if (spec.weight !== undefined) out.weight = spec.weight;
+  if (spec.style !== undefined) out.style = spec.style;
   if (spec.size !== undefined) out.size = spec.size;
   if (spec.letterSpacing !== undefined) out.letterSpacing = spec.letterSpacing;
   if (spec.case !== undefined) out.case = spec.case;
-  return Object.keys(out).length ? out : undefined;
+  return out;
+}
+
+/** Finish a text-bearing control's type: check the required fields are all
+ *  present (family, fallback, weight, size) and fill deterministic defaults
+ *  for the optional ones (`style: 'normal'`, `letterSpacing: 0`,
+ *  `case: 'none'`). A control that arrives incomplete is a hard compilation
+ *  error — the compiled artefact must materialize exactly what the runtime
+ *  will render, with no fallback to an app-level type floor. */
+function completeType(
+  id: TextBearingControlId,
+  partial: Partial<ResolvedType>,
+  errors: string[],
+): ResolvedType {
+  const missing: string[] = [];
+  if (!partial.family) missing.push('family');
+  if (!partial.fallback) missing.push('fallback');
+  if (partial.weight === undefined) missing.push('weight');
+  if (partial.size === undefined) missing.push('size');
+  if (missing.length) {
+    errors.push(
+      `text-bearing control "${id}" is missing ${missing.join(', ')} — every text-bearing control must declare complete typography`,
+    );
+  }
+  return {
+    family: partial.family ?? '',
+    fallback: partial.fallback ?? 'sans-serif',
+    weight: partial.weight ?? 400,
+    style: partial.style ?? 'normal',
+    size: partial.size ?? 0,
+    letterSpacing: partial.letterSpacing ?? 0,
+    case: partial.case ?? 'none',
+  };
+}
+
+const isTextBearing = (id: ControlId): id is TextBearingControlId =>
+  (TEXT_BEARING_CONTROLS as readonly ControlId[]).includes(id);
+
+/** The compiled type for one control, or undefined for a colour-only text
+ *  control (input.placeholder, tab-bar, play-row, …). Text-bearing controls
+ *  always come back complete or add an entry to `errors`. */
+function typeFor(
+  id: ControlId,
+  spec: TypeSpec | undefined,
+  fonts: ThemeFonts,
+  warnings: string[],
+  errors: string[],
+): ResolvedType | undefined {
+  const partial = spec ? resolveType(spec, fonts, warnings) : {};
+  if (isTextBearing(id)) return completeType(id, partial, errors);
+  return Object.keys(partial).length ? (partial as ResolvedType) : undefined;
 }
 
 function resolvePaint(
@@ -219,11 +278,13 @@ async function inlineImage(
 /* ── Controls ────────────────────────────────────────────────────────── */
 
 async function resolvePathControl(
+  id: ControlId,
   control: PathControl,
   size: { width?: number; height?: number } | undefined,
   theme: AuthoringTheme,
   fonts: ThemeFonts,
   warnings: string[],
+  errors: string[],
 ): Promise<CompiledPathControl> {
   const { palette } = theme;
   const out: CompiledPathControl = {
@@ -233,7 +294,8 @@ async function resolvePathControl(
   if (control.radius !== undefined) out.radius = control.radius;
   if (control.corner !== undefined) out.corner = control.corner;
   if (control.padding !== undefined) out.padding = control.padding;
-  if (control.text) out.text = resolveType(control.text, fonts, warnings);
+  const type = typeFor(id, control.text, fonts, warnings, errors);
+  if (type) out.text = type;
   if (size) out.size = size;
   if (control.image) out.image = await inlineImage(control.image, theme, warnings);
   if (control.states) {
@@ -249,11 +311,13 @@ async function resolvePathControl(
 }
 
 async function resolveAssetControl(
+  id: ControlId,
   control: AssetControl,
   size: { width?: number; height?: number } | undefined,
   theme: AuthoringTheme,
   fonts: ThemeFonts,
   warnings: string[],
+  errors: string[],
 ): Promise<CompiledAssetControl> {
   const out: CompiledAssetControl = {
     shape: 'Asset',
@@ -262,7 +326,8 @@ async function resolveAssetControl(
   if (control.contentColor !== undefined)
     out.content = resolveColorValue(control.contentColor, theme.palette, warnings);
   if (control.opacity !== undefined) out.opacity = control.opacity;
-  if (control.text) out.text = resolveType(control.text, fonts, warnings);
+  const type = typeFor(id, control.text, fonts, warnings, errors);
+  if (type) out.text = type;
   if (size) out.size = size;
   if (control.states) {
     const states: NonNullable<CompiledAssetControl['states']> = {};
@@ -278,6 +343,7 @@ async function resolveAssetControl(
 }
 
 async function resolveTextControl(
+  id: ControlId,
   entry: TextControl & {
     leftInset?: number;
     borderColor?: ColorValue;
@@ -286,6 +352,7 @@ async function resolveTextControl(
   theme: AuthoringTheme,
   fonts: ThemeFonts,
   warnings: string[],
+  errors: string[],
 ): Promise<CompiledTextControl> {
   const { palette } = theme;
   const out: CompiledTextControl = { shape: 'Text' };
@@ -293,7 +360,8 @@ async function resolveTextControl(
     out.content = resolveColorValue(entry.contentColor, palette, warnings);
   if (entry.borderColor !== undefined)
     out.borderColor = resolveColorValue(entry.borderColor, palette, warnings);
-  if (entry.text) out.text = resolveType(entry.text, fonts, warnings);
+  const type = typeFor(id, entry.text, fonts, warnings, errors);
+  if (type) out.text = type;
   if (entry.leftInset !== undefined) out.leftInset = entry.leftInset;
   if (entry.images) {
     const images: Record<string, string> = {};
@@ -342,8 +410,9 @@ function sizeOf(entry: unknown): { width?: number; height?: number } | undefined
 
 export async function resolveTheme(
   theme: AuthoringTheme,
-): Promise<{ compiled: CompiledTheme; warnings: string[] }> {
+): Promise<{ compiled: CompiledTheme; warnings: string[]; errors: string[] }> {
   const warnings: string[] = [];
+  const errors: string[] = [];
   const { fonts } = theme;
 
   const controls = {} as CompiledControls;
@@ -353,25 +422,43 @@ export async function resolveTheme(
       let compiled: CompiledControl;
       if (entry === undefined) {
         // A custom theme stored before this control existed has no entry for
-        // it. Compile it as an empty control rather than throwing: every var
-        // it would emit is then simply absent, which is exactly the "unstyled"
-        // the compiler resolves silence to everywhere else.
-        warnings.push(`control "${id}" is missing from the theme; compiled unstyled`);
+        // it. For a colour-only surface, compile it as an empty control so
+        // its would-be vars are simply absent (the "unstyled" default). For a
+        // text-bearing control, that would leave the runtime without complete
+        // typography — surface it as an error alongside the missing-fields
+        // ones from typeFor().
+        if (isTextBearing(id)) {
+          errors.push(
+            `text-bearing control "${id}" is missing from the theme — every text-bearing control must declare complete typography`,
+          );
+        } else {
+          warnings.push(`control "${id}" is missing from the theme; compiled unstyled`);
+        }
         compiled = { shape: 'Text' };
       } else if (id === 'window') {
         compiled = resolveWindow(entry as WindowControl, theme.palette, warnings);
       } else if ('shape' in entry && entry.shape === 'Asset') {
         compiled = await resolveAssetControl(
+          id,
           entry,
           sizeOf(entry),
           theme,
           fonts,
           warnings,
+          errors,
         );
       } else if ('shape' in entry && entry.shape === 'Path') {
-        compiled = await resolvePathControl(entry, sizeOf(entry), theme, fonts, warnings);
+        compiled = await resolvePathControl(
+          id,
+          entry,
+          sizeOf(entry),
+          theme,
+          fonts,
+          warnings,
+          errors,
+        );
       } else {
-        compiled = await resolveTextControl(entry, theme, fonts, warnings);
+        compiled = await resolveTextControl(id, entry, theme, fonts, warnings, errors);
       }
       controls[id] = compiled;
     }),
@@ -386,5 +473,6 @@ export async function resolveTheme(
   };
 
   for (const w of warnings) console.warn(`[theme] ${w}`);
-  return { compiled, warnings };
+  for (const e of errors) console.error(`[theme] ${e}`);
+  return { compiled, warnings, errors };
 }

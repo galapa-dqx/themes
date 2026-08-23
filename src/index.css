@@ -1,20 +1,12 @@
 :root {
-  /* The type floor. Controls override each of these per surface via
-     `--g-<control>-font/-size/-weight/-style`; where a control is silent about
-     type, the reader falls back to the floor. */
-  --font-heading: 'Crimson Pro', georgia, 'Times New Roman', serif;
-  --font-body:
+  /* Type for the unthemed chrome only — the top nav, route notices and any
+     bare HTML that renders outside a `.theme-scope`. Every themed surface
+     reads complete literal typography off its `--g-<control>-*` vars, emitted
+     by the compiler, with no fallback to a floor here. */
+  --font-chrome:
     'Source Sans 3', 'Segoe UI Variable Text', 'Segoe UI', system-ui,
     -apple-system, sans-serif;
-  --heading-weight: 600;
-  --heading-style: normal;
-
-  /* Type scale — every font-size in the app routes through these. */
-  --text-xs: 12px; /* input labels */
-  --text-sm: 13px; /* dates, captions, help copy */
-  --text-md: 14px; /* sub-tabs, setting rows */
-  --text-lg: 16px; /* tabs, body copy, news titles */
-  --text-xl: 20px; /* app wordmark */
+  --font-chrome-heading: 'Crimson Pro', georgia, 'Times New Roman', serif;
 
   /* State-change timing. App-level rather than per-control: across the themes
      and controls every crossfade was 120ms and no theme ever set an easing, so
@@ -43,7 +35,7 @@ body,
 
 body {
   margin: 0;
-  font-family: var(--font-body);
+  font-family: var(--font-chrome);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -55,7 +47,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-heading);
+  font-family: var(--font-chrome-heading);
 }
 
 /* Top-level app frame: unthemed chrome (nav) over the active view. */

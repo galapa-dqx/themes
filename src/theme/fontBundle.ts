@@ -5,7 +5,7 @@
  * collapse each control's text spec down to a single `font` pointer.
  */
 
-import { fetchGoogleFonts } from './googleFonts';
+import { fetchGoogleFonts, BUNDLED_FAMILIES } from './googleFonts';
 import type { CompiledTheme, ResolvedType } from './types';
 import { CONTROL_IDS } from './types';
 
@@ -43,6 +43,40 @@ const variantKey = (italic: boolean, weight: number) =>
 const secure = (url: string) => url.replace(/^http:/, 'https:');
 
 type Triple = { family: string; weight: number; italic: boolean };
+
+/**
+ * Best-effort catalog validation: given a compiled theme, return a list of
+ * (family, weight, italic) faces the theme names that the Google Fonts
+ * catalog cannot serve. Silently returns `[]` when the catalog is
+ * unreachable — this is a lint pass, not a gate. Families bundled locally
+ * (see {@link BUNDLED_FAMILIES}) always pass.
+ */
+export async function validateFontsAgainstCatalog(
+  theme: CompiledTheme,
+): Promise<string[]> {
+  const requested = requestedFaces(theme);
+  if (!requested.length) return [];
+  let catalog;
+  try {
+    catalog = await fetchGoogleFonts();
+  } catch {
+    return [];
+  }
+  const problems: string[] = [];
+  for (const { family, weight, italic } of requested) {
+    if (BUNDLED_FAMILIES.has(family)) continue;
+    const entry = catalog.find((c) => c.family === family);
+    if (!entry) {
+      problems.push(`"${family}" is not in the Google Fonts catalog`);
+      continue;
+    }
+    const key = variantKey(italic, weight);
+    if (!entry.variants.includes(key)) {
+      problems.push(`"${family}" does not publish ${key}`);
+    }
+  }
+  return problems;
+}
 
 /** Distinct (family, weight, italic) triples the theme's controls name. */
 function requestedFaces(theme: CompiledTheme): Triple[] {

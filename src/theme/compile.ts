@@ -77,15 +77,19 @@ export function compileControls(theme: CompiledTheme): Record<string, string> {
     if (size?.height !== undefined) vars[`${prefix}-h`] = px(size.height);
   };
 
+  // A text-bearing control's ResolvedType is complete by construction (see
+  // resolveType/completeType in resolve.ts), so every var is emitted as a
+  // literal — the runtime never falls back to an app-level type floor.
+  // A colour-only text control (input.placeholder, tab-bar, …) has no `t`
+  // and emits nothing here; it inherits type from its host component's CSS.
   const emitType = (prefix: string, t?: ResolvedType) => {
     if (!t) return;
-    if (t.family) vars[`${prefix}-font`] = `'${t.family}', ${t.fallback}`;
-    if (t.weight !== undefined) vars[`${prefix}-weight`] = `${t.weight}`;
-    if (t.style) vars[`${prefix}-style`] = t.style;
-    if (t.size !== undefined) vars[`${prefix}-size`] = px(t.size);
-    if (t.letterSpacing !== undefined)
-      vars[`${prefix}-letter-spacing`] = px(t.letterSpacing);
-    if (t.case) vars[`${prefix}-case`] = t.case;
+    vars[`${prefix}-font`] = `'${t.family}', ${t.fallback}`;
+    vars[`${prefix}-weight`] = `${t.weight}`;
+    vars[`${prefix}-style`] = t.style;
+    vars[`${prefix}-size`] = px(t.size);
+    vars[`${prefix}-letter-spacing`] = px(t.letterSpacing);
+    vars[`${prefix}-case`] = t.case;
   };
 
   const emitPath = (prefix: string, c: CompiledPathControl) => {
