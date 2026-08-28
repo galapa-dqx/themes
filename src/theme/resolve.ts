@@ -12,6 +12,7 @@ import type {
   CompiledTheme,
   CompiledWindow,
   ControlId,
+  LabelCase,
   LiteralColor,
   Operand,
   PartState,
@@ -19,8 +20,9 @@ import type {
   PathStateOverride,
   ResolvedType,
   TextBearingControlId,
-  ThemeFonts,
-  ThemePalette,
+  TextField,
+  TextStyle,
+  ThemeTokens,
   TextControl,
   TypeSpec,
   WindowControl,
@@ -30,10 +32,10 @@ import { CONTROL_IDS, TEXT_BEARING_CONTROLS } from './types';
 /**
  * The resolver: an authoring theme in, a compiled theme out. This is the one
  * step the eventual Skia engine cannot skip — it turns every indirection an
- * author writes (palette tokens, font roles, mix/alpha derivations, external
- * art) into the literal values the engine renders from. After this runs, no
- * `--theme-*` token, no font-role name, and no asset URL survives; a compiled
- * theme is self-contained.
+ * author writes (colour tokens, text-style tokens, mix/alpha derivations,
+ * external art) into the literal values the engine renders from. After this
+ * runs, no `--color-*` or `--text-*` token and no asset URL survives; a
+ * compiled theme is self-contained.
  *
  * It is async because inlining art means fetching it. That's the price of a
  * self-contained bundle, and the right shape given themes ship with an
@@ -43,32 +45,100 @@ import { CONTROL_IDS, TEXT_BEARING_CONTROLS } from './types';
 
 const MAGENTA = '#ff00ff';
 
-const isToken = (op: Operand): boolean =>
-  op === 'none' || op.startsWith('--theme-');
+const TEXT_FIELDS: readonly TextField[] = [
+  'family',
+  'fallback',
+  'weight',
+  'style',
+  'size',
+  'letterSpacing',
+  'case',
+];
 
-/** A palette token → its literal, or magenta + a warning when the token names
- *  a role this theme's palette doesn't define (the honest failure the old
+/* ── Shared token-reference primitive ────────────────────────────────── */
+
+/** What one namespace looks like to {@link resolveTokenRef}: a name → value
+ *  map, plus the `--<prefix>-` string the reference grammar uses. */
+type TokenLookup<T> = {
+  prefix: string;
+  tokens: Record<string, T>;
+};
+
+const NAMESPACE = /^--([a-z]+)-([a-z0-9-]+)(?::([a-zA-Z]+))?$/;
+
+/** Parse one reference string into (namespace, name, piece). Returns null for
+ *  anything that doesn't match the `--<namespace>-<name>[:<field>]` grammar
+ *  (a literal colour, a literal font family, etc.), so the caller can pass
+ *  the value through unchanged. */
+export function parseTokenRef(
+  ref: string,
+): { namespace: string; name: string; piece?: string } | null {
+  const match = NAMESPACE.exec(ref);
+  if (!match) return null;
+  return { namespace: match[1], name: match[2], piece: match[3] };
+}
+
+/**
+ * The shared "look up by name, or by name:piece, else pass a literal through"
+ * primitive. Colour uses it via {@link resolveToken}; text uses it per field
+ * via {@link resolveTextField}. Derivation ops (`mix`, `alpha`) stay in
+ * colour-land — text has none — but the reference-shape logic lives here.
+ *
+ * Returns the token value (or one piece of it), or `undefined` on a token
+ * this namespace doesn't define. The caller decides what an undefined
+ * resolution means (magenta paint, a warning, a piece that falls through to
+ * a compose peer, …).
+ */
+export function resolveTokenRef<T>(
+  ref: string,
+  lookup: TokenLookup<T>,
+  warnings: string[],
+): { value: T; piece?: string } | { missing: true; piece?: string } | null {
+  const parsed = parseTokenRef(ref);
+  if (!parsed || parsed.namespace !== lookup.prefix) return null;
+  const value = lookup.tokens[parsed.name];
+  if (value === undefined) {
+    warnings.push(
+      `references undefined ${lookup.prefix} token --${lookup.prefix}-${parsed.name}`,
+    );
+    return { missing: true, piece: parsed.piece };
+  }
+  return { value, piece: parsed.piece };
+}
+
+/* ── Colour resolution ───────────────────────────────────────────────── */
+
+const isToken = (op: Operand): boolean =>
+  op === 'none' || op.startsWith('--color-');
+
+const colorLookup = (
+  tokens: ThemeTokens,
+): TokenLookup<LiteralColor> => ({ prefix: 'color', tokens: tokens.colors });
+
+/** A colour-token ref → its literal, or magenta + a warning when the token
+ *  names a role this theme's colours don't define (the honest failure the old
  *  substituteTokens used, kept for the same reason). */
 function resolveToken(
   token: string,
-  palette: ThemePalette,
+  tokens: ThemeTokens,
   warnings: string[],
 ): LiteralColor {
   if (token === 'none') return 'transparent';
-  const role = token.slice('--theme-'.length);
-  const hex = palette[role];
-  if (!hex) {
-    warnings.push(`references undefined palette token --theme-${role}`);
-    return MAGENTA;
+  const looked = resolveTokenRef(token, colorLookup(tokens), warnings);
+  if (!looked) {
+    // Not `--color-*` grammar — treat as a literal so mix/alpha operands can
+    // reach for '#ffffff' inline.
+    return token;
   }
-  return hex;
+  if ('missing' in looked) return MAGENTA;
+  return looked.value;
 }
 
 const resolveOperand = (
   op: Operand,
-  palette: ThemePalette,
+  tokens: ThemeTokens,
   warnings: string[],
-): LiteralColor => (isToken(op) ? resolveToken(op, palette, warnings) : op);
+): LiteralColor => (isToken(op) ? resolveToken(op, tokens, warnings) : op);
 
 /** A culori colour → a literal string: hex when opaque, rgb(… / a) when not,
  *  magenta when the colour didn't parse. */
@@ -84,47 +154,115 @@ function format(c: ReturnType<typeof parse>, warnings: string[]): LiteralColor {
  *  two derivation ops resolve their operands first, then blend or fade. */
 export function resolveColorValue(
   cv: ColorValue,
-  palette: ThemePalette,
+  tokens: ThemeTokens,
   warnings: string[],
 ): LiteralColor {
-  if (typeof cv === 'string') return resolveToken(cv, palette, warnings);
+  if (typeof cv === 'string') return resolveToken(cv, tokens, warnings);
   if ('mix' in cv) {
-    const [a, b] = cv.mix.map((op) => resolveOperand(op, palette, warnings));
+    const [a, b] = cv.mix.map((op) => resolveOperand(op, tokens, warnings));
     // culori spells sRGB 'rgb'; our authoring vocabulary says 'srgb'.
     const mode = cv.space === 'srgb' ? 'rgb' : 'oklab';
     return format(interpolate([a, b], mode)(cv.amount), warnings);
   }
-  const base = parse(resolveOperand(cv.alpha, palette, warnings));
+  const base = parse(resolveOperand(cv.alpha, tokens, warnings));
   return format(base ? { ...base, alpha: cv.value } : undefined, warnings);
 }
 
-/** Compose a role's face with inline literals into a single partial type.
- *  Inline fields win over the role — a control that names `role: 'heading'`
- *  but sets `weight: 400` gets the heading family at 400. The role name is
- *  gone by the time this returns; the compiled theme carries only literals. */
-function resolveType(
-  spec: TypeSpec,
-  fonts: ThemeFonts,
+/* ── Text resolution ─────────────────────────────────────────────────── */
+
+const textLookup = (
+  tokens: ThemeTokens,
+): TokenLookup<TextStyle> => ({ prefix: 'text', tokens: tokens.text });
+
+/** One text field's authoring value → its literal. `--text-<name>:<field>`
+ *  cherry-picks; anything else is a literal already. A piece grammar without
+ *  a matching text token warns and returns undefined (the field then falls
+ *  through the compose layers, and the completeness check catches whatever
+ *  the layers didn't fill). */
+function resolveTextField<F extends TextField>(
+  field: F,
+  value: unknown,
+  tokens: ThemeTokens,
   warnings: string[],
-): Partial<ResolvedType> {
-  const out: Partial<ResolvedType> = {};
-  if (spec.role) {
-    const font = fonts[spec.role];
-    if (!font) warnings.push(`references undefined font role "${spec.role}"`);
-    else {
-      out.family = font.family;
-      out.fallback = font.fallback;
-      out.weight = font.weight;
-      out.style = font.style ?? 'normal';
+): TextStyle[F] | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === 'string') {
+    const looked = resolveTokenRef(value, textLookup(tokens), warnings);
+    if (looked) {
+      if ('missing' in looked) return undefined;
+      const piece = (looked.piece ?? field) as TextField;
+      if (!TEXT_FIELDS.includes(piece)) {
+        warnings.push(`text token reference "${value}" names an unknown field`);
+        return undefined;
+      }
+      return looked.value[piece] as TextStyle[F];
     }
   }
-  if (spec.family !== undefined) out.family = spec.family;
-  if (spec.fallback !== undefined) out.fallback = spec.fallback;
-  if (spec.weight !== undefined) out.weight = spec.weight;
-  if (spec.style !== undefined) out.style = spec.style;
-  if (spec.size !== undefined) out.size = spec.size;
-  if (spec.letterSpacing !== undefined) out.letterSpacing = spec.letterSpacing;
-  if (spec.case !== undefined) out.case = spec.case;
+  return value as TextStyle[F];
+}
+
+/** Compose a whole-token reference (from `spec.style`) with per-field
+ *  overrides. Field values may themselves be piece refs, so each one runs
+ *  through {@link resolveTextField}. A `TypeSpec` written as a bare string is
+ *  the whole-token shorthand and never carries overrides.
+ *
+ *  The role/inline dance from before is gone: there's just one composition —
+ *  a base (empty, or the whole text token) and a per-field override layer. */
+function resolveType(
+  spec: TypeSpec,
+  tokens: ThemeTokens,
+  warnings: string[],
+): Partial<ResolvedType> {
+  if (typeof spec === 'string') {
+    const looked = resolveTokenRef(spec, textLookup(tokens), warnings);
+    if (!looked) {
+      warnings.push(`text reference "${spec}" is not a --text-* token`);
+      return {};
+    }
+    if ('missing' in looked) return {};
+    // A whole-token shorthand always names a whole token; a stray piece
+    // suffix (`--text-heading:family`) as the shorthand is a mistake worth
+    // hearing about, but we still resolve it to that one field.
+    if (looked.piece) {
+      warnings.push(
+        `text shorthand "${spec}" cherry-picks one field — wrap it in { ${looked.piece}: '${spec}' } to be explicit`,
+      );
+      const piece = looked.piece as TextField;
+      return TEXT_FIELDS.includes(piece)
+        ? ({ [piece]: looked.value[piece] } as Partial<ResolvedType>)
+        : {};
+    }
+    return { ...looked.value };
+  }
+  const out: Partial<ResolvedType> = {};
+  if (spec.style !== undefined) {
+    const looked = resolveTokenRef(spec.style, textLookup(tokens), warnings);
+    if (!looked) {
+      warnings.push(`style reference "${spec.style}" is not a --text-* token`);
+    } else if (!('missing' in looked)) {
+      if (looked.piece) {
+        warnings.push(
+          `style: "${spec.style}" cherry-picks one field — spell it on that field instead`,
+        );
+        const piece = looked.piece as TextField;
+        if (TEXT_FIELDS.includes(piece)) {
+          (out as Record<string, unknown>)[piece] = looked.value[piece];
+        }
+      } else {
+        Object.assign(out, looked.value);
+      }
+    }
+  }
+  const setField = <F extends TextField>(field: F, value: unknown) => {
+    const resolved = resolveTextField(field, value, tokens, warnings);
+    if (resolved !== undefined) (out as Record<string, unknown>)[field] = resolved;
+  };
+  setField('family', spec.family);
+  setField('fallback', spec.fallback);
+  setField('weight', spec.weight);
+  setField('size', spec.size);
+  setField('letterSpacing', spec.letterSpacing);
+  setField('case', spec.case);
   return out;
 }
 
@@ -156,7 +294,7 @@ function completeType(
     style: partial.style ?? 'normal',
     size: partial.size ?? 0,
     letterSpacing: partial.letterSpacing ?? 0,
-    case: partial.case ?? 'none',
+    case: (partial.case as LabelCase | undefined) ?? 'none',
   };
 }
 
@@ -169,32 +307,32 @@ const isTextBearing = (id: ControlId): id is TextBearingControlId =>
 function typeFor(
   id: ControlId,
   spec: TypeSpec | undefined,
-  fonts: ThemeFonts,
+  tokens: ThemeTokens,
   warnings: string[],
   errors: string[],
 ): ResolvedType | undefined {
-  const partial = spec ? resolveType(spec, fonts, warnings) : {};
+  const partial = spec ? resolveType(spec, tokens, warnings) : {};
   if (isTextBearing(id)) return completeType(id, partial, errors);
   return Object.keys(partial).length ? (partial as ResolvedType) : undefined;
 }
 
 function resolvePaint(
   p: PathStateOverride,
-  palette: ThemePalette,
+  tokens: ThemeTokens,
   warnings: string[],
 ): CompiledPaint {
   const paint: CompiledPaint = {};
-  if (p.fill !== undefined) paint.fill = resolveColorValue(p.fill, palette, warnings);
+  if (p.fill !== undefined) paint.fill = resolveColorValue(p.fill, tokens, warnings);
   if (p.contentColor !== undefined)
-    paint.content = resolveColorValue(p.contentColor, palette, warnings);
+    paint.content = resolveColorValue(p.contentColor, tokens, warnings);
   if (p.borderColor !== undefined)
-    paint.borderColor = resolveColorValue(p.borderColor, palette, warnings);
+    paint.borderColor = resolveColorValue(p.borderColor, tokens, warnings);
   if (p.borderThickness !== undefined) paint.borderThickness = p.borderThickness;
   if (p.opacity !== undefined) paint.opacity = p.opacity;
   return paint;
 }
 
-/* ── Art: fetched once by URL, substituted per palette ───────────────── */
+/* ── Art: fetched once by URL, substituted per token set ─────────────── */
 
 const rawCache = new Map<string, Promise<string>>();
 
@@ -211,19 +349,19 @@ function fetchRaw(url: string): Promise<string> {
   return pending;
 }
 
-/** Swap every `var(--theme-*)` in an SVG for its literal. Pre-substitution is
+/** Swap every `var(--color-*)` in an SVG for its literal. Pre-substitution is
  *  what keeps us honest for the Skia port, which has no CSS cascade — the art
  *  ships as a self-contained document. Unknown tokens warn and paint magenta,
  *  matching {@link resolveToken}. */
 export function substituteTokens(
   svgText: string,
-  palette: ThemePalette,
+  tokens: ThemeTokens,
   warnings?: string[],
 ): string {
-  return svgText.replace(/var\(--theme-([a-z0-9-]+)\)/g, (_, role: string) => {
-    const hex = palette[role];
+  return svgText.replace(/var\(--color-([a-z0-9-]+)\)/g, (_, name: string) => {
+    const hex = tokens.colors[name];
     if (!hex) {
-      warnings?.push(`.9.svg references undefined token --theme-${role}`);
+      warnings?.push(`.9.svg references undefined token --color-${name}`);
       return MAGENTA;
     }
     return hex;
@@ -246,7 +384,7 @@ async function inlineArt(
     return EMPTY_ART;
   }
   try {
-    return substituteTokens(await fetchRaw(url), theme.palette, warnings);
+    return substituteTokens(await fetchRaw(url), theme.tokens, warnings);
   } catch (err) {
     warnings.push(`asset "${assetKey}" failed to load (${String(err)})`);
     return EMPTY_ART;
@@ -268,7 +406,7 @@ async function inlineImage(
     return undefined;
   }
   try {
-    return substituteTokens(await fetchRaw(url), theme.palette, warnings);
+    return substituteTokens(await fetchRaw(url), theme.tokens, warnings);
   } catch (err) {
     warnings.push(`image asset "${assetKey}" failed to load (${String(err)})`);
     return undefined;
@@ -282,28 +420,37 @@ async function resolvePathControl(
   control: PathControl,
   size: { width?: number; height?: number } | undefined,
   theme: AuthoringTheme,
-  fonts: ThemeFonts,
   warnings: string[],
   errors: string[],
 ): Promise<CompiledPathControl> {
-  const { palette } = theme;
+  const { tokens } = theme;
   const out: CompiledPathControl = {
     shape: 'Path',
-    ...resolvePaint(control, palette, warnings),
+    ...resolvePaint(control, tokens, warnings),
   };
   if (control.radius !== undefined) out.radius = control.radius;
   if (control.corner !== undefined) out.corner = control.corner;
   if (control.padding !== undefined) out.padding = control.padding;
-  const type = typeFor(id, control.text, fonts, warnings, errors);
+  const type = typeFor(id, control.text, tokens, warnings, errors);
   if (type) out.text = type;
   if (size) out.size = size;
   if (control.image) out.image = await inlineImage(control.image, theme, warnings);
   if (control.states) {
     const states: NonNullable<CompiledPathControl['states']> = {};
     for (const [state, override] of Object.entries(control.states)) {
-      const paint = resolvePaint(override, palette, warnings);
-      if (override.image) paint.image = await inlineImage(override.image, theme, warnings);
-      states[state as PartState] = paint;
+      const showRing =
+        state === 'focused'
+          ? (override as PathStateOverride & { showRing?: boolean }).showRing
+          : undefined;
+      const paint: CompiledPaint & { showRing?: boolean } = resolvePaint(
+        override,
+        tokens,
+        warnings,
+      );
+      if (override.image)
+        paint.image = await inlineImage(override.image, theme, warnings);
+      if (showRing !== undefined) paint.showRing = showRing;
+      (states as Partial<Record<PartState, typeof paint>>)[state as PartState] = paint;
     }
     out.states = states;
   }
@@ -315,27 +462,36 @@ async function resolveAssetControl(
   control: AssetControl,
   size: { width?: number; height?: number } | undefined,
   theme: AuthoringTheme,
-  fonts: ThemeFonts,
   warnings: string[],
   errors: string[],
 ): Promise<CompiledAssetControl> {
+  const { tokens } = theme;
   const out: CompiledAssetControl = {
     shape: 'Asset',
     art: await inlineArt(control.asset, theme, warnings),
   };
   if (control.contentColor !== undefined)
-    out.content = resolveColorValue(control.contentColor, theme.palette, warnings);
+    out.content = resolveColorValue(control.contentColor, tokens, warnings);
   if (control.opacity !== undefined) out.opacity = control.opacity;
-  const type = typeFor(id, control.text, fonts, warnings, errors);
+  const type = typeFor(id, control.text, tokens, warnings, errors);
   if (type) out.text = type;
   if (size) out.size = size;
   if (control.states) {
     const states: NonNullable<CompiledAssetControl['states']> = {};
     for (const [state, override] of Object.entries(control.states)) {
-      if (override?.asset)
-        states[state as keyof typeof states] = {
-          art: await inlineArt(override.asset, theme, warnings),
-        };
+      if (!override) continue;
+      const showRing =
+        state === 'focused'
+          ? (override as { asset?: string; showRing?: boolean }).showRing
+          : undefined;
+      const compiledState: { art?: string; showRing?: boolean } = {};
+      if (override.asset)
+        compiledState.art = await inlineArt(override.asset, theme, warnings);
+      if (showRing !== undefined) compiledState.showRing = showRing;
+      if (Object.keys(compiledState).length)
+        (states as Partial<Record<PartState, typeof compiledState>>)[
+          state as PartState
+        ] = compiledState;
     }
     if (Object.keys(states).length) out.states = states;
   }
@@ -350,17 +506,16 @@ async function resolveTextControl(
     images?: Record<string, string>;
   },
   theme: AuthoringTheme,
-  fonts: ThemeFonts,
   warnings: string[],
   errors: string[],
 ): Promise<CompiledTextControl> {
-  const { palette } = theme;
+  const { tokens } = theme;
   const out: CompiledTextControl = { shape: 'Text' };
   if (entry.contentColor !== undefined)
-    out.content = resolveColorValue(entry.contentColor, palette, warnings);
+    out.content = resolveColorValue(entry.contentColor, tokens, warnings);
   if (entry.borderColor !== undefined)
-    out.borderColor = resolveColorValue(entry.borderColor, palette, warnings);
-  const type = typeFor(id, entry.text, fonts, warnings, errors);
+    out.borderColor = resolveColorValue(entry.borderColor, tokens, warnings);
+  const type = typeFor(id, entry.text, tokens, warnings, errors);
   if (type) out.text = type;
   if (entry.leftInset !== undefined) out.leftInset = entry.leftInset;
   if (entry.images) {
@@ -376,16 +531,16 @@ async function resolveTextControl(
 
 function resolveWindow(
   control: WindowControl,
-  palette: ThemePalette,
+  tokens: ThemeTokens,
   warnings: string[],
 ): CompiledWindow {
   const out: CompiledWindow = { shape: 'Window' };
   if (control.fill !== undefined)
-    out.fill = resolveColorValue(control.fill, palette, warnings);
+    out.fill = resolveColorValue(control.fill, tokens, warnings);
   if (control.contentColor !== undefined)
-    out.content = resolveColorValue(control.contentColor, palette, warnings);
+    out.content = resolveColorValue(control.contentColor, tokens, warnings);
   if (control.borderColor !== undefined)
-    out.borderColor = resolveColorValue(control.borderColor, palette, warnings);
+    out.borderColor = resolveColorValue(control.borderColor, tokens, warnings);
   return out;
 }
 
@@ -394,10 +549,9 @@ function resolveFocusRing(
   warnings: string[],
 ): CompiledTheme['focusRing'] {
   const ring = theme.focusRing;
-  if (ring === null) return null;
   const color = ring?.color
-    ? resolveColorValue(ring.color, theme.palette, warnings)
-    : resolveToken('--theme-accent', theme.palette, warnings);
+    ? resolveColorValue(ring.color, theme.tokens, warnings)
+    : resolveToken('--color-accent', theme.tokens, warnings);
   return { color, width: ring?.width ?? 2, offset: ring?.offset ?? -2 };
 }
 
@@ -413,7 +567,6 @@ export async function resolveTheme(
 ): Promise<{ compiled: CompiledTheme; warnings: string[]; errors: string[] }> {
   const warnings: string[] = [];
   const errors: string[] = [];
-  const { fonts } = theme;
 
   const controls = {} as CompiledControls;
   await Promise.all(
@@ -436,14 +589,13 @@ export async function resolveTheme(
         }
         compiled = { shape: 'Text' };
       } else if (id === 'window') {
-        compiled = resolveWindow(entry as WindowControl, theme.palette, warnings);
+        compiled = resolveWindow(entry as WindowControl, theme.tokens, warnings);
       } else if ('shape' in entry && entry.shape === 'Asset') {
         compiled = await resolveAssetControl(
           id,
           entry,
           sizeOf(entry),
           theme,
-          fonts,
           warnings,
           errors,
         );
@@ -453,12 +605,11 @@ export async function resolveTheme(
           entry,
           sizeOf(entry),
           theme,
-          fonts,
           warnings,
           errors,
         );
       } else {
-        compiled = await resolveTextControl(id, entry, theme, fonts, warnings, errors);
+        compiled = await resolveTextControl(id, entry, theme, warnings, errors);
       }
       controls[id] = compiled;
     }),

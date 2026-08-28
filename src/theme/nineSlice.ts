@@ -21,7 +21,7 @@ import type { Edges } from './types';
  *    space — the CSS border-image-repeat vocabulary. Tiled slices ignore
  *    preserveAspectRatio
  *  - colours are already literal by the time the art reaches this parser: the
- *    resolver substitutes `var(--theme-*)` tokens against the palette while
+ *    resolver substitutes `var(--color-*)` tokens against theme.tokens.colors while
  *    inlining the art (see resolve.ts). Pre-substitution keeps us honest for
  *    the Skia port, which has no CSS cascade — so this parser never sees a
  *    token, and parsing is a pure, synchronous function of the SVG text.

@@ -11,7 +11,7 @@ import { cellRects, parseViewBox, type SlicerDoc } from './doc';
  * artwork nine times behind per-cell viewBox crops.
  *
  * Theme tokens can't survive a trip through Paper.js (colours are parsed),
- * so `var(--theme-*)` references are swapped for sentinel colours up front
+ * so `var(--color-*)` references are swapped for sentinel colours up front
  * and restored in the emitted text.
  */
 
@@ -32,7 +32,7 @@ function paperProject(): paper.Project {
 function tokenSentinels(source: string) {
   const roles = [
     ...new Set(
-      [...source.matchAll(/var\(--theme-([a-z0-9-]+)\)/g)].map((m) => m[1]),
+      [...source.matchAll(/var\(--color-([a-z0-9-]+)\)/g)].map((m) => m[1]),
     ),
   ];
   const lower = source.toLowerCase();
@@ -49,14 +49,14 @@ function tokenSentinels(source: string) {
     map.push({ role, hex });
   }
   const prepared = source.replace(
-    /var\(--theme-([a-z0-9-]+)\)/g,
+    /var\(--color-([a-z0-9-]+)\)/g,
     (_, role: string) => map.find((m) => m.role === role)!.hex,
   );
   // Paper may emit sentinels back as hex or rgb(); restore both spellings.
   const restore = (text: string) =>
     map.reduce((acc, { role, hex }) => {
       const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-      const token = `var(--theme-${role})`;
+      const token = `var(--color-${role})`;
       return acc
         .replace(new RegExp(hex, 'gi'), token)
         .replaceAll(`rgb(${r},${g},${b})`, token)

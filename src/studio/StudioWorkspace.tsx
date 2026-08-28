@@ -6,8 +6,7 @@ import styles from './Studio.module.css';
 
 const TABS = [
   { id: 'info', label: 'Info' },
-  { id: 'palette', label: 'Palette' },
-  { id: 'fonts', label: 'Fonts' },
+  { id: 'tokens', label: 'Design Tokens' },
   { id: 'controls', label: 'Controls' },
   { id: 'gallery', label: 'Gallery' },
   { id: 'slicer', label: 'Slicer' },
@@ -19,8 +18,7 @@ type StudioTab = (typeof TABS)[number]['id'];
 /** Spelled out so the router keeps literal path types. */
 const TOOL_LINKS = {
   info: '/themes/$themeId/editor/info',
-  palette: '/themes/$themeId/editor/palette',
-  fonts: '/themes/$themeId/editor/fonts',
+  tokens: '/themes/$themeId/editor/tokens',
   controls: '/themes/$themeId/editor/controls',
   gallery: '/themes/$themeId/editor/gallery',
   slicer: '/themes/$themeId/editor/slicer',
@@ -28,7 +26,7 @@ const TOOL_LINKS = {
 } as const;
 
 /** Tabs that edit the theme and need the read-only notice. */
-const EDITOR_TABS: StudioTab[] = ['info', 'palette', 'fonts', 'controls'];
+const EDITOR_TABS: StudioTab[] = ['info', 'tokens', 'controls'];
 
 /**
  * Layout for /themes/$themeId/editor: each tool is a child route. Lives
@@ -40,7 +38,7 @@ export default function StudioWorkspace() {
   const navigate = useNavigate();
   const { themeId } = useOSSettings();
   const pathname = useLocation({ select: (l) => l.pathname });
-  const tab = (pathname.split('/').filter(Boolean).pop() ?? 'palette') as StudioTab;
+  const tab = (pathname.split('/').filter(Boolean).pop() ?? 'tokens') as StudioTab;
 
   return (
     <div className={styles.Workspace}>

@@ -23,13 +23,13 @@ export default function Validator() {
   const result: ParseResult = useMemo(() => {
     if (!source.trim()) return {};
     try {
-      // Pasted art still carries `var(--theme-*)` tokens; substitute them
-      // against the active palette (as the resolver does) before parsing.
-      return { set: parseNineSlice(substituteTokens(source, theme.palette)) };
+      // Pasted art still carries `var(--color-*)` tokens; substitute them
+      // against the active tokens (as the resolver does) before parsing.
+      return { set: parseNineSlice(substituteTokens(source, theme.tokens)) };
     } catch (err) {
       return { error: err instanceof Error ? err.message : String(err) };
     }
-  }, [source, theme.palette]);
+  }, [source, theme.tokens]);
 
   const onFile = (file: File | null) => {
     if (file) void file.text().then(setSource);

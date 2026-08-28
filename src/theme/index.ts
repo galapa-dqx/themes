@@ -1,6 +1,12 @@
 export { THEMES } from './themes';
 export { compileControls, themeStyle } from './compile';
-export { resolveTheme, resolveColorValue, substituteTokens } from './resolve';
+export {
+  resolveTheme,
+  resolveColorValue,
+  resolveTokenRef,
+  parseTokenRef,
+  substituteTokens,
+} from './resolve';
 export {
   galapathemeBundle,
   themeSlug,
@@ -19,9 +25,8 @@ export type {
   AuthoringTheme,
   CompiledTheme,
   ThemeMode,
-  ThemePalette,
-  ThemeFont,
-  ThemeFonts,
+  ThemeTokens,
+  TextStyle,
   ThemeMeta,
   FocusRing,
   LabelCase,
@@ -29,12 +34,17 @@ export type {
   PathControl,
   AssetControl,
   PathStateOverride,
+  FocusedStateOverride,
+  ControlStates,
   TextControl,
   PartState,
   ThemeControls,
   ControlId,
   TextBearingControlId,
-  ThemeToken,
+  ColorTokenRef,
+  TextTokenRef,
+  TextPieceRef,
+  TextField,
   ColorValue,
   Operand,
   LiteralColor,
@@ -46,6 +56,8 @@ export type {
   CompiledControl,
   CompiledControls,
   CompiledPaint,
+  CompiledFocusedState,
+  CompiledControlStates,
   CompiledPathControl,
   CompiledAssetControl,
   CompiledTextControl,

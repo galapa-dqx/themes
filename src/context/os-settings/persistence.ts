@@ -1,10 +1,10 @@
 import { THEMES, type AuthoringTheme } from '@/theme';
 
-// v3: themes split into an authoring format (open palette, font roles, mix/
-// alpha derivations, a typed control map) that resolves to a compiled one.
-// `colors` became `palette` and `geometry` became `controls`, so v2 payloads
+// v4: the authoring vocabulary collapsed into a single `tokens` surface with
+// two namespaces (colours and text styles); `palette` and `fonts` are gone,
+// and colour tokens changed grammar from `--theme-` to `--color-`. v3 payloads
 // can't be read as designs any more.
-export const STORAGE_KEY = 'galapa-ui.themes.v3';
+export const STORAGE_KEY = 'galapa-ui.themes.v4';
 
 /** Theme every bad or missing id falls back to. */
 export const FALLBACK_THEME_ID = 'kyururu';
@@ -30,8 +30,9 @@ export function loadPersisted(): Persisted {
       if (
         theme &&
         typeof theme === 'object' &&
-        theme.palette &&
-        theme.fonts &&
+        theme.tokens &&
+        theme.tokens.colors &&
+        theme.tokens.text &&
         theme.controls
       ) {
         customThemes[id] = theme;

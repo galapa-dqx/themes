@@ -5,19 +5,21 @@
  * them:
  *
  *   AuthoringTheme  ──resolve()──▶  CompiledTheme  ──themeStyle()──▶  CSS vars
- *    palette tokens                  literal colours                  --g-<control>-*
- *    font roles                      literal fonts                    --app-focus-*
+ *    tokens.colors                   literal colours                  --g-<control>-*
+ *    tokens.text                     literal fonts                    --app-focus-*
  *    mix / alpha derivations         inlined art
  *    asset URLs                      self-contained
  *
  * An *authoring* theme is what a designer writes and the Studio edits: it
- * names colours in an open palette, names fonts in open roles, and lets a
- * control derive a colour from a palette token (lighten/darken/tint/fade).
- * A *compiled* theme is what the engine renders: every indirection is gone —
- * no palette, no font roles, no derivations, no external art. Every control
- * carries literal values, so the renderer performs zero lookups. That's the
- * whole point: the eventual Avalonia/Skia engine has no CSS cascade and no
- * palette to consult, so resolution happens once, ahead of it.
+ * declares a single `tokens` surface with two namespaces — `colors` (literal
+ * colour by name) and `text` (complete text style by name) — and lets a
+ * control refer to one, cherry-pick one field of one, or spell literals
+ * inline. Colours support one level of derivation (`mix` / `alpha`); text has
+ * none. A *compiled* theme is what the engine renders: every indirection is
+ * gone — no tokens, no derivations, no external art. Every control carries
+ * literal values, so the renderer performs zero lookups. That's the whole
+ * point: the eventual Avalonia/Skia engine has no CSS cascade and no token
+ * table to consult, so resolution happens once, ahead of it.
  *
  * The compiled format is the contract with that engine; the authoring format
  * is the contract with the Studio and with custom-theme storage. Both stay
@@ -30,9 +32,30 @@
  *  '#b87228', 'transparent', 'rgba(0 0 0 / 0.5)'. */
 export type LiteralColor = string;
 
-/** A palette reference, resolved against the authoring theme's own palette.
- *  'none' is the explicit transparent, kept distinct from "unspecified". */
-export type ThemeToken = `--theme-${string}` | 'none';
+/** A colour-token reference, resolved against `theme.tokens.colors`. 'none' is
+ *  the explicit transparent, kept distinct from "unspecified". */
+export type ColorTokenRef = `--color-${string}` | 'none';
+
+/** A whole text-style reference — `--text-<name>` names an entry in
+ *  `theme.tokens.text` and expands to all seven typography fields. */
+export type TextTokenRef = `--text-${string}`;
+
+/** The seven fields a text token carries; also the pieces a control can
+ *  cherry-pick from one. */
+export type TextField =
+  | 'family'
+  | 'fallback'
+  | 'weight'
+  | 'style'
+  | 'size'
+  | 'letterSpacing'
+  | 'case';
+
+/** A cherry-pick reference — `--text-<name>:<field>` names one field of one
+ *  text token. The `:` selector avoids colliding with the dot in control ids
+ *  (`switch.thumb`). */
+export type TextPieceRef = `--text-${string}:${TextField}`;
+
 
 /** CSS order: [top, right, bottom, left]. */
 export type Edges = [number, number, number, number];
@@ -57,17 +80,17 @@ export type PartState =
 
 /* ── Authoring: colour derivations ───────────────────────────────────── */
 
-/** An input to a derivation: a palette token, or a bare literal. Literals let
- *  a lighten/darken reach for white/black without inventing a palette role. */
-export type Operand = ThemeToken | LiteralColor;
+/** An input to a derivation: a colour token, or a bare literal. Literals let
+ *  a lighten/darken reach for white/black without inventing a token name. */
+export type Operand = ColorTokenRef | LiteralColor;
 
 /**
- * A colour a control asks for, in authoring form. Either a palette token, or
- * one derivation over palette tokens — a closed, JSON-shaped operation set, so
- * it survives to the Skia port as data rather than as a string grammar to
- * re-parse. Deliberately one level deep, and deliberately palette-only (no
- * self- or cross-control reference): the resolver is a flat map with no
- * dependency graph and no cycle detection.
+ * A colour a control asks for, in authoring form. Either a `tokens.colors`
+ * reference, or one derivation over such references — a closed, JSON-shaped
+ * operation set, so it survives to the Skia port as data rather than as a
+ * string grammar to re-parse. Deliberately one level deep, and deliberately
+ * token-only for the derivation inputs (no self- or cross-control reference):
+ * the resolver is a flat map with no dependency graph and no cycle detection.
  *
  *  - `mix`: blend two operands by `amount` (0 = first, 1 = second). Default
  *    space is oklab — perceptual, which is what `filter: brightness()` was
@@ -76,48 +99,39 @@ export type Operand = ThemeToken | LiteralColor;
  *    control's `opacity`, which dims the whole composited control.
  */
 export type ColorValue =
-  | ThemeToken
+  | ColorTokenRef
   | { mix: [Operand, Operand]; amount: number; space?: 'oklab' | 'srgb' }
   | { alpha: Operand; value: number };
 
-/* ── Authoring: fonts ────────────────────────────────────────────────── */
+/* ── Authoring: text styles ──────────────────────────────────────────── */
 
-/** One font role: family plus the weight/style "filter" the theme applies. */
-export type ThemeFont = {
-  family: string;
-  fallback: 'serif' | 'sans-serif';
-  weight: number;
-  style?: 'italic';
-};
-
-/** Open set of named font roles (convention: heading / body / strong). A
- *  control's `text.role` names one; nothing outside authoring reads these. */
-export type ThemeFonts = Record<string, ThemeFont>;
-
-/** Type a control asks for, in authoring form. A `role` names a font from
- *  `theme.fonts` — a Theme Builder shorthand for the family/weight/style/
- *  fallback triple that resolves to literals at compile time. Any of the same
- *  fields can also be spelled inline (`family`, `fallback`, `weight`, `style`)
- *  to override or supply what no role names. `size`, `letterSpacing` and
- *  `case` are always literal. After resolution every text-bearing control
- *  must carry all six fields, so the runtime materializes what the control
- *  declares without consulting a role or a family-source fallback. */
-export type TypeSpec = {
-  /** Key into `theme.fonts` — an authoring shorthand for family + fallback +
-   *  weight + style. The compiler inlines each of those and the role name
-   *  does not survive to the compiled theme. */
-  role?: string;
-  /** Family literal — either as-is, or an override on top of a role. */
-  family?: string;
-  fallback?: 'serif' | 'sans-serif';
-  weight?: number;
-  style?: 'normal' | 'italic';
-  /** Size in logical px. Required on any text-bearing control. */
-  size?: number;
-  /** Additional tracking in logical px. */
-  letterSpacing?: number;
-  case?: LabelCase;
-};
+/** Type a control asks for, in authoring form. Three shapes are legal:
+ *
+ *  - A whole-token reference:            `text: '--text-heading'`
+ *  - Whole-token plus inline overrides:  `text: { style: '--text-heading', size: 20 }`
+ *  - Assembled from fields:              `text: { family: '--text-heading:family', size: 20, case: 'uppercase' }`
+ *
+ *  The `style` field, when set, names a complete text token from
+ *  `theme.tokens.text` — the seven fields are inlined and any sibling fields
+ *  override on top. Every other field is either a literal, or a piece
+ *  reference (`--text-<name>:<field>`) that cherry-picks that one field from
+ *  a text token. Roles are gone; there is only the token vocabulary.
+ *
+ *  After resolution every text-bearing control carries a complete
+ *  {@link ResolvedType}, regardless of how the reference was assembled — see
+ *  {@link TEXT_BEARING_CONTROLS} and the resolver's completeness check. */
+export type TypeSpec =
+  | TextTokenRef
+  | {
+      /** Start from this whole text token. Fields below override. */
+      style?: TextTokenRef;
+      family?: string | TextPieceRef;
+      fallback?: 'serif' | 'sans-serif' | TextPieceRef;
+      weight?: number | TextPieceRef;
+      size?: number | TextPieceRef;
+      letterSpacing?: number | TextPieceRef;
+      case?: LabelCase | TextPieceRef;
+    };
 
 /* ── Authoring: controls ─────────────────────────────────────────────── */
 
@@ -132,6 +146,19 @@ export type PathStateOverride = {
   /** Swap the foreground mark for this state (e.g. a pip's selected art).
    *  Key into `theme.assets`; @see PathControl.image. */
   image?: string;
+};
+
+/** Only the focused state may decide whether the app-owned focus ring is
+ *  drawn. Keeping this inside `focused` makes suppressing the ring an explicit
+ *  promise that the same state supplies another visible focus treatment. */
+export type FocusedStateOverride<T extends object> = T & {
+  showRing?: boolean;
+};
+
+export type ControlStates<T extends object> = {
+  [State in PartState]?: State extends 'focused'
+    ? FocusedStateOverride<T>
+    : T;
 };
 
 export type PathControl = {
@@ -162,7 +189,7 @@ export type PathControl = {
    *  (so it follows the content colour and its states). Where a control leaves
    *  this silent, the app draws its own default glyph (the "icon floor"). */
   image?: string;
-  states?: Partial<Record<PartState, PathStateOverride>>;
+  states?: ControlStates<PathStateOverride>;
 };
 
 export type AssetControl = {
@@ -177,7 +204,7 @@ export type AssetControl = {
   opacity?: number;
   text?: TypeSpec;
   /** Per-state art: a whole second `.9.svg` that crossfades over the base. */
-  states?: Partial<Record<PartState, { asset?: string }>>;
+  states?: ControlStates<{ asset?: string }>;
 };
 
 export type Control = PathControl | AssetControl;
@@ -357,12 +384,34 @@ export const TEXT_BEARING_CONTROLS = [
 
 export type TextBearingControlId = (typeof TEXT_BEARING_CONTROLS)[number];
 
-/* ── Authoring: theme ────────────────────────────────────────────────── */
+/* ── Authoring: tokens ───────────────────────────────────────────────── */
 
-/** Open palette: role name → literal colour. The nine built-in roles (bg,
- *  surface, surface-2, border, text, muted, accent, success, danger) are
- *  convention, not schema — a fork adds, removes or renames freely. */
-export type ThemePalette = Record<string, LiteralColor>;
+/** A complete text style — the same seven fields the runtime materializes,
+ *  chosen at authoring time and stored under a name in `theme.tokens.text`.
+ *  A text token is complete on purpose: a control that references one gets
+ *  literal typography with no extra fields required. Same shape as
+ *  {@link ResolvedType}, and they resolve to it byte-for-byte on the whole-
+ *  token reference path. */
+export type TextStyle = {
+  family: string;
+  fallback: 'serif' | 'sans-serif';
+  weight: number;
+  style: 'normal' | 'italic';
+  size: number;
+  letterSpacing: number;
+  case: LabelCase;
+};
+
+/** The unified authoring vocabulary. Two namespaces, both open — a fork adds,
+ *  renames or removes freely, exactly as the old palette / fonts pair did. */
+export type ThemeTokens = {
+  /** Name → literal colour. The nine convention names (bg, surface, surface-2,
+   *  border, text, muted, accent, success, danger) match the old palette. */
+  colors: Record<string, LiteralColor>;
+  /** Name → complete text style. Referenced as `--text-<name>` (whole) or
+   *  `--text-<name>:<field>` (piece). */
+  text: Record<string, TextStyle>;
+};
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -376,9 +425,9 @@ export type ThemeMeta = {
   previewImage?: string;
 };
 
-/** The focus indicator. It is the one thing the app draws that no theme need
- *  declare: `undefined` gives the default accent ring; an object overrides it;
- *  `null` opts out entirely. */
+/** The app-owned focus indicator style. Omit it for the default accent ring or
+ *  provide an object to restyle it. Individual controls may suppress it only
+ *  from a focused state that supplies another visible focus treatment. */
 export type FocusRing = {
   color?: ColorValue;
   width?: number;
@@ -389,10 +438,12 @@ export type AuthoringTheme = {
   label: string;
   meta?: ThemeMeta;
   mode: ThemeMode;
-  palette: ThemePalette;
-  fonts: ThemeFonts;
-  /** @see FocusRing — undefined = default ring, null = no ring. */
-  focusRing?: FocusRing | null;
+  /** The theme's authoring vocabulary: literal colours by name, complete text
+   *  styles by name. Controls reference these; nothing outside authoring
+   *  reads them. */
+  tokens: ThemeTokens;
+  /** @see FocusRing — undefined = default ring. */
+  focusRing?: FocusRing;
   /** Asset key → URL. Referenced by controls (nine-slice `Asset` surfaces, or
    *  plain-image `image`/`images` marks). */
   assets?: Record<string, string>;
@@ -402,10 +453,12 @@ export type AuthoringTheme = {
 
 /* ── Compiled: the engine's view ─────────────────────────────────────── */
 
-/** Type after roles and inline literals have composed — every field is a
- *  literal the engine renders from directly. A text-bearing control (see
- *  {@link TEXT_BEARING_CONTROLS}) carries a complete `ResolvedType` after
- *  compilation, with no field allowed to fall back to an app-level floor. */
+/** Type after token references and inline literals have composed — every
+ *  field is a literal the engine renders from directly. A text-bearing
+ *  control (see {@link TEXT_BEARING_CONTROLS}) carries a complete
+ *  `ResolvedType` after compilation, with no field allowed to fall back to an
+ *  app-level floor. Same shape as {@link TextStyle}: a whole-token reference
+ *  passes through byte-for-byte. */
 export type ResolvedType = {
   family: string;
   fallback: string;
@@ -429,6 +482,16 @@ export type CompiledPaint = {
   image?: string;
 };
 
+export type CompiledFocusedState<T extends object> = T & {
+  showRing?: boolean;
+};
+
+export type CompiledControlStates<T extends object> = {
+  [State in PartState]?: State extends 'focused'
+    ? CompiledFocusedState<T>
+    : T;
+};
+
 type CompiledSize = { width?: number; height?: number };
 
 export type CompiledPathControl = CompiledPaint & {
@@ -438,7 +501,7 @@ export type CompiledPathControl = CompiledPaint & {
   padding?: number | Edges;
   text?: ResolvedType;
   size?: CompiledSize;
-  states?: Partial<Record<PartState, CompiledPaint>>;
+  states?: CompiledControlStates<CompiledPaint>;
 };
 
 export type CompiledAssetControl = {
@@ -449,7 +512,7 @@ export type CompiledAssetControl = {
   opacity?: number;
   text?: ResolvedType;
   size?: CompiledSize;
-  states?: Partial<Record<PartState, { art: string }>>;
+  states?: CompiledControlStates<{ art?: string }>;
 };
 
 export type CompiledTextControl = {
@@ -484,7 +547,7 @@ export type CompiledTheme = {
   label: string;
   meta?: ThemeMeta;
   mode: ThemeMode;
-  /** Resolved focus indicator, or `null` when the theme opts out. */
-  focusRing: { color: LiteralColor; width: number; offset: number } | null;
+  /** Resolved app-owned focus indicator style. */
+  focusRing: { color: LiteralColor; width: number; offset: number };
   controls: CompiledControls;
 };

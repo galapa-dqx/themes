@@ -152,7 +152,7 @@
    focused border on its own — this rule restores what reading --part-bc
    directly used to give for free. */
 .Themed:focus-visible > .Frame .Label,
-.Themed:has(:focus-visible) > .Frame .Label {
+.Themed:has(> :focus-visible) > .Frame .Label {
   color: var(--part-focused-bc);
 }
 
@@ -196,11 +196,13 @@
   --part-edge: var(--part-pressed-bc);
 }
 
-/* :has() covers parts that frame a focusable child rather than taking focus
-   themselves — an input's frame wears the focused stroke when its <input>
-   is focused. Last of the three, so focus outranks a lingering hover. */
+/* :has() covers parts that frame a direct focusable child rather than taking
+   focus themselves — an input's frame wears the focused stroke when its
+   <input> is focused. Restricting this to a direct child prevents a focused
+   control from also focusing every themed container above it. Last of the
+   three, so focus outranks a lingering hover. */
 .Themed:focus-visible > .Frame,
-.Themed:has(:focus-visible) > .Frame {
+.Themed:has(> :focus-visible) > .Frame {
   --part-fill: var(--part-focused-fill);
   --part-bc: var(--part-focused-bc);
   --part-bw: var(--part-focused-bw);
@@ -208,19 +210,17 @@
   --part-corner-pad: var(--part-focused-corner-pad);
 }
 
+/* The app-owned ring surrounds the whole themed control, including wrappers
+   whose child owns focus. A focused state may suppress it only when that same
+   state supplies a visible replacement treatment. */
 .Themed:focus-visible,
-.Themed:has(:focus-visible) {
+.Themed:has(> :focus-visible) {
   color: var(--part-focused-content);
   opacity: var(--part-focused-opacity);
   --part-edge: var(--part-focused-bc);
-}
 
-/* The ring, though, only ever goes on the thing actually focused. It reads the
-   theme's resolved focus vars; when the theme opts out (focusRing: null) those
-   vars are absent, the shorthand is invalid-at-computed-value, and no ring is
-   drawn — the one indicator the app owns, silenced cleanly. */
-.Themed:focus-visible {
-  outline: var(--app-focus-width) solid var(--app-focus-color);
+  outline: var(--app-focus-width) var(--part-focus-ring-style)
+    var(--app-focus-color);
   outline-offset: var(--app-focus-offset);
 }
 
@@ -276,7 +276,7 @@
 }
 
 .Themed:focus-visible > .LayerStack > [data-state='focused'],
-.Themed:has(:focus-visible) > .LayerStack > [data-state='focused'] {
+.Themed:has(> :focus-visible) > .LayerStack > [data-state='focused'] {
   opacity: 1;
 }
 
@@ -299,7 +299,7 @@
   .Themed:focus-visible:has(> .LayerStack > [data-state='focused'])
     > .LayerStack
     > [data-state='base'],
-  .Themed:has(:focus-visible):has(> .LayerStack > [data-state='focused'])
+  .Themed:has(> :focus-visible):has(> .LayerStack > [data-state='focused'])
     > .LayerStack
     > [data-state='base'],
   .Themed[data-prop-state='selected']:has(> .LayerStack > [data-state='selected'])
