@@ -32,16 +32,16 @@ import SlicerCanvas, { type CellSel } from './slicer/SlicerCanvas';
 import styles from './Studio.module.css';
 
 const DEMO_SOURCE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-  <rect x="1" y="1" width="94" height="94" fill="var(--theme-surface)" stroke="var(--theme-border)" stroke-width="2"/>
-  <rect x="6" y="6" width="84" height="84" fill="none" stroke="var(--theme-accent)" stroke-width="1"/>
-  <circle cx="12" cy="12" r="5" fill="var(--theme-accent)"/>
-  <circle cx="84" cy="12" r="5" fill="var(--theme-accent)"/>
-  <circle cx="12" cy="84" r="5" fill="var(--theme-accent)"/>
-  <circle cx="84" cy="84" r="5" fill="var(--theme-accent)"/>
-  <path d="M48 1.5 L51 4 L48 6.5 L45 4 Z" fill="var(--theme-accent)"/>
-  <path d="M48 89.5 L51 92 L48 94.5 L45 92 Z" fill="var(--theme-accent)"/>
-  <path d="M1.5 48 L4 45 L6.5 48 L4 51 Z" fill="var(--theme-accent)"/>
-  <path d="M89.5 48 L92 45 L94.5 48 L92 51 Z" fill="var(--theme-accent)"/>
+  <rect x="1" y="1" width="94" height="94" fill="var(--color-surface)" stroke="var(--color-border)" stroke-width="2"/>
+  <rect x="6" y="6" width="84" height="84" fill="none" stroke="var(--color-accent)" stroke-width="1"/>
+  <circle cx="12" cy="12" r="5" fill="var(--color-accent)"/>
+  <circle cx="84" cy="12" r="5" fill="var(--color-accent)"/>
+  <circle cx="12" cy="84" r="5" fill="var(--color-accent)"/>
+  <circle cx="84" cy="84" r="5" fill="var(--color-accent)"/>
+  <path d="M48 1.5 L51 4 L48 6.5 L45 4 Z" fill="var(--color-accent)"/>
+  <path d="M48 89.5 L51 92 L48 94.5 L45 92 Z" fill="var(--color-accent)"/>
+  <path d="M1.5 48 L4 45 L6.5 48 L4 51 Z" fill="var(--color-accent)"/>
+  <path d="M89.5 48 L92 45 L94.5 48 L92 51 Z" fill="var(--color-accent)"/>
 </svg>`;
 
 type BuildResult = {
@@ -119,12 +119,12 @@ export default function Slicer() {
       return {
         text,
         warnings,
-        set: parseNineSlice(substituteTokens(text, theme.palette)),
+        set: parseNineSlice(substituteTokens(text, theme.tokens)),
       };
     } catch (err) {
       return { error: err instanceof Error ? err.message : String(err) };
     }
-  }, [buildDoc, theme.palette]);
+  }, [buildDoc, theme.tokens]);
 
   const viewBox = useMemo(() => {
     try {
@@ -135,13 +135,13 @@ export default function Slicer() {
   }, [doc.source]);
 
   const art = useMemo(
-    () => substituteTokens(innerMarkup(doc.source), theme.palette),
-    [doc.source, theme.palette],
+    () => substituteTokens(innerMarkup(doc.source), theme.tokens),
+    [doc.source, theme.tokens],
   );
 
   const palette = useMemo(() => extractPalette(doc.source), [doc.source]);
-  const roles = Object.keys(theme.palette);
-  const roleOptions = roles.map((r) => ({ value: r, label: `--theme-${r}` }));
+  const roles = Object.keys(theme.tokens.colors);
+  const roleOptions = roles.map((r) => ({ value: r, label: `--color-${r}` }));
 
   const loadText = (text: string, name: string) => {
     setSelection(null);
@@ -376,7 +376,7 @@ export default function Slicer() {
                     source: replaceColor(
                       doc.source,
                       entry.value,
-                      `var(--theme-${role})`,
+                      `var(--color-${role})`,
                     ),
                   })
                 }
@@ -386,7 +386,7 @@ export default function Slicer() {
             <div key={`t:${entry.role}`} className={styles.SwatchRow}>
               <span
                 className={styles.TokenSwatch}
-                style={{ background: theme.palette[entry.role] ?? '#ff00ff' }}
+                style={{ background: theme.tokens.colors[entry.role] ?? '#ff00ff' }}
               />
               <Select
                 size="xs"
@@ -401,13 +401,13 @@ export default function Slicer() {
                   if (!v || v === entry.role) return;
                   const to =
                     v === '__literal'
-                      ? (theme.palette[entry.role] ?? '#ff00ff')
-                      : `var(--theme-${v})`;
+                      ? (theme.tokens.colors[entry.role] ?? '#ff00ff')
+                      : `var(--color-${v})`;
                   setDoc({
                     ...doc,
                     source: replaceColor(
                       doc.source,
-                      `var(--theme-${entry.role})`,
+                      `var(--color-${entry.role})`,
                       to,
                     ),
                   });

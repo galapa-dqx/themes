@@ -14,7 +14,7 @@ import { CONTROL_IDS } from './types';
 /**
  * The theme compiler: a *compiled* theme in, the custom properties the browser
  * renders from out. Every colour it reads is already a literal — the resolver
- * did the palette/derivation/art work — so this module holds no colour logic
+ * did the token/derivation/art work — so this module holds no colour logic
  * at all. It is the browser adapter the Skia engine won't need: it turns the
  * literal control model into `--g-<control>-*` variables and the focus ring
  * into `--app-focus-*`. Nothing else is emitted; no theme value escapes a
@@ -77,15 +77,19 @@ export function compileControls(theme: CompiledTheme): Record<string, string> {
     if (size?.height !== undefined) vars[`${prefix}-h`] = px(size.height);
   };
 
+  // A text-bearing control's ResolvedType is complete by construction (see
+  // resolveType/completeType in resolve.ts), so every var is emitted as a
+  // literal — the runtime never falls back to an app-level type floor.
+  // A colour-only text control (input.placeholder, tab-bar, …) has no `t`
+  // and emits nothing here; it inherits type from its host component's CSS.
   const emitType = (prefix: string, t?: ResolvedType) => {
     if (!t) return;
-    if (t.family) vars[`${prefix}-font`] = `'${t.family}', ${t.fallback}`;
-    if (t.weight !== undefined) vars[`${prefix}-weight`] = `${t.weight}`;
-    if (t.style) vars[`${prefix}-style`] = t.style;
-    if (t.size !== undefined) vars[`${prefix}-size`] = px(t.size);
-    if (t.letterSpacing !== undefined)
-      vars[`${prefix}-letter-spacing`] = px(t.letterSpacing);
-    if (t.case) vars[`${prefix}-case`] = t.case;
+    vars[`${prefix}-font`] = `'${t.family}', ${t.fallback}`;
+    vars[`${prefix}-weight`] = `${t.weight}`;
+    vars[`${prefix}-style`] = t.style;
+    vars[`${prefix}-size`] = px(t.size);
+    vars[`${prefix}-letter-spacing`] = px(t.letterSpacing);
+    vars[`${prefix}-case`] = t.case;
   };
 
   const emitPath = (prefix: string, c: CompiledPathControl) => {
@@ -161,7 +165,7 @@ const paintOf = (c: CompiledPaint): CompiledPaint => ({
 
 /**
  * Every custom property a themed scope needs: the compiled controls, and the
- * focus ring. That's the whole surface now — no palette, no type, no chrome
+ * focus ring. That's the whole surface now — no tokens, no type, no chrome
  * scalars. The focus vars are always present: `focusRing` styles the app-owned
  * indicator, while a focused control state decides whether that indicator is
  * shown for that control.

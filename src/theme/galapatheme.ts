@@ -23,6 +23,7 @@ import type {
   CompiledTheme,
   ResolvedType,
 } from './types';
+import { TEXT_BEARING_CONTROLS } from './types';
 
 /** ASCII `GLPTHEME`. */
 export const GALAPATHEME_MAGIC = new TextEncoder().encode('GLPTHEME');
@@ -72,30 +73,32 @@ export function themeSlug(label: string): string {
 }
 
 /** Collapse a resolved text spec's (family, weight, style) into a single
- *  `font` pointer at the archive path — the reader hands that file to the
- *  font engine and doesn't need the metadata separately. A text spec with
- *  no family (just size/case overrides) passes through untouched. */
+ *  `font` pointer at the archive path, and emit every remaining literal —
+ *  size, letter spacing, case, fallback — as-is. The reader hands the archive
+ *  file to the font engine and needs no per-face metadata, but still needs
+ *  the letter spacing / case / fallback verbatim to lay text out. */
 function rewriteText(
   text: ResolvedType,
   paths: Map<string, string>,
 ): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  if (text.fallback !== undefined) out.fallback = text.fallback;
-  if (text.size !== undefined) out.size = text.size;
-  if (text.case !== undefined) out.case = text.case;
-  const family = text.family?.trim();
-  if (!family) return out;
   const style: FontStyle = text.style === 'italic' ? 'italic' : 'normal';
-  const font = paths.get(faceKey(family, text.weight ?? 400, style));
+  const font = paths.get(faceKey(text.family, text.weight, style));
   // `bundleFonts` throws on any face it can't embed, so a family that reaches
   // here always has a path — this asserts that invariant.
   if (!font) {
     throw new Error(
-      `Missing bundled path for "${family}" ${text.weight ?? 400} ${style}.`,
+      `Missing bundled path for "${text.family}" ${text.weight} ${style}.`,
     );
   }
-  out.font = font;
-  return out;
+  return {
+    font,
+    fallback: text.fallback,
+    weight: text.weight,
+    style: text.style,
+    size: text.size,
+    letterSpacing: text.letterSpacing,
+    case: text.case,
+  };
 }
 
 function rewriteControls(
@@ -152,6 +155,24 @@ function decodePreview(
   return { path: `preview.${ext}`, bytes };
 }
 
+/** Guard against exporting a theme whose text-bearing controls are missing
+ *  typography. The resolver already reports these as errors during the live
+ *  edit; this is the last check before the archive goes to disk, so an
+ *  incomplete build never lands on someone's filesystem. */
+function assertTypographyComplete(theme: CompiledTheme): void {
+  const gaps: string[] = [];
+  for (const id of TEXT_BEARING_CONTROLS) {
+    const control = theme.controls[id];
+    const text = control && 'text' in control ? control.text : undefined;
+    if (!text || !text.family || !text.size) gaps.push(id);
+  }
+  if (gaps.length) {
+    throw new Error(
+      `Cannot bundle theme "${theme.label}": text-bearing controls missing typography — ${gaps.join(', ')}.`,
+    );
+  }
+}
+
 /**
  * Build the container. Fetches fonts, so it's async — and it throws on any
  * font it can't embed rather than shipping a broken theme.
@@ -160,6 +181,7 @@ export async function galapathemeBundle(
   theme: CompiledTheme,
   options: { id: string },
 ): Promise<{ filename: string; blob: Blob }> {
+  assertTypographyComplete(theme);
   const encoder = new TextEncoder();
   const { files, paths } = await bundleFonts(theme);
   const { id } = options;

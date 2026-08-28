@@ -18,10 +18,10 @@
 .SectionHeading {
   margin: 0;
   color: var(--g-settings-heading-content);
-  font-family: var(--g-settings-heading-font, var(--font-heading));
-  font-size: var(--g-settings-heading-size, var(--text-lg));
-  font-style: var(--g-settings-heading-style, var(--heading-style));
-  font-weight: var(--g-settings-heading-weight, var(--heading-weight));
-  letter-spacing: var(--g-settings-heading-letter-spacing, 0);
-  text-transform: var(--g-settings-heading-case, none);
+  font-family: var(--g-settings-heading-font);
+  font-size: var(--g-settings-heading-size);
+  font-style: var(--g-settings-heading-style);
+  font-weight: var(--g-settings-heading-weight);
+  letter-spacing: var(--g-settings-heading-letter-spacing);
+  text-transform: var(--g-settings-heading-case);
 }

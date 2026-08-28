@@ -4,21 +4,23 @@ import type { AuthoringTheme } from '../types';
 export const anlucia: AuthoringTheme = {
   label: 'Anlucia',
   mode: 'light',
-  palette: {
-    bg: '#fdf6ec',
-    surface: '#fffaf3',
-    'surface-2': '#f2e6d2',
-    border: '#dccaac',
-    text: '#2c1a08',
-    muted: '#8a6e52',
-    accent: '#b87228',
-    success: '#4a7a2a',
-    danger: '#c03020',
-  },
-  fonts: {
-    heading: { family: 'Crimson Pro', fallback: 'serif', weight: 700 },
-    body: { family: 'Source Sans 3', fallback: 'sans-serif', weight: 400 },
-    strong: { family: 'Crimson Pro', fallback: 'serif', weight: 700 },
+  tokens: {
+    colors: {
+      bg: '#fdf6ec',
+      surface: '#fffaf3',
+      'surface-2': '#f2e6d2',
+      border: '#dccaac',
+      text: '#2c1a08',
+      muted: '#8a6e52',
+      accent: '#b87228',
+      success: '#4a7a2a',
+      danger: '#c03020',
+    },
+    text: {
+      heading: { family: 'Crimson Pro', fallback: 'serif', weight: 700, style: 'normal', size: 14, letterSpacing: 0, case: 'none' },
+      body: { family: 'Source Sans 3', fallback: 'sans-serif', weight: 400, style: 'normal', size: 14, letterSpacing: 0, case: 'none' },
+      strong: { family: 'Crimson Pro', fallback: 'serif', weight: 700, style: 'normal', size: 14, letterSpacing: 0, case: 'none' },
+    },
   },
   assets: {
     sword: '/theme-assets/anlucia/sword.svg',
@@ -26,12 +28,12 @@ export const anlucia: AuthoringTheme = {
   controls: {
     /* The app background; its content colour is the text baseline every
        themed surface inherits from. */
-    window: { fill: '--theme-bg', contentColor: '--theme-text', borderColor: '--theme-border' },
+    window: { fill: '--color-bg', contentColor: '--color-text', borderColor: '--color-border' },
 
     panel: {
       shape: 'Path',
-      fill: '--theme-surface',
-      borderColor: '--theme-border',
+      fill: '--color-surface',
+      borderColor: '--color-border',
       borderThickness: 1,
     },
 
@@ -39,28 +41,28 @@ export const anlucia: AuthoringTheme = {
       shape: 'Path',
       radius: 'pill',
       corner: 'bevel',
-      fill: '--theme-accent',
+      fill: '--color-accent',
       padding: [6, 20, 6, 20],
-      contentColor: '--theme-surface',
-      text: { role: 'strong', size: 16, case: 'uppercase' },
+      contentColor: '--color-surface',
+      text: { style: '--text-strong', size: 16, case: 'uppercase' },
       states: {
-        hover: { fill: { mix: ['--theme-accent', '#ffffff'], amount: 0.12 } },
-        pressed: { fill: { mix: ['--theme-accent', '#000000'], amount: 0.12 } },
+        hover: { fill: { mix: ['--color-accent', '#ffffff'], amount: 0.12 } },
+        pressed: { fill: { mix: ['--color-accent', '#000000'], amount: 0.12 } },
         disabled: { opacity: 0.5 },
       },
     },
 
     input: {
       shape: 'Path',
-      borderColor: '--theme-border',
-      contentColor: '--theme-text',
+      borderColor: '--color-border',
+      contentColor: '--color-text',
       borderThickness: 1,
       padding: [6, 10, 6, 10],
-      text: { role: 'body', size: 16 },
+      text: { style: '--text-body', size: 16 },
       states: {
         focused: {
           showRing: false,
-          borderColor: '--theme-accent',
+          borderColor: '--color-accent',
           borderThickness: 2,
         },
         disabled: { opacity: 0.5 },
@@ -69,21 +71,34 @@ export const anlucia: AuthoringTheme = {
 
     tab: {
       shape: 'Path',
-      contentColor: '--theme-muted',
+      contentColor: '--color-muted',
       borderColor: 'none',
       borderThickness: [0, 0, 2, 0],
       padding: [0, 10, 0, 10],
-      text: { role: 'heading', case: 'uppercase' },
+      text: { style: '--text-heading', size: 16, case: 'uppercase' },
       states: {
-        hover: { contentColor: '--theme-accent' },
-        selected: { contentColor: '--theme-accent', borderColor: '--theme-accent' },
+        hover: { contentColor: '--color-accent' },
+        selected: { contentColor: '--color-accent', borderColor: '--color-accent' },
+      },
+    },
+
+    subtab: {
+      shape: 'Path',
+      contentColor: '--color-muted',
+      borderColor: 'none',
+      borderThickness: [0, 0, 2, 0],
+      padding: [0, 10, 0, 10],
+      text: { style: '--text-heading', size: 14, case: 'uppercase' },
+      states: {
+        hover: { contentColor: '--color-accent' },
+        selected: { contentColor: '--color-accent', borderColor: '--color-accent' },
       },
     },
 
     carousel: {
       shape: 'Path',
       radius: 0,
-      borderColor: '--theme-border',
+      borderColor: '--color-border',
       borderThickness: 1,
       padding: 2,
     },
@@ -94,10 +109,10 @@ export const anlucia: AuthoringTheme = {
       corner: 'bevel',
       radius: 6.5,
       fill: 'none',
-      borderColor: '--theme-border',
+      borderColor: '--color-border',
       borderThickness: 1,
       states: {
-        selected: { fill: '--theme-accent', borderColor: '--theme-accent' },
+        selected: { fill: '--color-accent', borderColor: '--color-accent' },
       },
     },
 
@@ -105,8 +120,8 @@ export const anlucia: AuthoringTheme = {
       shape: 'Path',
       size: { width: 34, height: 17 },
       radius: 'pill',
-      fill: '--theme-surface-2',
-      borderColor: '--theme-border',
+      fill: '--color-surface-2',
+      borderColor: '--color-border',
       borderThickness: 1,
       padding: 2,
       states: {
@@ -117,9 +132,9 @@ export const anlucia: AuthoringTheme = {
       shape: 'Path',
       size: { width: 13, height: 13 },
       radius: 'pill',
-      fill: '--theme-border',
+      fill: '--color-border',
       states: {
-        checked: { fill: '--theme-accent' },
+        checked: { fill: '--color-accent' },
       },
     },
 
@@ -127,60 +142,60 @@ export const anlucia: AuthoringTheme = {
       shape: 'Path',
       size: { width: 31, height: 31 },
       radius: 'pill',
-      fill: '--theme-surface',
-      borderColor: '--theme-border',
+      fill: '--color-surface',
+      borderColor: '--color-border',
       borderThickness: 1,
-      contentColor: '--theme-border',
+      contentColor: '--color-border',
       states: {
-        hover: { borderColor: '--theme-accent', contentColor: '--theme-accent' },
+        hover: { borderColor: '--color-accent', contentColor: '--color-accent' },
       },
     },
 
     'titlebar.caption': {
       shape: 'Path',
       size: { width: 34, height: 34 },
-      contentColor: '--theme-muted',
+      contentColor: '--color-muted',
       states: {
-        hover: { fill: '--theme-surface' },
+        hover: { fill: '--color-surface' },
       },
     },
     'titlebar.close': {
       shape: 'Path',
       size: { width: 34, height: 34 },
-      contentColor: '--theme-danger',
+      contentColor: '--color-danger',
       states: {
-        hover: { fill: '--theme-danger', contentColor: '--theme-surface' },
+        hover: { fill: '--color-danger', contentColor: '--color-surface' },
       },
     },
 
     'news-item': {
       shape: 'Path',
       size: { height: 43 },
-      fill: '--theme-surface',
-      borderColor: '--theme-border',
+      fill: '--color-surface',
+      borderColor: '--color-border',
       borderThickness: 1,
       padding: [0, 12, 0, 12],
-      contentColor: '--theme-muted',
-      text: { role: 'strong', size: 16 },
+      contentColor: '--color-muted',
+      text: { style: '--text-strong', size: 16 },
       states: {
-        hover: { borderColor: '--theme-muted' },
+        hover: { borderColor: '--color-muted' },
       },
     },
 
     'setting-row': {
       shape: 'Path',
       size: { height: 43 },
-      fill: '--theme-surface',
-      borderColor: '--theme-border',
+      fill: '--color-surface',
+      borderColor: '--color-border',
       borderThickness: 1,
       padding: [0, 13, 0, 13],
-      contentColor: '--theme-muted',
-      text: { role: 'heading', size: 14, case: 'uppercase' },
+      contentColor: '--color-muted',
+      text: { style: '--text-heading', size: 14, case: 'uppercase' },
       states: {
         selected: {
-          borderColor: '--theme-accent',
+          borderColor: '--color-accent',
           borderThickness: 2,
-          contentColor: '--theme-accent',
+          contentColor: '--color-accent',
         },
       },
     },
@@ -188,8 +203,8 @@ export const anlucia: AuthoringTheme = {
     titlebar: {
       shape: 'Path',
       size: { height: 34 },
-      fill: '--theme-surface-2',
-      borderColor: '--theme-border',
+      fill: '--color-surface-2',
+      borderColor: '--color-border',
       borderThickness: [0, 0, 1, 0],
       padding: [0, 0, 0, 23],
     },
@@ -197,8 +212,8 @@ export const anlucia: AuthoringTheme = {
     subtabs: {
       shape: 'Path',
       size: { height: 34 },
-      fill: '--theme-surface-2',
-      borderColor: '--theme-border',
+      fill: '--color-surface-2',
+      borderColor: '--color-border',
       borderThickness: [0, 0, 1, 0],
     },
 
@@ -207,14 +222,14 @@ export const anlucia: AuthoringTheme = {
       size: { width: 8 },
       corner: 'bevel',
       radius: 4,
-      fill: '--theme-surface-2',
+      fill: '--color-surface-2',
     },
     'scrollbar.thumb': {
       shape: 'Path',
       size: { width: 8 },
       corner: 'bevel',
       radius: 4,
-      fill: '--theme-muted',
+      fill: '--color-muted',
     },
 
     'progress.track': {
@@ -222,8 +237,8 @@ export const anlucia: AuthoringTheme = {
       size: { height: 10 },
       corner: 'bevel',
       radius: 5,
-      fill: '--theme-surface-2',
-      borderColor: '--theme-border',
+      fill: '--color-surface-2',
+      borderColor: '--color-border',
       borderThickness: 1,
       padding: [2, 2.83, 2, 2.83], // 2 × √2 across the 45° ends
     },
@@ -231,7 +246,7 @@ export const anlucia: AuthoringTheme = {
       shape: 'Path',
       corner: 'bevel',
       radius: 3,
-      fill: '--theme-accent',
+      fill: '--color-accent',
     },
 
     'play-ornament': { shape: 'Path', image: 'sword' },
@@ -239,35 +254,35 @@ export const anlucia: AuthoringTheme = {
     /* Text controls — colour and type only. */
     'input.label': {
       leftInset: 10,
-      contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { role: 'heading', size: 12, case: 'uppercase' },
+      contentColor: { mix: ['--color-border', '--color-muted'], amount: 0.6 },
+      text: { style: '--text-heading', size: 12, case: 'uppercase' },
     },
     'news-item.date': {
-      contentColor: { mix: ['--theme-border', '--theme-muted'], amount: 0.6 },
-      text: { size: 13 },
+      contentColor: { mix: ['--color-border', '--color-muted'], amount: 0.6 },
+      text: { style: '--text-body', size: 13 },
     },
     'news-item.gem': {},
     'titlebar.wordmark': {
-      contentColor: '--theme-accent',
-      text: { role: 'heading', size: 20, case: 'uppercase' },
+      contentColor: '--color-accent',
+      text: { style: '--text-heading', size: 20, case: 'uppercase' },
     },
-    'tab-bar': { contentColor: '--theme-muted' },
+    'tab-bar': { contentColor: '--color-muted' },
     'settings.heading': {
-      contentColor: '--theme-muted',
-      text: { role: 'heading', size: 16, case: 'uppercase' },
+      contentColor: '--color-muted',
+      text: { style: '--text-heading', size: 16, case: 'uppercase' },
     },
     'setting-help.title': {
-      contentColor: '--theme-text',
-      text: { role: 'heading', size: 16, case: 'uppercase' },
+      contentColor: '--color-text',
+      text: { style: '--text-heading', size: 16, case: 'uppercase' },
     },
     'setting-help.body': {
-      contentColor: '--theme-text',
-      text: { size: 13 },
+      contentColor: '--color-text',
+      text: { style: '--text-body', size: 13 },
     },
     'input.placeholder': {
-      contentColor: { alpha: '--theme-muted', value: 0.6 },
+      contentColor: { alpha: '--color-muted', value: 0.6 },
     },
-    'input.caret': { contentColor: '--theme-accent' },
-    'play-row': { contentColor: '--theme-border' },
+    'input.caret': { contentColor: '--color-accent' },
+    'play-row': { contentColor: '--color-border' },
   },
 };

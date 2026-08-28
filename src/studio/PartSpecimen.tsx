@@ -147,6 +147,21 @@ export default function PartSpecimen({
         </div>
       );
       break;
+    case 'subtab':
+      node = (
+        <div style={{ height: 34 }}>
+          <TabBar
+            items={[
+              { id: 'graphics', label: 'Graphics', to: '/' },
+              { id: 'sound', label: 'Sound', to: '/' },
+              { id: 'controls', label: 'Controls', to: '/' },
+            ]}
+            activeId={selected ? 'graphics' : ''}
+            size="sm"
+          />
+        </div>
+      );
+      break;
     case 'titlebar':
       node = <TitleBar />;
       break;

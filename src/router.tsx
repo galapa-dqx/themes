@@ -14,8 +14,7 @@ import AboutSettings from './pages/Settings/AboutSettings.tsx'
 import SettingsPlaceholder from './pages/Settings/SettingsPlaceholder.tsx'
 import StudioWorkspace from './studio/StudioWorkspace.tsx'
 import InfoPage from './studio/InfoPage.tsx'
-import Palette from './studio/Palette.tsx'
-import FontsPage from './studio/FontsPage.tsx'
+import DesignTokensPage from './studio/DesignTokensPage.tsx'
 import ControlsPage from './studio/ControlsPage.tsx'
 import Gallery from './studio/Gallery.tsx'
 import Slicer from './studio/Slicer.tsx'
@@ -64,7 +63,7 @@ const editorIndexRoute = createRoute({
   getParentRoute: () => editorRoute,
   path: '/',
   beforeLoad: ({ params }) => {
-    throw redirect({ to: '/themes/$themeId/editor/palette', params })
+    throw redirect({ to: '/themes/$themeId/editor/tokens', params })
   },
 })
 
@@ -74,15 +73,10 @@ const editorInfoRoute = createRoute({
   path: 'info',
   component: InfoPage,
 })
-const editorPaletteRoute = createRoute({
+const editorTokensRoute = createRoute({
   getParentRoute: () => editorRoute,
-  path: 'palette',
-  component: Palette,
-})
-const editorFontsRoute = createRoute({
-  getParentRoute: () => editorRoute,
-  path: 'fonts',
-  component: FontsPage,
+  path: 'tokens',
+  component: DesignTokensPage,
 })
 const editorControlsRoute = createRoute({
   getParentRoute: () => editorRoute,
@@ -183,8 +177,7 @@ const routeTree = rootRoute.addChildren([
     editorRoute.addChildren([
       editorIndexRoute,
       editorInfoRoute,
-      editorPaletteRoute,
-      editorFontsRoute,
+      editorTokensRoute,
       editorControlsRoute,
       editorGalleryRoute,
       editorSlicerRoute,

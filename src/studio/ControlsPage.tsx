@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Button,
   FileButton,
+  NumberInput,
   SegmentedControl,
   Select,
   Switch,
@@ -11,17 +12,21 @@ import { useOSSettings } from '@/context/os-settings';
 import { parseNineSlice } from '@/theme/nineSlice';
 import {
   CONTROL_IDS,
+  TEXT_BEARING_CONTROLS,
   resolveColorValue,
   substituteTokens,
   type ColorValue,
   type ControlId,
   type CornerShape,
+  type LabelCase,
   type PartState,
   type PathControl,
   type PathStateOverride,
+  type TextTokenRef,
   type ThemeControls,
-  type ThemePalette,
-  type ThemeToken,
+  type ColorTokenRef,
+  type ThemeTokens,
+  type TypeSpec,
 } from '@/theme';
 import EdgeInput from './EdgeInput';
 import PartSpecimen from './PartSpecimen';
@@ -37,12 +42,33 @@ const STATES: PartState[] = [
 ];
 const INTERACTIVE_STATES: readonly string[] = ['hover', 'pressed', 'focused'];
 const CORNERS: CornerShape[] = ['round', 'bevel', 'scoop', 'notch', 'squircle'];
+const CASES: readonly LabelCase[] = ['none', 'uppercase', 'lowercase', 'capitalize'];
+
+/** Normalize the authoring `text` field to the object form the editor works
+ *  in. A shorthand string (`'--text-heading'`) becomes `{ style: '...' }`; an
+ *  absent value becomes `{}`. The compiled output for both forms is the same,
+ *  so this conversion is safe. */
+function normalizeSpec(text: TypeSpec | undefined): Exclude<TypeSpec, string> {
+  if (text === undefined) return {};
+  if (typeof text === 'string') return { style: text };
+  return text;
+}
+
+/** True when any field on this spec cherry-picks a piece — the editor's simple
+ *  form doesn't render those, so we show an advisory instead. */
+function hasPieceRef(spec: Exclude<TypeSpec, string>): boolean {
+  const fields = ['family', 'fallback', 'weight', 'size', 'letterSpacing', 'case'] as const;
+  return fields.some((f) => {
+    const v = spec[f];
+    return typeof v === 'string' && v.includes(':');
+  });
+}
 
 /** A colour a control asks for → a swatch. Tokens and derivations both
  *  resolve; an unset value is transparent. */
-function swatch(value: ColorValue | undefined, palette: ThemePalette): string {
+function swatch(value: ColorValue | undefined, tokens: ThemeTokens): string {
   if (value === undefined) return 'transparent';
-  return resolveColorValue(value, palette, []);
+  return resolveColorValue(value, tokens, []);
 }
 
 /** Strip undefined fields so overrides stay minimal and serialisable. */
@@ -57,15 +83,15 @@ function prune<T extends object>(obj: T): T {
 function TokenField({
   label,
   value,
-  palette,
+  tokens,
   disabled,
   onChange,
 }: {
   label: string;
   value: ColorValue | undefined;
-  palette: ThemePalette;
+  tokens: ThemeTokens;
   disabled: boolean;
-  onChange: (token: ThemeToken | undefined) => void;
+  onChange: (token: ColorTokenRef | undefined) => void;
 }) {
   // Derivations (mix/alpha) are authored in code; the picker edits tokens.
   const derived = typeof value === 'object' && value !== null;
@@ -73,9 +99,9 @@ function TokenField({
   const options = [
     { value: 'unset', label: '(default)' },
     { value: 'none', label: 'none' },
-    ...Object.keys(palette).map((role) => ({
-      value: `--theme-${role}`,
-      label: `--theme-${role}`,
+    ...Object.keys(tokens.colors).map((role) => ({
+      value: `--color-${role}`,
+      label: `--color-${role}`,
     })),
   ];
   return (
@@ -83,7 +109,7 @@ function TokenField({
       <span className={styles.Label}>{label}</span>
       <span
         className={styles.TokenSwatch}
-        style={{ background: swatch(value, palette) }}
+        style={{ background: swatch(value, tokens) }}
       />
       {derived ? (
         <span className={styles.Meta}>derived — edit in code</span>
@@ -96,7 +122,7 @@ function TokenField({
           disabled={disabled}
           allowDeselect={false}
           onChange={(next) =>
-            next && onChange(next === 'unset' ? undefined : (next as ThemeToken))
+            next && onChange(next === 'unset' ? undefined : (next as ColorTokenRef))
           }
           aria-label={label}
         />
@@ -105,12 +131,144 @@ function TokenField({
   );
 }
 
+/** Text-spec editor: pick a whole-token style plus optional literal overrides
+ *  for size / letter-spacing / case. A control that cherry-picks pieces
+ *  (`--text-…:family`) is authored in code — flag it and don't overwrite. */
+function TextSpecEditor({
+  value,
+  tokens,
+  required,
+  disabled,
+  onChange,
+}: {
+  value: TypeSpec | undefined;
+  tokens: ThemeTokens;
+  /** True for text-bearing controls — an empty style is a runtime error, so
+   *  the picker never lets you clear it below 'unset'. */
+  required: boolean;
+  disabled: boolean;
+  onChange: (next: TypeSpec | undefined) => void;
+}) {
+  const spec = normalizeSpec(value);
+  const advanced = hasPieceRef(spec);
+
+  const styleOptions = [
+    { value: 'unset', label: required ? '(pick a style)' : '(default)' },
+    ...Object.keys(tokens.text).map((name) => ({
+      value: `--text-${name}`,
+      label: `--text-${name}`,
+    })),
+  ];
+
+  const patch = (next: Exclude<TypeSpec, string>) => {
+    const cleaned: Exclude<TypeSpec, string> = {};
+    if (next.style) cleaned.style = next.style;
+    for (const k of ['family', 'fallback', 'weight', 'size', 'letterSpacing', 'case'] as const) {
+      if (next[k] !== undefined) (cleaned as Record<string, unknown>)[k] = next[k];
+    }
+    // Collapse the whole-token-with-no-overrides case back to the shorthand
+    // string form; the resolver treats both identically.
+    if (cleaned.style && Object.keys(cleaned).length === 1) {
+      onChange(cleaned.style);
+    } else if (Object.keys(cleaned).length === 0) {
+      onChange(undefined);
+    } else {
+      onChange(cleaned);
+    }
+  };
+
+  if (advanced) {
+    return (
+      <div className={styles.Row}>
+        <span className={styles.Label}>Type</span>
+        <span className={styles.Meta}>
+          cherry-picks a piece — authored in code
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className={styles.Row}>
+        <Select
+          size="xs"
+          w={200}
+          label="Style"
+          data={styleOptions}
+          value={spec.style ?? 'unset'}
+          disabled={disabled}
+          allowDeselect={false}
+          onChange={(next) =>
+            next &&
+            patch({
+              ...spec,
+              style: next === 'unset' ? undefined : (next as TextTokenRef),
+            })
+          }
+          aria-label="Text style"
+        />
+        <Select
+          size="xs"
+          w={130}
+          label="Case"
+          data={[{ value: 'unset', label: '(inherit)' }, ...CASES]}
+          value={typeof spec.case === 'string' ? spec.case : 'unset'}
+          disabled={disabled}
+          allowDeselect={false}
+          onChange={(next) =>
+            next &&
+            patch({
+              ...spec,
+              case: next === 'unset' ? undefined : (next as LabelCase),
+            })
+          }
+        />
+      </div>
+      <div className={styles.Row}>
+        <NumberInput
+          size="xs"
+          w={110}
+          min={6}
+          max={96}
+          step={1}
+          label="Size"
+          placeholder="(inherit)"
+          value={typeof spec.size === 'number' ? spec.size : ''}
+          disabled={disabled}
+          onChange={(next) =>
+            patch({
+              ...spec,
+              size: typeof next === 'number' ? next : undefined,
+            })
+          }
+        />
+        <NumberInput
+          size="xs"
+          w={130}
+          step={0.1}
+          label="Tracking"
+          placeholder="(inherit)"
+          value={typeof spec.letterSpacing === 'number' ? spec.letterSpacing : ''}
+          disabled={disabled}
+          onChange={(next) =>
+            patch({
+              ...spec,
+              letterSpacing: typeof next === 'number' ? next : undefined,
+            })
+          }
+        />
+      </div>
+    </>
+  );
+}
+
 /** Pick a control and a state in the page header; the frames below show what
  *  each edit scope covers, with a specimen of just that component. */
 export default function ControlsPage() {
   const { theme, themeId, isCustomTheme, updateCustomTheme } = useOSSettings();
   const disabled = !isCustomTheme;
-  const palette = theme.palette;
+  const tokens = theme.tokens;
 
   const [partId, setPartId] = useState<ControlId>('button');
   const [stateSel, setStateSel] = useState<'base' | PartState>('base');
@@ -173,7 +331,7 @@ export default function ControlsPage() {
     if (!file) return;
     void file.text().then((text) => {
       try {
-        const set = parseNineSlice(substituteTokens(text, palette));
+        const set = parseNineSlice(substituteTokens(text, tokens));
         const url = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
         writeControl({ shape: 'Asset', asset: assetKey }, { [assetKey]: url });
         const warn = set.warnings.length
@@ -246,21 +404,21 @@ export default function ControlsPage() {
           <TokenField
             label="Fill"
             value={(control as { fill?: ColorValue }).fill}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(fill) => editWindow({ fill })}
           />
           <TokenField
             label="Content"
             value={(control as { contentColor?: ColorValue }).contentColor}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(contentColor) => editWindow({ contentColor })}
           />
           <TokenField
             label="Border"
             value={(control as { borderColor?: ColorValue }).borderColor}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(borderColor) => editWindow({ borderColor })}
           />
@@ -272,14 +430,13 @@ export default function ControlsPage() {
         <fieldset className={styles.Frame}>
           <legend>Text control</legend>
           <span className={styles.Meta}>
-            A text control carries colour and type only. Type (family, size,
-            case) is authored in code; the colour is editable here.
+            A text control carries colour and type only.
           </span>
           {'contentColor' in control && (
             <TokenField
               label="Content"
               value={control.contentColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(contentColor) =>
                 updateCustomTheme(themeId, {
@@ -295,13 +452,29 @@ export default function ControlsPage() {
             <TokenField
               label="Border"
               value={control.borderColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(borderColor) =>
                 updateCustomTheme(themeId, {
                   controls: {
                     ...theme.controls,
                     [partId]: prune({ ...control, borderColor }),
+                  } as ThemeControls,
+                })
+              }
+            />
+          )}
+          {(TEXT_BEARING_CONTROLS as readonly ControlId[]).includes(partId) && (
+            <TextSpecEditor
+              value={(control as { text?: TypeSpec }).text}
+              tokens={tokens}
+              required
+              disabled={disabled}
+              onChange={(text) =>
+                updateCustomTheme(themeId, {
+                  controls: {
+                    ...theme.controls,
+                    [partId]: prune({ ...control, text }),
                   } as ThemeControls,
                 })
               }
@@ -348,8 +521,8 @@ export default function ControlsPage() {
                   onClick={() =>
                     writeControl({
                       shape: 'Path',
-                      fill: '--theme-surface',
-                      borderColor: '--theme-border',
+                      fill: '--color-surface',
+                      borderColor: '--color-border',
                       borderThickness: 1,
                     })
                   }
@@ -362,7 +535,7 @@ export default function ControlsPage() {
           <TokenField
             label="Content"
             value={control.contentColor}
-            palette={palette}
+            tokens={tokens}
             disabled={disabled}
             onChange={(contentColor) =>
               writeControl(
@@ -411,7 +584,7 @@ export default function ControlsPage() {
             <TokenField
               label="Fill"
               value={scopeFields.fill}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(fill) =>
                 stateSel === 'base'
@@ -422,7 +595,7 @@ export default function ControlsPage() {
             <TokenField
               label="Border"
               value={scopeFields.borderColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(borderColor) =>
                 stateSel === 'base'
@@ -433,7 +606,7 @@ export default function ControlsPage() {
             <TokenField
               label="Content"
               value={scopeFields.contentColor}
-              palette={palette}
+              tokens={tokens}
               disabled={disabled}
               onChange={(contentColor) =>
                 stateSel === 'base'
@@ -474,6 +647,24 @@ export default function ControlsPage() {
             </div>
             <PartSpecimen partId={partId} state={stateSel} />
           </fieldset>
+
+          {(TEXT_BEARING_CONTROLS as readonly ControlId[]).includes(partId) && (
+            <fieldset className={styles.Frame}>
+              <legend>Typography — all states</legend>
+              <span className={styles.Meta}>
+                A text-bearing control needs a complete style. Pick a{' '}
+                <code>--text-*</code> token and override size / tracking / case
+                inline as needed.
+              </span>
+              <TextSpecEditor
+                value={path.text}
+                tokens={tokens}
+                required
+                disabled={disabled}
+                onChange={(text) => editBase({ text })}
+              />
+            </fieldset>
+          )}
 
           <fieldset className={styles.Frame}>
             <legend>Shape — all states</legend>

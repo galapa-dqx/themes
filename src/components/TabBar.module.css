@@ -19,22 +19,30 @@
 }
 
 /* The selected underline is just the tab part's bottom border; every stroke
-   is an inset shadow now, so it never shifts the label. */
+   is an inset shadow now, so it never shifts the label. Top-level tabs read
+   the tab control's typography; settings subtabs read the subtab control's —
+   both are complete literals emitted by the compiler, with no floor to fall
+   back to. */
 .Tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 87px;
-  font-family: var(--g-tab-font, var(--font-heading));
-  font-size: var(--g-tab-size, var(--text-lg));
-  font-style: var(--g-tab-style, var(--heading-style));
-  font-weight: var(--g-tab-weight, var(--heading-weight));
-  letter-spacing: var(--g-tab-letter-spacing, 0);
+  font-family: var(--g-tab-font);
+  font-size: var(--g-tab-size);
+  font-style: var(--g-tab-style);
+  font-weight: var(--g-tab-weight);
+  letter-spacing: var(--g-tab-letter-spacing);
   text-decoration: none;
-  text-transform: var(--g-tab-case, none);
+  text-transform: var(--g-tab-case);
 }
 
 .TabBar[data-size='sm'] .Tab {
   min-width: 0;
-  font-size: var(--text-md);
+  font-family: var(--g-subtab-font);
+  font-size: var(--g-subtab-size);
+  font-style: var(--g-subtab-style);
+  font-weight: var(--g-subtab-weight);
+  letter-spacing: var(--g-subtab-letter-spacing);
+  text-transform: var(--g-subtab-case);
 }

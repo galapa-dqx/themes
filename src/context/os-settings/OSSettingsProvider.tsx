@@ -52,10 +52,10 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
   }, [themeId, settings.customThemes]);
 
   // Persisted custom themes may reference Google Fonts that aren't bundled;
-  // load whatever font roles the active theme names.
+  // load whatever families the active theme's text tokens name.
   useEffect(() => {
-    for (const role of Object.values(theme.fonts)) {
-      void ensureFontLoaded(role.family);
+    for (const style of Object.values(theme.tokens.text)) {
+      void ensureFontLoaded(style.family);
     }
   }, [theme]);
 
@@ -67,6 +67,7 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
   const [resolved, setResolved] = useState<{
     compiled: CompiledTheme;
     warnings: string[];
+    errors: string[];
   } | null>(null);
   useEffect(() => {
     let alive = true;
@@ -84,6 +85,7 @@ export function OSSettingsProvider({ children }: { children: ReactNode }) {
     theme,
     compiled: resolved?.compiled ?? null,
     themeWarnings: resolved?.warnings ?? [],
+    themeErrors: resolved?.errors ?? [],
     isCustomTheme: themeId in settings.customThemes,
     isKnownTheme,
     setWinStyle: (winStyle: OSSettings['winStyle']) =>
