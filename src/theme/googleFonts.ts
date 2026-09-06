@@ -10,13 +10,14 @@
 
 // Public browser key (rate-limited, safe to ship in a prototype).
 const API_KEY = 'AIzaSyA3MtsAoDVzJvFca7iJ8XZZux4apbDISIY';
-const API_URL = `https://www.googleapis.com/webfonts/v1/webfonts?sort=popularity&key=${API_KEY}`;
+const API_URL = `https://www.googleapis.com/webfonts/v1/webfonts?sort=popularity&capability=VF&key=${API_KEY}`;
 
 export type GoogleFontEntry = {
   family: string;
   category: string; // serif | sans-serif | display | handwriting | monospace
   variants: string[]; // "regular" | "italic" | "500" | "700italic" | ...
   files: Record<string, string>; // same variant keys → TrueType download URL
+  axes?: { tag: string; start: number; end: number }[];
 };
 
 /** Families bundled via index.html (or generic) — never re-loaded. */
@@ -44,11 +45,12 @@ export function fetchGoogleFonts(): Promise<GoogleFontEntry[]> {
         return res.json() as Promise<{ items: GoogleFontEntry[] }>;
       })
       .then((data) =>
-        data.items.map(({ family, category, variants, files }) => ({
+        data.items.map(({ family, category, variants, files, axes }) => ({
           family,
           category,
           variants,
           files,
+          ...(axes ? { axes } : {}),
         })),
       );
     catalog.catch((err) => {
