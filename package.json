@@ -5,11 +5,14 @@
   "type": "module",
   "packageManager": "pnpm@11.17.0",
   "scripts": {
+    "predev": "pnpm pyodide:prepare",
     "dev": "vite",
+    "prebuild": "pnpm pyodide:prepare",
     "build": "pnpm schema:check && tsc -b && vite build",
     "lint": "eslint .",
     "schema:generate": "tsx scripts/generate-schema-and-catalog.ts",
     "schema:check": "tsx scripts/generate-schema-and-catalog.ts --check",
+    "pyodide:prepare": "tsx scripts/prepare-pyodide-assets.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
@@ -25,6 +28,7 @@
     "fflate": "^0.8.3",
     "paper": "^0.12.18",
     "paperjs-offset": "^2.2.1",
+    "pyodide": "314.0.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "svgo": "4.1.0",
@@ -49,6 +53,7 @@
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.62.0",
     "vite": "^8.1.1",
+    "vite-plugin-static-copy": "4.1.1",
     "vitest": "5.0.0",
     "wrangler": "^4.123.0"
   }
