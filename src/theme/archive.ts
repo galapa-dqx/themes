@@ -2,6 +2,8 @@ import { unzipSync, zipSync, type Zippable } from 'fflate';
 import {
   PROJECT_MAGIC,
   THEME_FORMAT_VERSION,
+  THEME_MAGIC,
+  type CompiledThemeModel,
   type ProjectModel,
 } from './schema';
 import {
@@ -14,6 +16,9 @@ import {
   type ThemeDiagnostic,
 } from './diagnostics';
 import {
+  validateCompiledMetadata,
+  validateCompiledTheme,
+  validateLicenses,
   validateProjectMetadata,
   validateProjectTokens,
 } from './validation';
@@ -21,6 +26,7 @@ import {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder('utf-8', { fatal: true });
 const PROJECT_PREFIX_BYTES = 10;
+const THEME_PREFIX_BYTES = 18;
 const ZIP_EOCD = 0x06054b50;
 const ZIP_CENTRAL = 0x02014b50;
 const ZIP64_SENTINEL_16 = 0xffff;
@@ -43,10 +49,23 @@ export const PROJECT_ARCHIVE_LIMITS: ArchiveLimits = {
   entryBytes: 256 * 1024 * 1024,
 };
 
+export const THEME_ARCHIVE_LIMITS: ArchiveLimits = {
+  compressedBytes: 64 * 1024 * 1024,
+  expandedBytes: 256 * 1024 * 1024,
+  entries: 1024,
+  entryBytes: 64 * 1024 * 1024,
+};
+
 export type ThemeProjectWorkspace = {
   model: ProjectModel;
   files: Map<string, Uint8Array>;
   diagnostics: ThemeDiagnostic[];
+};
+
+export type LoadedTheme = {
+  model: CompiledThemeModel;
+  files: Map<string, Uint8Array>;
+  publishedAt: bigint;
 };
 
 function equalMagic(bytes: Uint8Array, expected: string): boolean {
@@ -68,6 +87,17 @@ export function readProjectPrefix(bytes: Uint8Array): number {
     prefixError('This is not a Galapa theme project.');
   }
   return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint16(8, false);
+}
+
+export function readThemePrefix(bytes: Uint8Array): {
+  formatVersion: number;
+  publishedAt: bigint;
+} {
+  if (!equalMagic(bytes, THEME_MAGIC) || bytes.length < THEME_PREFIX_BYTES) {
+    prefixError('This is not a compiled Galapa theme.');
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  return { formatVersion: view.getUint16(8, false), publishedAt: view.getBigUint64(10, false) };
 }
 
 function pathError(path: string, message: string): never {
@@ -324,4 +354,50 @@ export function saveProjectArchive(workspace: ThemeProjectWorkspace): Uint8Array
     if (control !== undefined) files.set(`controls/${id}.json`, jsonBytes(control));
   }
   return concat(encodePrefix(PROJECT_MAGIC, PROJECT_PREFIX_BYTES), zipEntries(files));
+}
+
+export function bundleCompiledTheme(
+  model: CompiledThemeModel,
+  resources: Map<string, Uint8Array>,
+  publishedAt: bigint = BigInt(Date.now()),
+): Uint8Array {
+  schemaErrors(validateCompiledMetadata(model.metadata), 'metadata.json');
+  schemaErrors(validateCompiledTheme(model.theme), 'theme.json');
+  schemaErrors(validateLicenses(model.licenses), 'licenses.json');
+  const files = new Map<string, Uint8Array>([
+    ['metadata.json', jsonBytes(model.metadata)],
+    ['theme.json', jsonBytes(model.theme)],
+    ['licenses.json', jsonBytes(model.licenses)],
+  ]);
+  for (const [path, bytes] of resources) {
+    const archivePath = path.startsWith('./') ? path.slice(2) : path;
+    validateArchivePath(archivePath);
+    files.set(archivePath, bytes);
+  }
+  const prefix = encodePrefix(THEME_MAGIC, THEME_PREFIX_BYTES);
+  new DataView(prefix.buffer).setBigUint64(10, publishedAt, false);
+  return concat(prefix, zipEntries(files));
+}
+
+export function loadCompiledTheme(bytes: Uint8Array): LoadedTheme {
+  const prefix = readThemePrefix(bytes);
+  if (prefix.formatVersion !== THEME_FORMAT_VERSION) {
+    prefixError(`Compiled theme format ${prefix.formatVersion} is not supported.`);
+  }
+  const files = unzip(bytes.subarray(THEME_PREFIX_BYTES), THEME_ARCHIVE_LIMITS);
+  const metadata = parseJson(files, 'metadata.json');
+  const theme = parseJson(files, 'theme.json');
+  const licenses = parseJson(files, 'licenses.json');
+  schemaErrors(validateCompiledMetadata(metadata), 'metadata.json');
+  schemaErrors(validateCompiledTheme(theme), 'theme.json');
+  schemaErrors(validateLicenses(licenses), 'licenses.json');
+  return {
+    model: {
+      metadata: metadata as CompiledThemeModel['metadata'],
+      theme: theme as CompiledThemeModel['theme'],
+      licenses: licenses as CompiledThemeModel['licenses'],
+    },
+    files,
+    publishedAt: prefix.publishedAt,
+  };
 }

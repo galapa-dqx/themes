@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   loadProjectArchive,
+  readThemePrefix,
   saveProjectArchive,
   validateArchivePath,
   type ThemeProjectWorkspace,
@@ -39,5 +40,17 @@ describe('project archives', () => {
     expect(() => validateArchivePath('../theme.json')).toThrow(/escapes/);
     expect(() => validateArchivePath('assets\\theme.svg')).toThrow(/Unsafe/);
     expect(() => validateArchivePath('assets/e\u0301.svg')).toThrow(/NFC/);
+  });
+
+  it('reads the fixed compiled-theme update prefix without opening a ZIP', () => {
+    const prefix = new Uint8Array(18);
+    prefix.set(new TextEncoder().encode('GLPTHEME'));
+    const view = new DataView(prefix.buffer);
+    view.setUint16(8, 1, false);
+    view.setBigUint64(10, 1_723_456_789_000n, false);
+    expect(readThemePrefix(prefix)).toEqual({
+      formatVersion: 1,
+      publishedAt: 1_723_456_789_000n,
+    });
   });
 });
