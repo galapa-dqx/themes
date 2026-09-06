@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "items": {
+    "additionalProperties": false,
+    "properties": {
+      "files": {
+        "items": {
+          "pattern": "^\\./(?:assets(?:/fonts)?/[0-9a-f]{12}\\.(?:svg|png|jpg|ttf|otf)|licenses/[0-9a-f]{12}\\.txt)$",
+          "type": "string"
+        },
+        "minItems": 1,
+        "type": "array",
+        "uniqueItems": true
+      },
+      "license": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "licenseFile": {
+        "pattern": "^\\./licenses/[0-9a-f]{12}\\.txt$",
+        "type": "string"
+      }
+    },
+    "required": [
+      "files",
+      "license"
+    ],
+    "type": "object"
+  },
+  "type": "array"
+}

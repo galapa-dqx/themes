@@ -6,8 +6,12 @@
   "packageManager": "pnpm@11.17.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm schema:check && tsc -b && vite build",
     "lint": "eslint .",
+    "schema:generate": "tsx scripts/generate-theme-artifacts.ts",
+    "schema:check": "tsx scripts/generate-theme-artifacts.ts --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview",
     "deploy": "wrangler deploy",
     "cf:preview": "wrangler dev"
@@ -22,7 +26,8 @@
     "paper": "^0.12.18",
     "paperjs-offset": "^2.2.1",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "typebox": "1.3.27"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -39,9 +44,11 @@
     "prettier": "^3.9.6",
     "stylelint": "^17.14.1",
     "stylelint-config-standard": "^40.0.0",
+    "tsx": "4.23.13",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.62.0",
     "vite": "^8.1.1",
+    "vitest": "5.0.0",
     "wrangler": "^4.123.0"
   }
 }

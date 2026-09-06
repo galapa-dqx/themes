@@ -1,0 +1,307 @@
+{
+  "$id": "https://schemas.galapa.app/theme-project/tokens.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.galapa.app/theme-project/tokens.schema.json",
+      "type": "string"
+    },
+    "assets": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "anyOf": [
+            {
+              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+              "type": "string"
+            },
+            {
+              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+      },
+      "type": "object"
+    },
+    "colors": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "anyOf": [
+            {
+              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+              "type": "string"
+            },
+            {
+              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+              "type": "string"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "$type": {
+                  "const": "mix",
+                  "type": "string"
+                },
+                "amount": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "inputs": {
+                  "items": false,
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "anyOf": [
+                        {
+                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                          "type": "string"
+                        },
+                        {
+                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                          "type": "string"
+                        },
+                        {
+                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "type": "array"
+                },
+                "space": {
+                  "anyOf": [
+                    {
+                      "const": "srgb",
+                      "type": "string"
+                    },
+                    {
+                      "const": "srgb-linear",
+                      "type": "string"
+                    },
+                    {
+                      "const": "lab",
+                      "type": "string"
+                    },
+                    {
+                      "const": "lch",
+                      "type": "string"
+                    },
+                    {
+                      "const": "oklab",
+                      "type": "string"
+                    },
+                    {
+                      "const": "oklch",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "$type",
+                "inputs",
+                "amount",
+                "space"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+      },
+      "type": "object"
+    },
+    "fonts": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "anyOf": [
+            {
+              "pattern": "^gfont:[A-Za-z0-9+%._-]+$",
+              "type": "string"
+            },
+            {
+              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.(?:ttf|ttc|otf|otc)$",
+              "type": "string"
+            },
+            {
+              "pattern": "^\\{fonts\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+      },
+      "type": "object"
+    },
+    "typography": {
+      "additionalProperties": false,
+      "patternProperties": {
+        "^.*$": {
+          "anyOf": [
+            {
+              "pattern": "^\\{typography\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+              "type": "string"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "$extends": {
+                  "pattern": "^\\{typography\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                  "type": "string"
+                },
+                "font": {
+                  "anyOf": [
+                    {
+                      "pattern": "^gfont:[A-Za-z0-9+%._-]+$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.(?:ttf|ttc|otf|otc)$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{fonts\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "fontAxes": {
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^.*$": {
+                      "type": "number"
+                    }
+                  },
+                  "propertyNames": {
+                    "pattern": "^[ -~]{4}$"
+                  },
+                  "type": "object"
+                },
+                "fontFeatures": {
+                  "additionalProperties": false,
+                  "patternProperties": {
+                    "^.*$": {
+                      "anyOf": [
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      ]
+                    }
+                  },
+                  "propertyNames": {
+                    "pattern": "^[ -~]{4}$"
+                  },
+                  "type": "object"
+                },
+                "fontSize": {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                "fontStyle": {
+                  "anyOf": [
+                    {
+                      "const": "normal",
+                      "type": "string"
+                    },
+                    {
+                      "const": "italic",
+                      "type": "string"
+                    },
+                    {
+                      "const": "oblique",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "fontWeight": {
+                  "maximum": 1000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "letterSpacing": {
+                  "type": "number"
+                },
+                "lineHeight": {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                "textCase": {
+                  "anyOf": [
+                    {
+                      "const": "none",
+                      "type": "string"
+                    },
+                    {
+                      "const": "uppercase",
+                      "type": "string"
+                    },
+                    {
+                      "const": "lowercase",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "textDecoration": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "const": "underline",
+                        "type": "string"
+                      },
+                      {
+                        "const": "strikethrough",
+                        "type": "string"
+                      },
+                      {
+                        "const": "overline",
+                        "type": "string"
+                      },
+                      {
+                        "const": "baseline",
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "uniqueItems": true
+                }
+              },
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+      },
+      "type": "object"
+    }
+  },
+  "type": "object"
+}
