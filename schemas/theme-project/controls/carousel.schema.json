@@ -1,0 +1,2678 @@
+{
+  "$id": "https://schemas.galapa.app/theme-project/controls/carousel.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "const": "https://schemas.galapa.app/theme-project/controls/carousel.schema.json",
+          "type": "string"
+        },
+        "border": {
+          "additionalProperties": false,
+          "properties": {
+            "color": {
+              "anyOf": [
+                {
+                  "anyOf": [
+                    {
+                      "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "$type": {
+                          "const": "mix",
+                          "type": "string"
+                        },
+                        "amount": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "inputs": {
+                          "items": false,
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        "space": {
+                          "anyOf": [
+                            {
+                              "const": "srgb",
+                              "type": "string"
+                            },
+                            {
+                              "const": "srgb-linear",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lch",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklch",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$type",
+                        "inputs",
+                        "amount",
+                        "space"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                {
+                  "const": "none",
+                  "type": "string"
+                }
+              ]
+            },
+            "thickness": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "items": false,
+                  "maxItems": 4,
+                  "minItems": 4,
+                  "prefixItems": [
+                    {
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    {
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    {
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    {
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                }
+              ]
+            }
+          },
+          "type": "object"
+        },
+        "corner": {
+          "anyOf": [
+            {
+              "const": "round",
+              "type": "string"
+            },
+            {
+              "const": "bevel",
+              "type": "string"
+            },
+            {
+              "const": "scoop",
+              "type": "string"
+            },
+            {
+              "const": "notch",
+              "type": "string"
+            },
+            {
+              "const": "squircle",
+              "type": "string"
+            }
+          ]
+        },
+        "fill": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                  "type": "string"
+                },
+                {
+                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "$type": {
+                      "const": "mix",
+                      "type": "string"
+                    },
+                    "amount": {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "inputs": {
+                      "items": false,
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "prefixItems": [
+                        {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      ],
+                      "type": "array"
+                    },
+                    "space": {
+                      "anyOf": [
+                        {
+                          "const": "srgb",
+                          "type": "string"
+                        },
+                        {
+                          "const": "srgb-linear",
+                          "type": "string"
+                        },
+                        {
+                          "const": "lab",
+                          "type": "string"
+                        },
+                        {
+                          "const": "lch",
+                          "type": "string"
+                        },
+                        {
+                          "const": "oklab",
+                          "type": "string"
+                        },
+                        {
+                          "const": "oklch",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "$type",
+                    "inputs",
+                    "amount",
+                    "space"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "const": "none",
+              "type": "string"
+            }
+          ]
+        },
+        "opacity": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "padding": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "items": false,
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "minimum": 0,
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            }
+          ]
+        },
+        "parts": {
+          "additionalProperties": false,
+          "properties": {
+            "nav": {
+              "additionalProperties": false,
+              "properties": {
+                "asset": {
+                  "anyOf": [
+                    {
+                      "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "currentColor": {
+                  "anyOf": [
+                    {
+                      "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "$type": {
+                          "const": "mix",
+                          "type": "string"
+                        },
+                        "amount": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "inputs": {
+                          "items": false,
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        "space": {
+                          "anyOf": [
+                            {
+                              "const": "srgb",
+                              "type": "string"
+                            },
+                            {
+                              "const": "srgb-linear",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lch",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklch",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$type",
+                        "inputs",
+                        "amount",
+                        "space"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "opacity": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "size": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "height": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "width": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "states": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "focused": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "showRing": {
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "hover": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "pressed": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "asset"
+              ],
+              "type": "object"
+            },
+            "pip": {
+              "additionalProperties": false,
+              "properties": {
+                "asset": {
+                  "anyOf": [
+                    {
+                      "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "currentColor": {
+                  "anyOf": [
+                    {
+                      "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "$type": {
+                          "const": "mix",
+                          "type": "string"
+                        },
+                        "amount": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "inputs": {
+                          "items": false,
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        "space": {
+                          "anyOf": [
+                            {
+                              "const": "srgb",
+                              "type": "string"
+                            },
+                            {
+                              "const": "srgb-linear",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lch",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklch",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$type",
+                        "inputs",
+                        "amount",
+                        "space"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "opacity": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "size": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "height": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "width": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "states": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "focused": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "showRing": {
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "hover": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "pressed": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "selected": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "asset"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "nav",
+            "pip"
+          ],
+          "type": "object"
+        },
+        "radius": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "const": "pill",
+              "type": "string"
+            }
+          ]
+        },
+        "shape": {
+          "const": "path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shape",
+        "parts"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "const": "https://schemas.galapa.app/theme-project/controls/carousel.schema.json",
+          "type": "string"
+        },
+        "asset": {
+          "anyOf": [
+            {
+              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+              "type": "string"
+            },
+            {
+              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+              "type": "string"
+            }
+          ]
+        },
+        "currentColor": {
+          "anyOf": [
+            {
+              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+              "type": "string"
+            },
+            {
+              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+              "type": "string"
+            },
+            {
+              "additionalProperties": false,
+              "properties": {
+                "$type": {
+                  "const": "mix",
+                  "type": "string"
+                },
+                "amount": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "inputs": {
+                  "items": false,
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "anyOf": [
+                        {
+                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                          "type": "string"
+                        },
+                        {
+                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "anyOf": [
+                        {
+                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                          "type": "string"
+                        },
+                        {
+                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  ],
+                  "type": "array"
+                },
+                "space": {
+                  "anyOf": [
+                    {
+                      "const": "srgb",
+                      "type": "string"
+                    },
+                    {
+                      "const": "srgb-linear",
+                      "type": "string"
+                    },
+                    {
+                      "const": "lab",
+                      "type": "string"
+                    },
+                    {
+                      "const": "lch",
+                      "type": "string"
+                    },
+                    {
+                      "const": "oklab",
+                      "type": "string"
+                    },
+                    {
+                      "const": "oklch",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "$type",
+                "inputs",
+                "amount",
+                "space"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "opacity": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "parts": {
+          "additionalProperties": false,
+          "properties": {
+            "nav": {
+              "additionalProperties": false,
+              "properties": {
+                "asset": {
+                  "anyOf": [
+                    {
+                      "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "currentColor": {
+                  "anyOf": [
+                    {
+                      "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "$type": {
+                          "const": "mix",
+                          "type": "string"
+                        },
+                        "amount": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "inputs": {
+                          "items": false,
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        "space": {
+                          "anyOf": [
+                            {
+                              "const": "srgb",
+                              "type": "string"
+                            },
+                            {
+                              "const": "srgb-linear",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lch",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklch",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$type",
+                        "inputs",
+                        "amount",
+                        "space"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "opacity": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "size": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "height": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "width": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "states": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "focused": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "showRing": {
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "hover": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "pressed": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "asset"
+              ],
+              "type": "object"
+            },
+            "pip": {
+              "additionalProperties": false,
+              "properties": {
+                "asset": {
+                  "anyOf": [
+                    {
+                      "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "currentColor": {
+                  "anyOf": [
+                    {
+                      "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                      "type": "string"
+                    },
+                    {
+                      "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "$type": {
+                          "const": "mix",
+                          "type": "string"
+                        },
+                        "amount": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "inputs": {
+                          "items": false,
+                          "maxItems": 2,
+                          "minItems": 2,
+                          "prefixItems": [
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "anyOf": [
+                                {
+                                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                  "type": "string"
+                                },
+                                {
+                                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                  "type": "string"
+                                }
+                              ]
+                            }
+                          ],
+                          "type": "array"
+                        },
+                        "space": {
+                          "anyOf": [
+                            {
+                              "const": "srgb",
+                              "type": "string"
+                            },
+                            {
+                              "const": "srgb-linear",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "lch",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklab",
+                              "type": "string"
+                            },
+                            {
+                              "const": "oklch",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "$type",
+                        "inputs",
+                        "amount",
+                        "space"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "opacity": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "size": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "height": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    },
+                    "width": {
+                      "exclusiveMinimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "states": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "focused": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        },
+                        "showRing": {
+                          "type": "boolean"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "hover": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "pressed": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "selected": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "asset": {
+                          "anyOf": [
+                            {
+                              "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        "currentColor": {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            },
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "$type": {
+                                  "const": "mix",
+                                  "type": "string"
+                                },
+                                "amount": {
+                                  "maximum": 1,
+                                  "minimum": 0,
+                                  "type": "number"
+                                },
+                                "inputs": {
+                                  "items": false,
+                                  "maxItems": 2,
+                                  "minItems": 2,
+                                  "prefixItems": [
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "anyOf": [
+                                        {
+                                          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                                          "type": "string"
+                                        },
+                                        {
+                                          "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                                          "type": "string"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "type": "array"
+                                },
+                                "space": {
+                                  "anyOf": [
+                                    {
+                                      "const": "srgb",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "srgb-linear",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "lch",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklab",
+                                      "type": "string"
+                                    },
+                                    {
+                                      "const": "oklch",
+                                      "type": "string"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "$type",
+                                "inputs",
+                                "amount",
+                                "space"
+                              ],
+                              "type": "object"
+                            }
+                          ]
+                        },
+                        "opacity": {
+                          "maximum": 1,
+                          "minimum": 0,
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              },
+              "required": [
+                "asset"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "nav",
+            "pip"
+          ],
+          "type": "object"
+        },
+        "shape": {
+          "const": "asset",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shape",
+        "asset",
+        "parts"
+      ],
+      "type": "object"
+    }
+  ]
+}

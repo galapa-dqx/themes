@@ -1,0 +1,151 @@
+{
+  "$id": "https://schemas.galapa.app/theme-project/controls/play-row.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.galapa.app/theme-project/controls/play-row.schema.json",
+      "type": "string"
+    },
+    "parts": {
+      "additionalProperties": false,
+      "properties": {
+        "ornament": {
+          "additionalProperties": false,
+          "properties": {
+            "asset": {
+              "anyOf": [
+                {
+                  "pattern": "^\\./assets/(?!.*(?:^|/)\\.\\.?/)(?!.*//)(?!.*\\\\)(?!.*%).+\\.svg$",
+                  "type": "string"
+                },
+                {
+                  "pattern": "^\\{assets\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                  "type": "string"
+                }
+              ]
+            },
+            "currentColor": {
+              "anyOf": [
+                {
+                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                  "type": "string"
+                },
+                {
+                  "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                  "type": "string"
+                },
+                {
+                  "additionalProperties": false,
+                  "properties": {
+                    "$type": {
+                      "const": "mix",
+                      "type": "string"
+                    },
+                    "amount": {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "inputs": {
+                      "items": false,
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "prefixItems": [
+                        {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        },
+                        {
+                          "anyOf": [
+                            {
+                              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                              "type": "string"
+                            },
+                            {
+                              "pattern": "^\\{colors\\.[a-z][a-z0-9]*(?:-[a-z0-9]+)*\\}$",
+                              "type": "string"
+                            }
+                          ]
+                        }
+                      ],
+                      "type": "array"
+                    },
+                    "space": {
+                      "anyOf": [
+                        {
+                          "const": "srgb",
+                          "type": "string"
+                        },
+                        {
+                          "const": "srgb-linear",
+                          "type": "string"
+                        },
+                        {
+                          "const": "lab",
+                          "type": "string"
+                        },
+                        {
+                          "const": "lch",
+                          "type": "string"
+                        },
+                        {
+                          "const": "oklab",
+                          "type": "string"
+                        },
+                        {
+                          "const": "oklch",
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "$type",
+                    "inputs",
+                    "amount",
+                    "space"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "opacity": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            "size": {
+              "additionalProperties": false,
+              "properties": {
+                "height": {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                },
+                "width": {
+                  "exclusiveMinimum": 0,
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "parts"
+  ],
+  "type": "object"
+}

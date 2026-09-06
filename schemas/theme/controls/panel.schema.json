@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "border": {
+          "additionalProperties": false,
+          "properties": {
+            "color": {
+              "anyOf": [
+                {
+                  "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+                  "type": "string"
+                },
+                {
+                  "const": "none",
+                  "type": "string"
+                }
+              ]
+            },
+            "thickness": {
+              "items": false,
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "minimum": 0,
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            }
+          },
+          "required": [
+            "color",
+            "thickness"
+          ],
+          "type": "object"
+        },
+        "corner": {
+          "anyOf": [
+            {
+              "const": "round",
+              "type": "string"
+            },
+            {
+              "const": "bevel",
+              "type": "string"
+            },
+            {
+              "const": "scoop",
+              "type": "string"
+            },
+            {
+              "const": "notch",
+              "type": "string"
+            },
+            {
+              "const": "squircle",
+              "type": "string"
+            }
+          ]
+        },
+        "fill": {
+          "anyOf": [
+            {
+              "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+              "type": "string"
+            },
+            {
+              "const": "none",
+              "type": "string"
+            }
+          ]
+        },
+        "opacity": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "padding": {
+          "items": false,
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "minimum": 0,
+              "type": "number"
+            }
+          ],
+          "type": "array"
+        },
+        "radius": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "const": "pill",
+              "type": "string"
+            }
+          ]
+        },
+        "shape": {
+          "const": "path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shape",
+        "radius",
+        "corner",
+        "fill",
+        "border",
+        "padding",
+        "opacity"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "pattern": "^\\./assets/[0-9a-f]{12}\\.svg$",
+          "type": "string"
+        },
+        "currentColor": {
+          "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+          "type": "string"
+        },
+        "opacity": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "shape": {
+          "const": "asset",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shape",
+        "asset",
+        "opacity"
+      ],
+      "type": "object"
+    }
+  ]
+}
