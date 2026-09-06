@@ -11,6 +11,8 @@ import {
 } from '../src/theme/schema';
 import { CONTROL_CATALOG, STATE_PRIORITY } from '../src/theme/catalog';
 
+// Regenerates the public JSON Schemas and compact runtime control catalog.
+
 const root = resolve(import.meta.dirname, '..');
 const check = process.argv.includes('--check');
 
