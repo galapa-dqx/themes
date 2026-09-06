@@ -53,7 +53,17 @@ export type LicenseEntry = {
   licenseFile?: string;
 };
 
-export type CompiledThemeControls = Record<RootControlId, unknown>;
+type OptionalRootControlId = {
+  [Id in RootControlId]: (typeof CONTROL_CATALOG)[Id]['required'] extends false
+    ? Id
+    : never;
+}[RootControlId];
+
+export type CompiledThemeControls = Record<
+  Exclude<RootControlId, OptionalRootControlId>,
+  unknown
+> &
+  Partial<Record<OptionalRootControlId, unknown>>;
 
 export type CompiledThemeModel = {
   metadata: CompiledMetadata;

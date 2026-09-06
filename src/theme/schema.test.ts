@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { validateProjectMetadata, validateProjectTokens } from './validation';
+import {
+  validateCompiledControl,
+  validateProjectMetadata,
+  validateProjectTokens,
+} from './validation';
 
 describe('theme schemas', () => {
   it('accepts a minimal project metadata document', () => {
@@ -21,5 +25,22 @@ describe('theme schemas', () => {
     );
     expect(validateProjectTokens({ numbers: { opacity: 0.5 } })).not.toEqual([]);
   });
-});
 
+  it('allows variant artwork that does not use currentColor', () => {
+    expect(
+      validateCompiledControl('tab-bar', {
+        parts: {
+          hint: {
+            assets: {
+              'left-bumper': './assets/0123456789ab.svg',
+              'right-bumper': './assets/0123456789ab.svg',
+              'left-trigger': './assets/0123456789ab.svg',
+              'right-trigger': './assets/0123456789ab.svg',
+            },
+            opacity: 1,
+          },
+        },
+      }),
+    ).toEqual([]);
+  });
+});

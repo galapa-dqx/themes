@@ -180,9 +180,6 @@
               "type": "object"
             }
           },
-          "required": [
-            "currentColor"
-          ],
           "type": "object"
         }
       },

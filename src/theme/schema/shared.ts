@@ -246,7 +246,9 @@ export type TypographyObject = {
   fontFeatures?: Record<string, boolean | number>;
 };
 export type TypographyValue = string | TypographyObject;
-export type CompiledTypography = Required<Omit<TypographyObject, '$extends'>>;
+export type CompiledTypography = Required<
+  Omit<TypographyObject, '$extends' | 'fontAxes'>
+>;
 export type ThemeMetadata = {
   id: string;
   name: string;
@@ -455,7 +457,7 @@ function controlSchema(entry: CatalogControl, compiled: boolean): TSchema {
         assets: compiled
           ? variantAssetsSchema(entry, true, false)
           : Type.Optional(variantAssetsSchema(entry, false, true)),
-        currentColor: color,
+        currentColor: Type.Optional(color),
         opacity: compiled ? opacity() : Type.Optional(opacity()),
       };
       if (size) properties.size = Type.Optional(size);

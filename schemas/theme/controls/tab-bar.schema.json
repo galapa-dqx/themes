@@ -62,7 +62,6 @@
           },
           "required": [
             "assets",
-            "currentColor",
             "opacity"
           ],
           "type": "object"

@@ -1527,9 +1527,6 @@
                   "type": "object"
                 }
               },
-              "required": [
-                "currentColor"
-              ],
               "type": "object"
             },
             "title": {
@@ -4341,9 +4338,6 @@
                   "type": "object"
                 }
               },
-              "required": [
-                "currentColor"
-              ],
               "type": "object"
             },
             "title": {
