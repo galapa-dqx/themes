@@ -1,3 +1,5 @@
 allowBuilds:
+  '@parcel/watcher': false
   esbuild: true
+  msgpackr-extract: false
   workerd: true
