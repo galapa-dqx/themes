@@ -5,14 +5,14 @@ import {
   CONTROL_CATALOG,
   STATE_PRIORITY,
   type CatalogEntry,
-} from './catalog.ts';
+} from './catalog';
 import {
   CompiledMetadataSchema,
   CompiledThemeSchema,
   ProjectControlSchemas,
   ProjectMetadataSchema,
   ProjectTokensSchema,
-} from './schema.ts';
+} from './schema';
 
 const errors = (schema: TSchema, value: unknown) =>
   [...Value.Errors(schema, value)].map(

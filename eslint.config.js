@@ -18,5 +18,16 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['../*'], message: 'Import from @/ instead of ../' },
+            { group: ['*.ts', '*.tsx'], message: 'Omit the file extension' },
+          ],
+        },
+      ],
+    },
   },
 ])

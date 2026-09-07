@@ -20,7 +20,7 @@ import {
   ROOT_CONTROL_IDS,
   type CatalogEntry,
   type RootControlId,
-} from './catalog.ts';
+} from './catalog';
 
 export const THEME_FORMAT_VERSION = 1;
 export const PROJECT_MAGIC = 'GLPTHPRJ';

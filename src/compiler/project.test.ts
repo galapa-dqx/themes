@@ -1,9 +1,9 @@
 import { NodeFileSystem } from '@effect/platform-node';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { CompileFailed, Diagnostics } from './diagnostics.ts';
-import { MINIMAL_PROJECT, writeProject } from './fixtures/minimal.ts';
-import { findDuplicateKey, loadProject } from './project.ts';
+import { CompileFailed, Diagnostics } from './diagnostics';
+import { MINIMAL_PROJECT, writeProject } from './fixtures/minimal';
+import { findDuplicateKey, loadProject } from './project';
 
 const layer = Layer.merge(NodeFileSystem.layer, Diagnostics.Default);
 

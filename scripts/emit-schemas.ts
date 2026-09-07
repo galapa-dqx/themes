@@ -1,5 +1,5 @@
 // Emits the public project JSON Schemas (2020-12) for GitHub Pages.
-// Usage: node scripts/emit-schemas.ts [outDir]
+// Usage: pnpm schema:emit [outDir]
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import {
@@ -7,7 +7,7 @@ import {
   ProjectMetadataSchema,
   ProjectTokensSchema,
   schemaUrl,
-} from '../src/theme/schema.ts';
+} from '@/theme/schema';
 
 const out = process.argv[2] ?? 'dist-schemas';
 

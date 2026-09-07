@@ -1,6 +1,6 @@
 import { Cause, Effect, Exit, Option } from 'effect';
 import { describe, expect, it } from 'vitest';
-import { CompileFailed, Diagnostics } from './diagnostics.ts';
+import { CompileFailed, Diagnostics } from './diagnostics';
 
 const run = <A, E>(effect: Effect.Effect<A, E, Diagnostics>) =>
   Effect.runPromiseExit(effect.pipe(Effect.provide(Diagnostics.Default)));

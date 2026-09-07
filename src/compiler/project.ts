@@ -11,7 +11,7 @@ import {
   CONTROL_CATALOG,
   ROOT_CONTROL_IDS,
   type RootControlId,
-} from '../theme/catalog.ts';
+} from '@/theme/catalog';
 import {
   ProjectControlSchemas,
   ProjectMetadataSchema,
@@ -19,8 +19,8 @@ import {
   type ProjectControl,
   type ProjectMetadata,
   type ProjectTokens,
-} from '../theme/schema.ts';
-import { Diagnostics } from './diagnostics.ts';
+} from '@/theme/schema';
+import { Diagnostics } from './diagnostics';
 
 export interface Project {
   readonly dir: string;
