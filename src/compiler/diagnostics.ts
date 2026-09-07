@@ -34,7 +34,11 @@ export class Diagnostics extends Effect.Service<Diagnostics>()('Diagnostics', {
     const report = (d: Diagnostic) => Ref.update(ref, (ds) => [...ds, d]);
     const emit =
       (severity: Severity) =>
-      (code: string, message: string, at: Pick<Diagnostic, 'file' | 'path'> = {}) =>
+      (
+        code: string,
+        message: string,
+        at: Pick<Diagnostic, 'file' | 'path'> = {},
+      ) =>
         report({ severity, code, message, ...at });
     return {
       report,

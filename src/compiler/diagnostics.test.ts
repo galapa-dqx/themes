@@ -16,7 +16,12 @@ describe('Diagnostics', () => {
       }),
     );
     expect(Exit.isSuccess(exit) && exit.value).toEqual([
-      { severity: 'warning', code: 'x', message: 'careful', file: 'tokens.json' },
+      {
+        severity: 'warning',
+        code: 'x',
+        message: 'careful',
+        file: 'tokens.json',
+      },
     ]);
   });
 
