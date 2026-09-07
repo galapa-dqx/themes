@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 .pyodide-assets
 dist
+dist-schemas
 dist-ssr
 *.local
 
