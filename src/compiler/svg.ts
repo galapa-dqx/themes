@@ -201,142 +201,153 @@ type Ctx = {
   root?: true;
 };
 
-/** The profile check. `admission` tolerates CSS that normalization will consume. */
-const profile = (phase: 'admission' | 'canonical', ctx: Ctx): CustomPlugin => {
+const elementHint = (n: XastElement) =>
+  HINTS[n.name] ??
+  (n.name.startsWith('fe') ? 'disable effects' : 'unsupported element');
+
+/** Rejects unsupported content before any plugin can optimize it away. Bakes color tokens. */
+const admission = (ctx: Ctx): CustomPlugin => ({
+  name: 'galapa-admission',
+  fn: () => ({
+    element: {
+      enter: (node) => {
+        if (!ELEMENTS.has(node.name) && !ADMITTED_ELEMENT.test(node.name)) {
+          fail(node, elementHint(node));
+        }
+        for (const [name, value] of Object.entries(node.attributes)) {
+          if (
+            !ATTRIBUTES.has(name) &&
+            !ADMITTED_ATTRIBUTE.test(name) &&
+            !DROPPED.test(name)
+          ) {
+            fail(node, `unsupported attribute ${name}`);
+          }
+          if (PAINT.has(name)) {
+            node.attributes[name] = value.replace(TOKEN, (_, token: string) => {
+              const hex = ctx.options.colors?.[token];
+              return hex ?? fail(node, `unknown color token {colors.${token}}`);
+            });
+          }
+        }
+      },
+    },
+  }),
+});
+
+/** Document state gathered by the canonical pass. */
+type Doc = {
+  ids: Map<string, string | undefined>;
+  refs: { id: string; slice?: string; node: XastElement }[];
+  /** Enclosing nine-slice cell ids, innermost last. */
+  slices: string[];
+};
+
+/** Moves leftover declarations to attributes; convertStyleToAttrs only knows presentation ones. */
+const inlineStyle = (node: XastElement, style: string) => {
+  for (const decl of style.split(';')) {
+    const [k, v] = decl.split(':').map((t) => t.trim());
+    if (!k) continue;
+    if (!ATTRIBUTES.has(k) || !v)
+      fail(node, `unsupported CSS "${decl.trim()}"`);
+    node.attributes[k] = v!;
+  }
+  delete node.attributes.style;
+};
+
+const reference = (
+  doc: Doc,
+  node: XastElement,
+  name: string,
+  value: string,
+) => {
+  if (name === 'href' || name === 'xlink:href') {
+    if (!value.startsWith('#') || !ID.test(value.slice(1))) {
+      fail(node, 'only same-document #fragment references are supported');
+    }
+    doc.refs.push({ id: value.slice(1), slice: doc.slices.at(-1), node });
+  } else if (value.includes('url(')) {
+    const m = LOCAL_URL.exec(value);
+    if (!m)
+      fail(node, 'only same-document url(#fragment) references are supported');
+    doc.refs.push({ id: m![1], slice: doc.slices.at(-1), node });
+  }
+};
+
+/** Validates and canonicalizes one attribute of the normalized document. */
+const attribute = (ctx: Ctx, doc: Doc, node: XastElement, name: string) => {
+  const value = node.attributes[name];
+  if (DROPPED.test(name)) return delete node.attributes[name];
+  if (name === 'overflow') {
+    if (value !== 'hidden')
+      fail(node, 'artwork is always clipped; remove overflow');
+    return delete node.attributes[name];
+  }
+  if (!ATTRIBUTES.has(name)) fail(node, `unsupported attribute ${name}`);
+  if (NUMERIC.has(name) && !NUMBER.test(value)) {
+    fail(node, `${name} must be a plain number, got "${value}"`);
+  }
+  if (PAINT.has(name)) {
+    node.attributes[name] = paint(node, value);
+    if (value === 'currentColor') ctx.usesCurrentColor = true;
+  }
+  reference(doc, node, name, value);
+  if (name === 'id') {
+    if (!ID.test(value)) fail(node, `invalid id "${value}"`);
+    if (doc.ids.has(value)) fail(node, `duplicate id "${value}"`);
+    doc.ids.set(value, doc.slices.at(-1));
+  }
+};
+
+const checkRoot = (ctx: Ctx, node: XastElement) => {
+  ctx.root = true;
+  const vb = (node.attributes.viewBox ?? '')
+    .trim()
+    .split(/[\s,]+/)
+    .map(Number);
+  if (
+    vb.length !== 4 ||
+    !vb.every(Number.isFinite) ||
+    vb[2] <= 0 ||
+    vb[3] <= 0
+  ) {
+    fail(node, 'a finite, positive viewBox is required');
+  }
+  delete node.attributes.width;
+  delete node.attributes.height;
+};
+
+/** The final check: everything CSS-derived is now an allowlisted presentation attribute. */
+const canonical = (ctx: Ctx): CustomPlugin => {
+  const doc: Doc = { ids: new Map(), refs: [], slices: [] };
+  const nine = ctx.options.profile === 'nine-slice';
   let root: XastElement | undefined;
-  const ids = new Map<string, string | undefined>();
-  const refs: { id: string; slice?: string; node: XastElement }[] = [];
-  const slices: string[] = [];
-  const isSlice = (n: XastElement) =>
-    ctx.options.profile === 'nine-slice' && n.name === 'svg' && n !== root;
+  const isSlice = (n: XastElement) => nine && n.name === 'svg' && n !== root;
   return {
-    name: `galapa-${phase}`,
+    name: 'galapa-canonical',
     fn: () => ({
       element: {
         enter: (node, parent) => {
           if (parent.type === 'root') {
-            if (root || node.name !== 'svg')
+            if (root || node.name !== 'svg') {
               fail(node, 'document must contain one <svg> root');
+            }
             root = node;
           }
-          if (
-            !ELEMENTS.has(node.name) &&
-            !(phase === 'admission' && ADMITTED_ELEMENT.test(node.name))
-          ) {
-            fail(
-              node,
-              HINTS[node.name] ??
-                (node.name.startsWith('fe')
-                  ? 'disable effects'
-                  : 'unsupported element'),
-            );
+          if (!ELEMENTS.has(node.name)) fail(node, elementHint(node));
+          if (isSlice(node)) doc.slices.push(node.attributes.id ?? '');
+          if (node.attributes.style) inlineStyle(node, node.attributes.style);
+          for (const name of Object.keys(node.attributes)) {
+            attribute(ctx, doc, node, name);
           }
-          if (isSlice(node)) slices.push(node.attributes.id ?? '');
-          for (const [name, raw] of Object.entries(node.attributes)) {
-            let value = raw;
-            if (PAINT.has(name) && phase === 'admission') {
-              value = value.replace(TOKEN, (_, token: string) => {
-                const hex = ctx.options.colors?.[token];
-                return (
-                  hex ?? fail(node, `unknown color token {colors.${token}}`)
-                );
-              });
-              node.attributes[name] = value;
-            }
-            if (phase === 'admission') {
-              if (
-                !ATTRIBUTES.has(name) &&
-                !ADMITTED_ATTRIBUTE.test(name) &&
-                !DROPPED.test(name)
-              ) {
-                fail(node, `unsupported attribute ${name}`);
-              }
-              continue;
-            }
-            if (DROPPED.test(name)) {
-              delete node.attributes[name];
-              continue;
-            }
-            if (name === 'style') {
-              // convertStyleToAttrs only knows presentation attributes; move the rest ourselves.
-              for (const decl of value.split(';')) {
-                const [k, v] = decl.split(':').map((t) => t.trim());
-                if (!k) continue;
-                if (!ATTRIBUTES.has(k) || !v)
-                  fail(node, `unsupported CSS "${decl.trim()}"`);
-                node.attributes[k] = v!;
-              }
-              delete node.attributes.style;
-              continue;
-            }
-            if (name === 'overflow') {
-              if (value !== 'hidden')
-                fail(node, 'artwork is always clipped; remove overflow');
-              delete node.attributes[name];
-              continue;
-            }
-            if (!ATTRIBUTES.has(name))
-              fail(node, `unsupported attribute ${name}`);
-            if (NUMERIC.has(name) && !NUMBER.test(value)) {
-              fail(node, `${name} must be a plain number, got "${value}"`);
-            }
-            if (PAINT.has(name)) {
-              value = paint(node, value);
-              node.attributes[name] = value;
-              if (value === 'currentColor') ctx.usesCurrentColor = true;
-            }
-            if (name === 'href' || name === 'xlink:href') {
-              if (!value.startsWith('#') || !ID.test(value.slice(1))) {
-                fail(
-                  node,
-                  'only same-document #fragment references are supported',
-                );
-              }
-              refs.push({ id: value.slice(1), slice: slices.at(-1), node });
-            } else if (value.includes('url(')) {
-              const m = LOCAL_URL.exec(value);
-              if (!m)
-                fail(
-                  node,
-                  'only same-document url(#fragment) references are supported',
-                );
-              refs.push({ id: m![1], slice: slices.at(-1), node });
-            }
-            if (name === 'id') {
-              if (!ID.test(value)) fail(node, `invalid id "${value}"`);
-              if (ids.has(value)) fail(node, `duplicate id "${value}"`);
-              ids.set(value, slices.at(-1));
-            }
-          }
-          if (node === root && phase === 'canonical') {
-            ctx.root = true;
-            const vb = (node.attributes.viewBox ?? '')
-              .trim()
-              .split(/[\s,]+/)
-              .map(Number);
-            if (
-              vb.length !== 4 ||
-              !vb.every(Number.isFinite) ||
-              vb[2] <= 0 ||
-              vb[3] <= 0
-            ) {
-              fail(node, 'a finite, positive viewBox is required');
-            }
-            delete node.attributes.width;
-            delete node.attributes.height;
-          }
+          if (node === root) checkRoot(ctx, node);
         },
         exit: (node) => {
-          if (isSlice(node)) slices.pop();
-          if (node !== root || phase === 'admission') return;
-          if (ctx.options.profile === 'nine-slice')
-            ctx.content = nineSlice(node);
-          for (const r of refs) {
-            if (!ids.has(r.id)) fail(r.node, `unknown fragment #${r.id}`);
-            if (
-              ctx.options.profile === 'nine-slice' &&
-              ids.get(r.id) !== r.slice
-            ) {
+          if (isSlice(node)) doc.slices.pop();
+          if (node !== root) return;
+          if (nine) ctx.content = nineSlice(node);
+          for (const r of doc.refs) {
+            if (!doc.ids.has(r.id)) fail(r.node, `unknown fragment #${r.id}`);
+            if (nine && doc.ids.get(r.id) !== r.slice) {
               fail(r.node, `#${r.id} must be defined inside the same slice`);
             }
           }
@@ -356,7 +367,7 @@ export const compileSvg = (source: string, options: SvgOptions): SvgResult => {
     data = optimize(source, {
       multipass: false,
       plugins: [
-        profile('admission', ctx),
+        admission(ctx),
         { name: 'removeComments', params: { preservePatterns: false } },
         'removeDoctype',
         'removeXMLProcInst',
@@ -369,7 +380,7 @@ export const compileSvg = (source: string, options: SvgOptions): SvgResult => {
           params: { onlyMatchedOnce: false, removeMatchedSelectors: true },
         },
         'convertStyleToAttrs',
-        profile('canonical', ctx),
+        canonical(ctx),
         'sortAttrs',
       ],
       js2svg: { pretty: false, finalNewline: true },

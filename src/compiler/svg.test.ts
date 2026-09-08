@@ -21,14 +21,14 @@ describe('compileSvg (image)', () => {
         <style>.a { stroke: white }</style>
         <defs><linearGradient id="g"><stop offset="0%" stop-color="rgb(255, 0, 0)"/></linearGradient></defs>
         <rect class="a" data-name="Layer 1" aria-hidden="true" width="5" height="5" fill="{colors.accent}"/>
-        <circle r="1" fill="url(#g)" stroke="currentColor" style="opacity:0.5"/>
+        <circle r="1" fill="url(#g)" stroke="currentColor" style="opacity:0.5;mask-type: alpha"/>
       </svg>`,
       { accent: '#123456' },
     );
     expect(r.usesCurrentColor).toBe(true);
     expect(r.content).toBeUndefined();
     expect(r.svg).toBe(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="g"><stop offset="0%" stop-color="#ff0000"/></linearGradient></defs><rect width="5" height="5" fill="#123456" stroke="#ffffff"/><circle r="1" fill="url(#g)" stroke="currentColor" opacity="0.5"/></svg>\n',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><defs><linearGradient id="g"><stop offset="0%" stop-color="#ff0000"/></linearGradient></defs><rect width="5" height="5" fill="#123456" stroke="#ffffff"/><circle r="1" fill="url(#g)" stroke="currentColor" mask-type="alpha" opacity="0.5"/></svg>\n',
     );
     expect(
       colorRefs(
