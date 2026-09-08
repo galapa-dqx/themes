@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import {
   ActionIcon,
@@ -28,6 +29,13 @@ import {
   IconPlus,
   IconSettings,
 } from '@tabler/icons-react';
+import { useAppStore } from '@/editor/appStore';
+import {
+  createProjectStore,
+  newDocument,
+  ProjectStoreProvider,
+  useProjectStore,
+} from '@/editor/projectStore';
 
 const SECTIONS = [
   { id: 'project', label: 'Project', icon: IconFolder },
@@ -36,13 +44,8 @@ const SECTIONS = [
   { id: 'preview', label: 'Preview', icon: IconEye },
 ] as const;
 
-// ponytail: placeholder data until the project store exists.
-const THEME = { name: 'Crimson Night', color: '#e0114a' };
-const RECENT = [
-  THEME,
-  { name: 'Astoltia Blue', color: '#2f7de1' },
-  { name: 'Parchment', color: '#f0e6d2' },
-];
+// ponytail: swatch is a placeholder until themes carry an accent color.
+const SWATCH = '#e0114a';
 
 const Slash = () => (
   <Text c="gray.4" component="span">
@@ -51,6 +54,9 @@ const Slash = () => (
 );
 
 function ThemeMenu() {
+  const name = useProjectStore((s) => s.doc.metadata.name);
+  const id = useProjectStore((s) => s.doc.metadata.id);
+  const recent = useAppStore((s) => s.recent);
   return (
     <Menu width={260} position="bottom-start" shadow="md" offset={6}>
       <Menu.Target>
@@ -59,36 +65,62 @@ function ThemeMenu() {
           px={8}
           py={4}
           mx={-8}
-          style={{ borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}
+          style={{
+            borderRadius: 4,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
         >
-          {THEME.name}
+          {name}
           <IconChevronDown size={14} color="var(--mantine-color-dimmed)" />
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Item leftSection={<IconPencil size={16} />}>Rename theme…</Menu.Item>
-        <Menu.Item leftSection={<IconCopy size={16} />}>Duplicate theme</Menu.Item>
-        <Menu.Item leftSection={<IconFileExport size={16} />} rightSection={<Kbd>⌘ E</Kbd>}>
+        <Menu.Item leftSection={<IconPencil size={16} />}>
+          Rename theme…
+        </Menu.Item>
+        <Menu.Item leftSection={<IconCopy size={16} />}>
+          Duplicate theme
+        </Menu.Item>
+        <Menu.Item
+          leftSection={<IconFileExport size={16} />}
+          rightSection={<Kbd>⌘ E</Kbd>}
+        >
           Export .galtheme
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item leftSection={<IconFolderOpen size={16} />} rightSection={<Kbd>⌘ O</Kbd>}>
+        <Menu.Item
+          leftSection={<IconFolderOpen size={16} />}
+          rightSection={<Kbd>⌘ O</Kbd>}
+        >
           Open theme…
         </Menu.Item>
-        <Menu.Item leftSection={<IconFileImport size={16} />}>Import .galtheme…</Menu.Item>
+        <Menu.Item leftSection={<IconFileImport size={16} />}>
+          Import .galtheme…
+        </Menu.Item>
         <Menu.Label>Recent</Menu.Label>
-        {RECENT.map((t) => (
+        {recent.map((t) => (
           <Menu.Item
-            key={t.name}
+            key={t.id}
+            component={Link}
+            to={`/editor/${t.id}/controls`}
             leftSection={
               <Box
                 w={14}
                 h={14}
-                bg={t.color}
-                style={{ borderRadius: 3, border: '1px solid var(--mantine-color-gray-3)' }}
+                bg={SWATCH}
+                style={{
+                  borderRadius: 3,
+                  border: '1px solid var(--mantine-color-gray-3)',
+                }}
               />
             }
-            rightSection={t === THEME ? <IconCheck size={16} color="var(--mantine-color-blue-6)" /> : null}
+            rightSection={
+              t.id === id ? (
+                <IconCheck size={16} color="var(--mantine-color-blue-6)" />
+              ) : null
+            }
           >
             {t.name}
           </Menu.Item>
@@ -101,14 +133,45 @@ function ThemeMenu() {
 }
 
 export default function App() {
-  const { id: themeId, section } = useParams();
+  const { id: themeId = '', section } = useParams();
+  // ponytail: a blank document per route until projects load from OPFS.
+  const store = useMemo(
+    () => createProjectStore(newDocument(themeId)),
+    [themeId],
+  );
+  const touchRecent = useAppStore((s) => s.touchRecent);
+  useEffect(
+    () => touchRecent({ id: themeId, name: themeId }),
+    [themeId, touchRecent],
+  );
+
   const current = SECTIONS.find((s) => s.id === section);
   if (!current) return <Navigate to={`/editor/${themeId}/controls`} replace />;
 
   return (
+    <ProjectStoreProvider value={store}>
+      <Shell themeId={themeId} current={current} />
+    </ProjectStoreProvider>
+  );
+}
+
+function Shell({
+  themeId,
+  current,
+}: {
+  themeId: string;
+  current: (typeof SECTIONS)[number];
+}) {
+  return (
     <AppShell header={{ height: 52 }} navbar={{ width: 56, breakpoint: 0 }}>
       <AppShell.Header>
-        <Group h="100%" px={16} gap={12} wrap="nowrap" style={{ whiteSpace: 'nowrap' }}>
+        <Group
+          h="100%"
+          px={16}
+          gap={12}
+          wrap="nowrap"
+          style={{ whiteSpace: 'nowrap' }}
+        >
           <Text fw={700} c="blue.6" fz={16}>
             Galapa Theme Studio
           </Text>
@@ -133,10 +196,10 @@ export default function App() {
             <Tooltip key={id} label={label} position="bottom">
               <ActionIcon
                 size="lg"
-                variant={id === section ? 'light' : 'subtle'}
-                color={id === section ? 'blue' : 'gray'}
+                variant={id === current.id ? 'light' : 'subtle'}
+                color={id === current.id ? 'blue' : 'gray'}
                 aria-label={label}
-                aria-current={id === section ? 'page' : undefined}
+                aria-current={id === current.id ? 'page' : undefined}
                 component={Link}
                 to={`/editor/${themeId}/${id}`}
               >
@@ -145,7 +208,12 @@ export default function App() {
             </Tooltip>
           ))}
           <Box flex={1} />
-          <ActionIcon size="lg" variant="subtle" color="gray" aria-label="Settings">
+          <ActionIcon
+            size="lg"
+            variant="subtle"
+            color="gray"
+            aria-label="Settings"
+          >
             <IconSettings size={20} />
           </ActionIcon>
         </Stack>
