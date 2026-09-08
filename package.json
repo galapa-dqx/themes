@@ -5,12 +5,15 @@
   "type": "module",
   "packageManager": "pnpm@12.3.4",
   "scripts": {
+    "predev": "pnpm pyodide:prepare",
     "dev": "vite",
+    "prebuild": "pnpm pyodide:prepare",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "schema:emit": "tsx --tsconfig tsconfig.node.json scripts/emit-schemas.ts",
+    "pyodide:prepare": "tsx --tsconfig tsconfig.node.json scripts/prepare-pyodide-assets.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview"
@@ -47,6 +50,7 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.69.0",
     "vite": "^8.2.2",
+    "vite-plugin-static-copy": "^4.1.1",
     "vitest": "5.0.0"
   }
 }
