@@ -1,11 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import Value from 'typebox/value';
 import type { TSchema } from 'typebox';
-import {
-  CONTROL_CATALOG,
-  STATE_PRIORITY,
-  type CatalogEntry,
-} from './catalog';
+import { CONTROL_CATALOG, STATE_PRIORITY, type CatalogEntry } from './catalog';
 import {
   CompiledMetadataSchema,
   CompiledThemeSchema,
