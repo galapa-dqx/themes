@@ -20,7 +20,7 @@ import {
   type ProjectMetadata,
   type ProjectTokens,
 } from '@/theme/schema';
-import { Diagnostics } from './diagnostics';
+import { CompileFailed, Diagnostics } from './diagnostics';
 
 export interface Project {
   readonly dir: string;
@@ -92,8 +92,14 @@ const schemaErrors = (schema: TSchema, value: unknown) => {
   return out;
 };
 
-export const loadProject = (dir: string) =>
+/**
+ * Loads `dir`. Strict (the default) fails on any error. `tolerant` opens
+ * whatever parses: schema and catalog problems become diagnostics on a
+ * still-usable project, and only unreadable or unparseable files fail.
+ */
+export const loadProject = (dir: string, options?: { tolerant?: boolean }) =>
   Effect.gen(function* () {
+    const tolerant = options?.tolerant ?? false;
     const fs = yield* FileSystem.FileSystem;
     const d = yield* Diagnostics;
 
@@ -127,7 +133,7 @@ export const loadProject = (dir: string) =>
         const errors = schemaErrors(schema, value);
         for (const [path, message] of errors)
           yield* d.error('schema', message, { file, path });
-        if (errors.size) return undefined;
+        if (errors.size && !tolerant) return undefined;
         const { $schema, ...rest } = value as { $schema?: string };
         if (!$schema)
           yield* d.info(
@@ -172,7 +178,13 @@ export const loadProject = (dir: string) =>
       }
     }
 
-    yield* d.checkpoint;
+    if (tolerant) {
+      const diagnostics = yield* d.all;
+      const fatal = (x: (typeof diagnostics)[number]) =>
+        x.severity === 'error' && (x.code === 'file' || x.code === 'json');
+      if (diagnostics.some(fatal))
+        return yield* new CompileFailed({ diagnostics });
+    } else yield* d.checkpoint;
     return {
       dir,
       metadata: metadata!,

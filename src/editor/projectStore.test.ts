@@ -3,6 +3,7 @@ import {
   createProjectStore,
   dirtyFiles,
   newDocument,
+  newProjectId,
   type Document,
 } from './projectStore';
 
@@ -56,7 +57,7 @@ describe('createProjectStore', () => {
 
 describe('newDocument', () => {
   it('mints a schema-shaped id', () => {
-    expect(newDocument('x').metadata.id).toMatch(
+    expect(newDocument(newProjectId(), 'x').metadata.id).toMatch(
       /^app\.galapa\.themes\.[a-z0-9]{20}$/,
     );
   });

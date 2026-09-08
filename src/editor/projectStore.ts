@@ -41,12 +41,18 @@ export interface ProjectState {
   readonly doc: Document;
   readonly past: readonly Transaction[];
   readonly future: readonly Transaction[];
-  /** The patches most recently applied to `doc`, by edit, undo, or redo. */
+  /** The patches most recently applied to `doc`, by edit, undo, redo, or a peer tab. */
   readonly applied: readonly Patch[];
+  /** True when `applied` came from another tab (not to be rebroadcast). */
+  readonly remote: boolean;
+  /** Unflushed edits exist or a write is in flight; set by persistence. */
+  readonly saving: boolean;
   /** Runs `recipe` as one undoable transaction; a no-op recipe records nothing. */
   edit(label: string, recipe: (doc: Draft<Document>) => void): void;
   undo(): void;
   redo(): void;
+  /** Applies another tab's committed patches outside this tab's history. */
+  applyRemote(patches: readonly Patch[]): void;
 }
 
 // ponytail: unbounded memory otherwise; raise or make it byte-based if needed.
@@ -58,6 +64,8 @@ export const createProjectStore = (doc: Document) =>
     past: [],
     future: [],
     applied: [],
+    remote: false,
+    saving: false,
     edit: (label, recipe) => {
       const { doc, past } = get();
       const [next, patches, inversePatches] = produceWithPatches(doc, recipe);
@@ -70,6 +78,7 @@ export const createProjectStore = (doc: Document) =>
         ],
         future: [],
         applied: patches,
+        remote: false,
       });
     },
     undo: () => {
@@ -81,6 +90,7 @@ export const createProjectStore = (doc: Document) =>
         past: past.slice(0, -1),
         future: [tx, ...future],
         applied: tx.inversePatches,
+        remote: false,
       });
     },
     redo: () => {
@@ -92,8 +102,17 @@ export const createProjectStore = (doc: Document) =>
         past: [...past, tx],
         future: future.slice(1),
         applied: tx.patches,
+        remote: false,
       });
     },
+    // ponytail: local undo entries may no longer apply cleanly over a peer's
+    // edit to the same path; history is per tab and best-effort across tabs.
+    applyRemote: (patches) =>
+      set((s) => ({
+        doc: applyPatches(s.doc, patches),
+        applied: patches,
+        remote: true,
+      })),
   }));
 export type ProjectStore = ReturnType<typeof createProjectStore>;
 
@@ -106,16 +125,18 @@ export const useProjectStore = <T>(selector: (s: ProjectState) => T) => {
 };
 
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
+/** The route and OPFS folder id; `metadata.id` is this under the `app.galapa.themes.` prefix. */
+export const newProjectId = () =>
+  Array.from(
+    crypto.getRandomValues(new Uint8Array(20)),
+    (b) => ID_ALPHABET[b % 36],
+  ).join('');
+
 /** A blank, tolerant document; required controls are a compile-time diagnostic. */
-export const newDocument = (name: string): Document => ({
+export const newDocument = (id: string, name: string): Document => ({
   metadata: {
     formatVersion: 1,
-    id:
-      'app.galapa.themes.' +
-      Array.from(
-        crypto.getRandomValues(new Uint8Array(20)),
-        (b) => ID_ALPHABET[b % 36],
-      ).join(''),
+    id: `app.galapa.themes.${id}`,
     name,
     author: { name: '' },
     updates: null,

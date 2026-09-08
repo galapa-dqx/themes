@@ -1,12 +1,15 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import {
   ActionIcon,
+  Alert,
   AppShell,
   Badge,
   Box,
   Button,
+  Center,
   Group,
+  Loader,
   Kbd,
   Menu,
   Stack,
@@ -30,12 +33,9 @@ import {
   IconSettings,
 } from '@tabler/icons-react';
 import { useAppStore } from '@/editor/appStore';
-import {
-  createProjectStore,
-  newDocument,
-  ProjectStoreProvider,
-  useProjectStore,
-} from '@/editor/projectStore';
+import { newProjectId } from '@/editor/projectStore';
+import { ProjectStoreProvider, useProjectStore } from '@/editor/projectStore';
+import { useProject } from '@/editor/useProject';
 
 const SECTIONS = [
   { id: 'project', label: 'Project', icon: IconFolder },
@@ -132,24 +132,47 @@ function ThemeMenu() {
   );
 }
 
+/** Resumes the most recent project, or starts a blank one. ponytail: becomes a picker. */
+export function EditorIndex() {
+  const latest = useAppStore((s) => s.recent[0]);
+  const to = latest
+    ? `/editor/${latest.id}/controls`
+    : `/editor/${newProjectId()}/project`;
+  return <Navigate to={to} replace />;
+}
+
 export default function App() {
   const { id: themeId = '', section } = useParams();
-  // ponytail: a blank document per route until projects load from OPFS.
-  const store = useMemo(
-    () => createProjectStore(newDocument(themeId)),
-    [themeId],
-  );
+  const project = useProject(themeId);
+  const name =
+    project.status === 'open'
+      ? project.store.getState().doc.metadata.name
+      : undefined;
   const touchRecent = useAppStore((s) => s.touchRecent);
-  useEffect(
-    () => touchRecent({ id: themeId, name: themeId }),
-    [themeId, touchRecent],
-  );
+  useEffect(() => {
+    if (name !== undefined) touchRecent({ id: themeId, name });
+  }, [themeId, name, touchRecent]);
 
   const current = SECTIONS.find((s) => s.id === section);
   if (!current) return <Navigate to={`/editor/${themeId}/controls`} replace />;
-
+  if (project.status === 'loading')
+    return (
+      <Center h="100vh">
+        <Loader />
+      </Center>
+    );
+  if (project.status === 'error')
+    return (
+      <Center h="100vh" p="xl">
+        <Alert color="red" title="Could not open this project" maw={520}>
+          <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+            {project.message}
+          </pre>
+        </Alert>
+      </Center>
+    );
   return (
-    <ProjectStoreProvider value={store}>
+    <ProjectStoreProvider value={project.store}>
       <Shell themeId={themeId} current={current} />
     </ProjectStoreProvider>
   );
@@ -162,6 +185,7 @@ function Shell({
   themeId: string;
   current: (typeof SECTIONS)[number];
 }) {
+  const saving = useProjectStore((s) => s.saving);
   return (
     <AppShell header={{ height: 52 }} navbar={{ width: 56, breakpoint: 0 }}>
       <AppShell.Header>
@@ -177,6 +201,7 @@ function Shell({
           </Text>
           <Slash />
           <ThemeMenu />
+          {saving && <Loader size={12} color="gray" aria-label="Saving" />}
           <Slash />
           <Text c="dimmed">{current.label}</Text>
           <Badge color="gray" variant="light" size="sm">
