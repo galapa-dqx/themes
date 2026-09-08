@@ -1,0 +1,15 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/tab.schema.json",
+  "shape": "path",
+  "states": {
+    "selected": {
+      "fill": "{colors.muted}"
+    }
+  },
+  "parts": {
+    "text": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    }
+  }
+}

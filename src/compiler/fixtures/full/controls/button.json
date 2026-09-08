@@ -1,0 +1,29 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/button.schema.json",
+  "shape": "asset",
+  "asset": "./assets/frame.svg",
+  "currentColor": "{colors.accent}",
+  "states": {
+    "hover": {
+      "asset": "./assets/frame-hover.svg"
+    },
+    "focused": {
+      "showRing": false,
+      "opacity": 0.9
+    },
+    "disabled": {
+      "opacity": 0.5
+    }
+  },
+  "parts": {
+    "text": {
+      "color": "{colors.text}",
+      "typography": "{typography.heading}",
+      "states": {
+        "hover": {
+          "color": "#ffffff"
+        }
+      }
+    }
+  }
+}

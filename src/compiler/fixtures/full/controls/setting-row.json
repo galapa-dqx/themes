@@ -1,0 +1,14 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/setting-row.schema.json",
+  "shape": "path",
+  "parts": {
+    "label": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    },
+    "value": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    }
+  }
+}

@@ -1,3 +1,4 @@
 .claude/
 pnpm-lock.yaml
 src/compiler/builtin/apache-2.0.ts
+src/compiler/fixtures/

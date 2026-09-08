@@ -1,0 +1,9 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/play-row.schema.json",
+  "parts": {
+    "ornament": {
+      "asset": "./assets/tinted.svg",
+      "currentColor": "{colors.accent}"
+    }
+  }
+}

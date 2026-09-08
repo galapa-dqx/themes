@@ -1,0 +1,16 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/carousel.schema.json",
+  "shape": "path",
+  "parts": {
+    "nav": {
+      "asset": "{assets.dot}",
+      "size": {
+        "width": 24,
+        "height": 24
+      }
+    },
+    "pip": {
+      "asset": "{assets.dot-alias}"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/panel.schema.json",
+  "shape": "path",
+  "fill": "{colors.muted}",
+  "radius": "pill",
+  "corner": "squircle"
+}

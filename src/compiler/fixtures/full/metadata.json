@@ -1,0 +1,14 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/metadata.schema.json",
+  "formatVersion": 1,
+  "id": "app.galapa.themes.fixture0000000000000",
+  "name": "Fixture",
+  "author": {
+    "name": "Galapa Team",
+    "url": "https://galapa.app/"
+  },
+  "description": "Exercises every compiler path.",
+  "updates": null,
+  "previewImage": "./assets/preview.jpg",
+  "chromeStyle": "light"
+}

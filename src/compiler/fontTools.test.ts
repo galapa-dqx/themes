@@ -6,11 +6,11 @@ import { describe, expect, it } from 'vitest';
 import { FontTools, type FaceRequest } from './fontTools';
 
 // Space Grotesk (OFL-1.1) variable font subset to "Galapa" for test size; wght 300-700.
-const source = new Uint8Array(
-  readFileSync(
-    resolve(import.meta.dirname, 'fixtures/space-grotesk-subset.ttf'),
-  ),
-);
+const fixture = (name: string) =>
+  new Uint8Array(readFileSync(resolve(import.meta.dirname, 'fixtures', name)));
+const source = fixture('full/assets/sg.ttf');
+/** Two static faces (400, 700) of the same family. */
+const collection = fixture('full/assets/sg.ttc');
 
 let py: Promise<PyodideInterface> | undefined;
 const load = () =>
@@ -88,6 +88,35 @@ describe('FontTools', () => {
       'ValueError: the source cannot provide weight 400 italic (0 matching faces)',
       'ValueError: the font has no opsz axis',
     ]);
+  }, 60_000);
+
+  it('extracts the one matching face from a collection', async () => {
+    const r = await compile(collection, {
+      weight: 700,
+      style: 'normal',
+      axes: {},
+    });
+    if (Either.isLeft(r)) throw r.left;
+    expect(await inspect(r.right.bytes)).toMatchObject({
+      variable: false,
+      weight: 700,
+    });
+    const missing = await compile(collection, {
+      weight: 500,
+      style: 'normal',
+      axes: {},
+    });
+    expect(Either.isLeft(missing) && missing.left.message).toBe(
+      'ValueError: the source cannot provide weight 500 normal (0 matching faces)',
+    );
+    const mixed = await compile(fixture('bad-resources/assets/mixed.ttc'), {
+      weight: 400,
+      style: 'normal',
+      axes: {},
+    });
+    expect(Either.isLeft(mixed) && mixed.left.message).toBe(
+      'ValueError: collections with more than one family are not supported',
+    );
   }, 60_000);
 
   it('accepts a static face only at its exact weight and style', async () => {

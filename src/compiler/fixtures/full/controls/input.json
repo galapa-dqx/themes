@@ -1,0 +1,28 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/input.schema.json",
+  "shape": "path",
+  "border": {
+    "color": "{colors.accent}",
+    "thickness": 2
+  },
+  "padding": [4, 8, 4, 8],
+  "parts": {
+    "label": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}",
+      "leftInset": 12
+    },
+    "value": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    },
+    "placeholder": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}",
+      "opacity": 0.6
+    },
+    "caret": {
+      "color": "{colors.accent}"
+    }
+  }
+}

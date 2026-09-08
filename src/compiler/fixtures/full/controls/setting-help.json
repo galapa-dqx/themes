@@ -1,0 +1,13 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/setting-help.schema.json",
+  "parts": {
+    "title": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    },
+    "body": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    }
+  }
+}

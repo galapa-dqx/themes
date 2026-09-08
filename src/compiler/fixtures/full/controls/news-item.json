@@ -1,0 +1,33 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/news-item.schema.json",
+  "shape": "path",
+  "size": {
+    "height": 48
+  },
+  "parts": {
+    "title": {
+      "color": "{colors.text}",
+      "typography": "{typography.display}"
+    },
+    "date": {
+      "color": "{colors.muted}",
+      "typography": {
+        "$extends": "{typography.display}",
+        "fontWeight": 400
+      }
+    },
+    "gem": {
+      "currentColor": "{colors.accent}",
+      "assets": {
+        "news": "./assets/tinted.svg"
+      },
+      "states": {
+        "hover": {
+          "assets": {
+            "events": "./assets/tinted.svg"
+          }
+        }
+      }
+    }
+  }
+}

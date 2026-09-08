@@ -3,7 +3,7 @@ import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { merge, resolveControls } from './controls';
 import { CompileFailed, Diagnostics } from './diagnostics';
-import { MINIMAL_PROJECT, writeProject } from './fixtures/minimal';
+import { fixtureProject } from './fixtures';
 import { loadProject } from './project';
 import { resolveTokens, toHex } from './tokens';
 
@@ -12,7 +12,9 @@ const layer = Layer.merge(NodeFileSystem.layer, Diagnostics.Default);
 const compile = (files: Record<string, unknown>) =>
   Effect.runPromiseExit(
     Effect.gen(function* () {
-      const project = yield* loadProject(yield* writeProject(files));
+      const project = yield* loadProject(
+        yield* fixtureProject(['full'], files),
+      );
       const tokens = yield* resolveTokens(project.tokens);
       return yield* resolveControls(project, tokens);
     }).pipe(Effect.scoped, Effect.provide(layer)),
@@ -34,22 +36,9 @@ const errors = async (files: Record<string, unknown>) => {
     .map((d) => `${d.file}${d.path}: ${d.message}`);
 };
 
-const tokens = {
-  colors: { border: '#c2a05a', text: '#f5fdfa' },
-  fonts: { heading: 'gfont:Space+Grotesk' },
-  typography: {
-    heading: {
-      font: '{fonts.heading}',
-      fontWeight: 700,
-      fontSize: 14,
-      lineHeight: 1.4,
-      textCase: 'uppercase',
-    },
-  },
-};
 const button = {
   shape: 'path',
-  border: { color: '{colors.border}', thickness: 2 },
+  border: { color: '{colors.bg}', thickness: 2 },
   padding: [6, 10, 6, 10],
   states: {
     focused: {
@@ -57,7 +46,7 @@ const button = {
       border: {
         color: {
           $type: 'mix',
-          inputs: ['{colors.border}', '#000000'],
+          inputs: ['{colors.bg}', '#000000'],
           amount: 0.5,
           space: 'srgb',
         },
@@ -93,24 +82,20 @@ describe('merge', () => {
 
 describe('resolveControls', () => {
   it('materializes defaults, expands shorthands, and merges complete states', async () => {
-    const theme = await ok({
-      ...MINIMAL_PROJECT,
-      'tokens.json': tokens,
-      'controls/button.json': button,
-    });
+    const theme = await ok({ 'controls/button.json': button });
     const b = theme.button;
     expect(b.shape).toBe('path');
     expect(b.radius).toBe(0);
     expect(b.corner).toBe('round');
     expect(b.fill).toBe('none');
     expect(b.border!.thickness).toEqual([2, 2, 2, 2]);
-    expect(toHex(b.border!.color as never)).toBe('#c2a05a');
+    expect(toHex(b.border!.color as never)).toBe('#123456');
     expect(b.padding).toEqual([6, 10, 6, 10]);
     expect(b.opacity).toBe(1);
 
     const focused = b.states!.focused;
     expect(focused.showRing).toBe(false);
-    expect(toHex(focused.border!.color as never)).toBe('#61502d');
+    expect(toHex(focused.border!.color as never)).toBe('#091a2b');
     expect(focused.border!.thickness).toEqual([2, 2, 2, 2]);
     expect(focused.padding).toEqual([6, 10, 6, 10]);
     const hover = b.states!.hover;
@@ -121,7 +106,7 @@ describe('resolveControls', () => {
     const text = b.parts!.text;
     expect(text.typography).toEqual({
       font: 'gfont:Space+Grotesk',
-      fontWeight: 700,
+      fontWeight: 400,
       fontStyle: 'normal',
       fontAxes: {},
       fontSize: 16,
@@ -136,26 +121,24 @@ describe('resolveControls', () => {
   });
 
   it('applies catalog defaults for rings, insets, window, and images', async () => {
-    const theme = await ok(MINIMAL_PROJECT);
+    const theme = await ok({});
     expect(theme['focus-ring']).toEqual({
       color: expect.anything(),
-      width: 2,
+      width: 3,
       offset: -2,
     });
     expect(theme.window.borderColor).toBe('none');
-    expect(theme.input.parts!.label.leftInset).toBe(10);
+    expect(theme.input.parts!.label.leftInset).toBe(12);
     expect(theme.input.parts!.value).not.toHaveProperty('leftInset');
     expect(theme.input.parts!.value.typography).not.toHaveProperty('textCase');
     expect(theme.carousel.parts!.nav.asset).toBe('./assets/dot.svg');
     expect(theme['tab-bar'].parts!.hint.assets).toEqual({});
     expect(theme['tab-bar']).not.toHaveProperty('opacity');
-    expect(theme).not.toHaveProperty('play-row');
+    expect(theme['play-row'].parts!.ornament.asset).toBe('./assets/tinted.svg');
   });
 
   it('overlays variant asset maps key by key', async () => {
     const theme = await ok({
-      ...MINIMAL_PROJECT,
-      'tokens.json': { assets: { a: './assets/dot.svg' } },
       'controls/news-item.json': {
         shape: 'path',
         parts: {
@@ -163,8 +146,8 @@ describe('resolveControls', () => {
           date: plainText,
           gem: {
             currentColor: '#000000',
-            assets: { events: '{assets.a}', news: './assets/dot.svg' },
-            states: { hover: { assets: { news: '{assets.a}' } } },
+            assets: { events: '{assets.dot}', news: './assets/dot.svg' },
+            states: { hover: { assets: { news: '{assets.tinted}' } } },
           },
         },
       },
@@ -181,8 +164,6 @@ describe('resolveControls', () => {
     const text = (typography: unknown) => ({ color: '#000000', typography });
     expect(
       await errors({
-        ...MINIMAL_PROJECT,
-        'tokens.json': tokens,
         'controls/button.json': {
           shape: 'path',
           fill: '{colors.nope}',

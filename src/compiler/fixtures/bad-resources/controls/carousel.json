@@ -1,0 +1,11 @@
+{
+  "shape": "path",
+  "parts": {
+    "nav": {
+      "asset": "./assets/tinted.svg"
+    },
+    "pip": {
+      "asset": "./assets/missing.svg"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/progress.schema.json",
+  "parts": {
+    "track": {
+      "shape": "path"
+    },
+    "indicator": {
+      "shape": "path",
+      "fill": "{colors.accent}"
+    }
+  }
+}

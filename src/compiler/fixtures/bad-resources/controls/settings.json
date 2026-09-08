@@ -1,0 +1,12 @@
+{
+  "parts": {
+    "heading": {
+      "color": "#000000",
+      "typography": {
+        "font": "gfont:Nope",
+        "fontWeight": 400,
+        "fontSize": 12
+      }
+    }
+  }
+}

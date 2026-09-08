@@ -1,0 +1,27 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/titlebar.schema.json",
+  "shape": "path",
+  "parts": {
+    "wordmark": {
+      "color": "{colors.text}",
+      "typography": "{typography.base}"
+    },
+    "caption": {
+      "shape": "path"
+    },
+    "caption-icon": {
+      "color": "{colors.text}"
+    },
+    "close": {
+      "shape": "path"
+    },
+    "close-icon": {
+      "color": "{colors.text}",
+      "states": {
+        "hover": {
+          "color": "#ff0000"
+        }
+      }
+    }
+  }
+}

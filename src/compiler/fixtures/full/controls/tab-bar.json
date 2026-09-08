@@ -1,0 +1,8 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/tab-bar.schema.json",
+  "parts": {
+    "hint": {
+      "currentColor": "{colors.text}"
+    }
+  }
+}

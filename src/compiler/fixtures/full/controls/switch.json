@@ -1,0 +1,18 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/switch.schema.json",
+  "parts": {
+    "track": {
+      "shape": "path",
+      "states": {
+        "checked": {
+          "fill": "{colors.accent}"
+        }
+      }
+    },
+    "thumb": {
+      "shape": "path",
+      "fill": "#ffffff",
+      "radius": "pill"
+    }
+  }
+}

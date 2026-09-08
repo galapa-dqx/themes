@@ -1,0 +1,20 @@
+{
+  "parts": {
+    "title": {
+      "color": "#000000",
+      "typography": {
+        "font": "./assets/mixed.ttc",
+        "fontWeight": 400,
+        "fontSize": 12
+      }
+    },
+    "body": {
+      "color": "#000000",
+      "typography": {
+        "font": "./assets/sg.ttc",
+        "fontWeight": 500,
+        "fontSize": 12
+      }
+    }
+  }
+}
