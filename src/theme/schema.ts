@@ -57,7 +57,7 @@ const HttpsUrl = Type.String({ pattern: '^https://' });
 const KEBAB = '[a-z0-9]+(?:-[a-z0-9]+)*';
 const ref = (category: string) =>
   Type.String({ pattern: `^\\{${category}\\.${KEBAB}\\}$` });
-const tokenRecord = (value: TSchema) =>
+const tokenRecord = <V extends TSchema>(value: V) =>
   Type.Record(Type.String({ pattern: `^${KEBAB}$` }), value, {
     additionalProperties: false,
   });
@@ -97,7 +97,7 @@ export const ProjectFont = Type.Union([
 ]);
 export const CompiledFont = compiledPath('assets/fonts', 'ttf|otf');
 
-const tagRecord = (value: TSchema) =>
+const tagRecord = <V extends TSchema>(value: V) =>
   Type.Record(Type.String({ pattern: '^[\\x20-\\x7e]{4}$' }), value, {
     additionalProperties: false,
   });
