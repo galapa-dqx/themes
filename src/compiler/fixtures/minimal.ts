@@ -76,6 +76,10 @@ export const writeProject = (files: Record<string, unknown>) =>
       yield* fs.makeDirectory(`${dir}/${name}`.replace(/\/[^/]+$/, ''), {
         recursive: true,
       });
+      if (value instanceof Uint8Array) {
+        yield* fs.writeFile(`${dir}/${name}`, value);
+        continue;
+      }
       const body = typeof value === 'string' ? value : JSON.stringify(value);
       yield* fs.writeFileString(`${dir}/${name}`, body);
     }
