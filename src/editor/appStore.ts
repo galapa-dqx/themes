@@ -1,7 +1,7 @@
 /**
- * Session-wide state that outlives any one project: settings and the recent
- * project list. Persisted to localStorage. Per-project document state lives
- * in `projectStore`.
+ * Session-wide state that outlives any one project: the recent project list.
+ * Persisted to localStorage. (Color scheme is Mantine's own persisted
+ * setting.) Per-project document state lives in `projectStore`.
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -13,9 +13,7 @@ export interface RecentProject {
 }
 
 export interface AppState {
-  readonly settings: { readonly colorScheme: 'light' | 'dark' };
   readonly recent: readonly RecentProject[];
-  setSettings(patch: Partial<AppState['settings']>): void;
   touchRecent(project: Pick<RecentProject, 'id' | 'name'>): void;
   forgetRecent(id: string): void;
 }
@@ -25,10 +23,7 @@ const RECENT_LIMIT = 10;
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      settings: { colorScheme: 'light' },
       recent: [],
-      setSettings: (patch) =>
-        set((s) => ({ settings: { ...s.settings, ...patch } })),
       touchRecent: ({ id, name }) =>
         set((s) => ({
           recent: [

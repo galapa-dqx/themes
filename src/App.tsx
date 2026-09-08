@@ -37,6 +37,7 @@ import { useAppStore } from '@/editor/appStore';
 import { duplicateProject } from '@/editor/persistence';
 import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
 import { ProjectPage } from '@/editor/ProjectPage';
+import { SettingsPage } from '@/editor/SettingsPage';
 import { runtime } from '@/editor/runtime';
 import { ProjectStoreProvider, useProjectStore } from '@/editor/projectStore';
 import { useProject, type ProjectState } from '@/editor/useProject';
@@ -219,12 +220,39 @@ export default function App() {
 
   const current = SECTIONS.find((s) => s.id === section);
   if (!current) return <Navigate to={`/editor/${themeId}/controls`} replace />;
+  const open = project.status === 'open';
   return (
-    <ProjectStoreProvider
-      value={project.status === 'open' ? project.store : undefined}
-    >
-      <Shell themeId={themeId} current={current} project={project} />
+    <ProjectStoreProvider value={open ? project.store : undefined}>
+      <Shell themeId={themeId} current={current} project={project}>
+        {project.status === 'loading' && (
+          <Center h="60vh">
+            <Loader />
+          </Center>
+        )}
+        {project.status === 'error' && (
+          <Center h="60vh" p="xl">
+            <Alert color="red" title="Could not open this project" maw={520}>
+              <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+                {project.message}
+              </pre>
+            </Alert>
+          </Center>
+        )}
+        {open && <TouchRecent themeId={themeId} />}
+        {open && current.id === 'project' && <ProjectPage />}
+      </Shell>
     </ProjectStoreProvider>
+  );
+}
+
+const SETTINGS = { id: 'settings', label: 'Settings' } as const;
+/** /editor/settings: the shell without a project; rail links target the latest project. */
+export function SettingsRoute() {
+  const latest = useAppStore((s) => s.recent[0]?.id);
+  return (
+    <Shell themeId={latest} current={SETTINGS}>
+      <SettingsPage />
+    </Shell>
   );
 }
 
@@ -253,12 +281,15 @@ function Shell({
   themeId,
   current,
   project,
+  children,
 }: {
-  themeId: string;
-  current: (typeof SECTIONS)[number];
-  project: ProjectState;
+  /** Undefined only when no project has ever been opened. */
+  themeId: string | undefined;
+  current: { id: string; label: string };
+  project?: ProjectState;
+  children: React.ReactNode;
 }) {
-  const open = project.status === 'open';
+  const open = project?.status === 'open';
   return (
     <AppShell header={{ height: 52 }} navbar={{ width: 56, breakpoint: 0 }}>
       <AppShell.Header>
@@ -273,12 +304,12 @@ function Shell({
             Galapa Theme Studio
           </Text>
           <Slash />
-          {open ? (
+          {open && themeId ? (
             <ThemeMenu themeId={themeId} />
           ) : (
-            <RecentName themeId={themeId} />
+            project && themeId && <RecentName themeId={themeId} />
           )}
-          <Slash />
+          {project && <Slash />}
           <Text c="dimmed">{current.label}</Text>
           {open && <SaveBadge />}
           <Box flex={1} />
@@ -300,41 +331,31 @@ function Shell({
                 aria-label={label}
                 aria-current={id === current.id ? 'page' : undefined}
                 component={Link}
-                to={`/editor/${themeId}/${id}`}
+                to={themeId ? `/editor/${themeId}/${id}` : '/editor'}
               >
                 <Icon size={20} />
               </ActionIcon>
             </Tooltip>
           ))}
           <Box flex={1} />
-          <ActionIcon
-            size="lg"
-            variant="subtle"
-            color="gray"
-            aria-label="Settings"
-          >
-            <IconSettings size={20} />
-          </ActionIcon>
+          <Tooltip label="Settings" position="bottom">
+            <ActionIcon
+              size="lg"
+              variant={current.id === 'settings' ? 'light' : 'subtle'}
+              color={current.id === 'settings' ? 'blue' : 'gray'}
+              aria-label="Settings"
+              aria-current={current.id === 'settings' ? 'page' : undefined}
+              component={Link}
+              to="/editor/settings"
+            >
+              <IconSettings size={20} />
+            </ActionIcon>
+          </Tooltip>
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main bg="gray.0">
-        {project.status === 'loading' && (
-          <Center h="60vh">
-            <Loader />
-          </Center>
-        )}
-        {project.status === 'error' && (
-          <Center h="60vh" p="xl">
-            <Alert color="red" title="Could not open this project" maw={520}>
-              <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
-                {project.message}
-              </pre>
-            </Alert>
-          </Center>
-        )}
-        {open && <TouchRecent themeId={themeId} />}
-        {open && current.id === 'project' && <ProjectPage />}
+      <AppShell.Main bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))">
+        {children}
       </AppShell.Main>
     </AppShell>
   );

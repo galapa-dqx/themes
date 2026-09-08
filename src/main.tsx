@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
-import App, { EditorIndex } from './App';
+import App, { EditorIndex, SettingsRoute } from './App';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -12,6 +12,7 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<Navigate to="/editor" replace />} />
           <Route path="/editor" element={<EditorIndex />} />
+          <Route path="/editor/settings" element={<SettingsRoute />} />
           <Route
             path="/editor/:id"
             element={<Navigate to="controls" replace />}
