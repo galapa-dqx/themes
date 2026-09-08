@@ -8,7 +8,7 @@
  * starting document from a peer rather than possibly-stale disk.
  */
 import { FileSystem } from '@effect/platform';
-import { Duration, Effect, Queue, Stream } from 'effect';
+import { Clock, Duration, Effect, Option, Queue, Stream } from 'effect';
 import { Diagnostics, type Diagnostic } from '@/compiler/diagnostics';
 import { loadProject } from '@/compiler/project';
 import type { RootControlId } from '@/theme/catalog';
@@ -17,6 +17,7 @@ import {
   createProjectStore,
   dirtyFiles,
   newDocument,
+  newProjectId,
   type Document,
   type ProjectStore,
 } from './projectStore';
@@ -143,6 +144,7 @@ const writer = (
     const flush = gate.withPermits(1)(
       Effect.gen(function* () {
         const files = [...dirty];
+        if (files.length === 0) return;
         dirty.clear();
         const doc = store.getState().doc;
         yield* Effect.forEach(
@@ -162,6 +164,11 @@ const writer = (
           // ponytail: re-marked and retried on the next edit or close; no backoff.
           Effect.tapError(() =>
             Effect.sync(() => files.forEach((f) => dirty.add(f))),
+          ),
+          Effect.tap(() =>
+            Effect.map(Clock.currentTimeMillis, (savedAt) =>
+              store.setState({ savedAt }),
+            ),
           ),
           Effect.ensuring(
             Effect.sync(() => store.setState({ saving: dirty.size > 0 })),
@@ -229,8 +236,41 @@ export const openProject = (id: string, options?: Partial<OpenOptions>) =>
     }
 
     const store = createProjectStore(doc);
+    if (!fresh) {
+      const stat = yield* Effect.option(fs.stat(`${dir}/metadata.json`));
+      const mtime = Option.flatMap(stat, (s) => s.mtime);
+      store.setState({ savedAt: Option.getOrUndefined(mtime)?.getTime() });
+    }
     yield* syncTabs(id, store);
     const mark = yield* writer(store, dir, opts.window);
     if (fresh) mark(['metadata.json', 'tokens.json']);
     return { store, diagnostics, fresh } satisfies OpenedProject;
+  });
+
+/** Copies `from`'s folder (assets included) and writes `doc` over it under a new id and name. */
+export const duplicateProject = (from: string, doc: Document) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const id = newProjectId();
+    const dir = projectDir(id);
+    yield* fs.copy(projectDir(from), dir);
+    const copy: Document = {
+      ...doc,
+      metadata: {
+        ...doc.metadata,
+        id: `app.galapa.themes.${id}`,
+        name: `${doc.metadata.name} copy`,
+      },
+    };
+    const files = [
+      'metadata.json',
+      'tokens.json',
+      ...Object.keys(copy.controls).map((c) => `controls/${c}.json`),
+    ];
+    yield* Effect.forEach(
+      files,
+      (f) => fs.writeFileString(`${dir}/${f}`, serialize(copy, f)!),
+      { discard: true },
+    );
+    return id;
   });

@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { Link, Navigate, useParams } from 'react-router';
+import { useEffect, useReducer, useState } from 'react';
+import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import {
   ActionIcon,
   Alert,
@@ -10,6 +10,7 @@ import {
   Center,
   Group,
   Loader,
+  TextInput,
   Kbd,
   Menu,
   Stack,
@@ -33,7 +34,10 @@ import {
   IconSettings,
 } from '@tabler/icons-react';
 import { useAppStore } from '@/editor/appStore';
-import { newProjectId } from '@/editor/projectStore';
+import { duplicateProject } from '@/editor/persistence';
+import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
+import { ProjectPage } from '@/editor/ProjectPage';
+import { runtime } from '@/editor/runtime';
 import { ProjectStoreProvider, useProjectStore } from '@/editor/projectStore';
 import { useProject } from '@/editor/useProject';
 
@@ -53,82 +57,150 @@ const Slash = () => (
   </Text>
 );
 
-function ThemeMenu() {
-  const name = useProjectStore((s) => s.doc.metadata.name);
-  const id = useProjectStore((s) => s.doc.metadata.id);
-  const recent = useAppStore((s) => s.recent);
+const ago = (t: number) => {
+  const s = (Date.now() - t) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return new Date(t).toLocaleDateString();
+};
+
+function SaveBadge() {
+  const saving = useProjectStore((s) => s.saving);
+  const savedAt = useProjectStore((s) => s.savedAt);
+  const [, tick] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    const t = setInterval(tick, 30_000);
+    return () => clearInterval(t);
+  }, []);
   return (
-    <Menu width={260} position="bottom-start" shadow="md" offset={6}>
-      <Menu.Target>
-        <UnstyledButton
-          fw={600}
-          px={8}
-          py={4}
-          mx={-8}
-          style={{
-            borderRadius: 4,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 4,
-          }}
-        >
-          {name}
-          <IconChevronDown size={14} color="var(--mantine-color-dimmed)" />
-        </UnstyledButton>
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Item leftSection={<IconPencil size={16} />}>
-          Rename theme…
-        </Menu.Item>
-        <Menu.Item leftSection={<IconCopy size={16} />}>
-          Duplicate theme
-        </Menu.Item>
-        <Menu.Item
-          leftSection={<IconFileExport size={16} />}
-          rightSection={<Kbd>⌘ E</Kbd>}
-        >
-          Export .galtheme
-        </Menu.Item>
-        <Menu.Divider />
-        <Menu.Item
-          leftSection={<IconFolderOpen size={16} />}
-          rightSection={<Kbd>⌘ O</Kbd>}
-        >
-          Open theme…
-        </Menu.Item>
-        <Menu.Item leftSection={<IconFileImport size={16} />}>
-          Import .galtheme…
-        </Menu.Item>
-        <Menu.Label>Recent</Menu.Label>
-        {recent.map((t) => (
-          <Menu.Item
-            key={t.id}
-            component={Link}
-            to={`/editor/${t.id}/controls`}
-            leftSection={
-              <Box
-                w={14}
-                h={14}
-                bg={SWATCH}
-                style={{
-                  borderRadius: 3,
-                  border: '1px solid var(--mantine-color-gray-3)',
-                }}
-              />
-            }
-            rightSection={
-              t.id === id ? (
-                <IconCheck size={16} color="var(--mantine-color-blue-6)" />
-              ) : null
-            }
+    <Badge
+      color="gray"
+      variant="light"
+      size="sm"
+      leftSection={saving ? <Loader size={8} color="gray" /> : undefined}
+    >
+      {saving ? 'Saving…' : savedAt ? `Saved ${ago(savedAt)}` : 'Unsaved'}
+    </Badge>
+  );
+}
+
+function ThemeMenu({ themeId }: { themeId: string }) {
+  const name = useProjectStore((s) => s.doc.metadata.name);
+  const edit = useProjectStore((s) => s.edit);
+  const store = useProjectStoreApi();
+  const recent = useAppStore((s) => s.recent);
+  const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
+  const commit = (value: string) => {
+    const next = value.trim();
+    if (next && next !== name)
+      edit('Rename theme', (d) => void (d.metadata.name = next));
+    setEditing(false);
+  };
+  const duplicate = () =>
+    runtime
+      .runPromise(duplicateProject(themeId, store.getState().doc))
+      .then((id) => navigate(`/editor/${id}/project`));
+
+  if (editing)
+    return (
+      <TextInput
+        size="xs"
+        w={220}
+        defaultValue={name}
+        autoFocus
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={(e) => commit(e.currentTarget.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit(e.currentTarget.value);
+          if (e.key === 'Escape') setEditing(false);
+        }}
+      />
+    );
+  return (
+    <>
+      <Menu width={260} position="bottom-start" shadow="md" offset={6}>
+        <Menu.Target>
+          <UnstyledButton
+            fw={600}
+            px={8}
+            py={4}
+            mx={-8}
+            style={{
+              borderRadius: 4,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
           >
-            {t.name}
+            {name}
+            <IconChevronDown size={14} color="var(--mantine-color-dimmed)" />
+          </UnstyledButton>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            leftSection={<IconPencil size={16} />}
+            onClick={() => setEditing(true)}
+          >
+            Rename theme…
           </Menu.Item>
-        ))}
-        <Menu.Divider />
-        <Menu.Item leftSection={<IconPlus size={16} />}>New theme</Menu.Item>
-      </Menu.Dropdown>
-    </Menu>
+          <Menu.Item leftSection={<IconCopy size={16} />} onClick={duplicate}>
+            Duplicate theme
+          </Menu.Item>
+          <Menu.Item
+            leftSection={<IconFileExport size={16} />}
+            rightSection={<Kbd>⌘ E</Kbd>}
+          >
+            Export .galtheme
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item
+            leftSection={<IconFolderOpen size={16} />}
+            rightSection={<Kbd>⌘ O</Kbd>}
+          >
+            Open theme…
+          </Menu.Item>
+          <Menu.Item leftSection={<IconFileImport size={16} />}>
+            Import .galtheme…
+          </Menu.Item>
+          <Menu.Label>Recent</Menu.Label>
+          {recent.map((t) => (
+            <Menu.Item
+              key={t.id}
+              component={Link}
+              to={`/editor/${t.id}/controls`}
+              leftSection={
+                <Box
+                  w={14}
+                  h={14}
+                  bg={SWATCH}
+                  style={{
+                    borderRadius: 3,
+                    border: '1px solid var(--mantine-color-gray-3)',
+                  }}
+                />
+              }
+              rightSection={
+                t.id === themeId ? (
+                  <IconCheck size={16} color="var(--mantine-color-blue-6)" />
+                ) : null
+              }
+            >
+              {t.name}
+            </Menu.Item>
+          ))}
+          <Menu.Divider />
+          <Menu.Item
+            leftSection={<IconPlus size={16} />}
+            component={Link}
+            to={`/editor/${newProjectId()}/project`}
+          >
+            New theme
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </>
   );
 }
 
@@ -144,14 +216,6 @@ export function EditorIndex() {
 export default function App() {
   const { id: themeId = '', section } = useParams();
   const project = useProject(themeId);
-  const name =
-    project.status === 'open'
-      ? project.store.getState().doc.metadata.name
-      : undefined;
-  const touchRecent = useAppStore((s) => s.touchRecent);
-  useEffect(() => {
-    if (name !== undefined) touchRecent({ id: themeId, name });
-  }, [themeId, name, touchRecent]);
 
   const current = SECTIONS.find((s) => s.id === section);
   if (!current) return <Navigate to={`/editor/${themeId}/controls`} replace />;
@@ -185,7 +249,12 @@ function Shell({
   themeId: string;
   current: (typeof SECTIONS)[number];
 }) {
-  const saving = useProjectStore((s) => s.saving);
+  const name = useProjectStore((s) => s.doc.metadata.name);
+  const touchRecent = useAppStore((s) => s.touchRecent);
+  useEffect(
+    () => touchRecent({ id: themeId, name }),
+    [themeId, name, touchRecent],
+  );
   return (
     <AppShell header={{ height: 52 }} navbar={{ width: 56, breakpoint: 0 }}>
       <AppShell.Header>
@@ -200,13 +269,10 @@ function Shell({
             Galapa Theme Studio
           </Text>
           <Slash />
-          <ThemeMenu />
-          {saving && <Loader size={12} color="gray" aria-label="Saving" />}
+          <ThemeMenu themeId={themeId} />
           <Slash />
           <Text c="dimmed">{current.label}</Text>
-          <Badge color="gray" variant="light" size="sm">
-            saved 2m ago
-          </Badge>
+          <SaveBadge />
           <Box flex={1} />
           <Button variant="default" size="xs">
             Import sprites
@@ -244,7 +310,9 @@ function Shell({
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main bg="gray.0" />
+      <AppShell.Main bg="gray.0">
+        {current.id === 'project' && <ProjectPage />}
+      </AppShell.Main>
     </AppShell>
   );
 }

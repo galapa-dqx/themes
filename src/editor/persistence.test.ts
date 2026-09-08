@@ -3,13 +3,15 @@ import { Effect, Exit, Scope } from 'effect';
 import { describe, expect, it } from 'vitest';
 import { MemoryDirectory } from '@/compiler/fixtures/memoryHandles';
 import { layer } from '@/compiler/opfs';
-import { openProject, projectDir } from './persistence';
+import { duplicateProject, openProject, projectDir } from './persistence';
 
 const OPTS = { window: '20 millis', snapshotWait: '30 millis' } as const;
 const tick = (ms = 60) => new Promise((r) => setTimeout(r, ms));
 
 const setup = (id: string) => {
   const fs = layer(new MemoryDirectory());
+  const duplicate = (doc: Parameters<typeof duplicateProject>[1]) =>
+    Effect.runPromise(duplicateProject(id, doc).pipe(Effect.provide(fs)));
   const read = (file: string) =>
     Effect.runPromise(
       Effect.gen(function* () {
@@ -27,7 +29,7 @@ const setup = (id: string) => {
       close: () => Effect.runPromise(Scope.close(scope, Exit.void)),
     }));
   };
-  return { read, open };
+  return { read, open, duplicate, fs };
 };
 
 describe('openProject', () => {
@@ -91,5 +93,32 @@ describe('openProject', () => {
     expect(a.store.getState().past).toHaveLength(1); // peer edits are not in A's history
     await a.close();
     await b.close();
+  });
+});
+
+describe('duplicateProject', () => {
+  it('copies the folder under a new id with a new metadata id and name', async () => {
+    const id = 'dup00000000000000000';
+    const { open, duplicate, fs } = setup(id);
+    const a = await open();
+    a.store.getState().edit('setup', (d) => {
+      d.metadata.name = 'Original';
+      d.controls.panel = { shape: 'path', fill: '#000000' };
+    });
+    const copyId = await duplicate(a.store.getState().doc); // unflushed edits included
+    await a.close();
+    expect(copyId).not.toBe(id);
+    const copy = await Effect.runPromise(
+      openProject(copyId, OPTS).pipe(Effect.scoped, Effect.provide(fs)),
+    );
+    expect(copy.fresh).toBe(false);
+    expect(copy.store.getState().doc).toEqual({
+      ...a.store.getState().doc,
+      metadata: {
+        ...a.store.getState().doc.metadata,
+        id: `app.galapa.themes.${copyId}`,
+        name: 'Original copy',
+      },
+    });
   });
 });

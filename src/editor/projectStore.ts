@@ -47,7 +47,12 @@ export interface ProjectState {
   readonly remote: boolean;
   /** Unflushed edits exist or a write is in flight; set by persistence. */
   readonly saving: boolean;
-  /** Runs `recipe` as one undoable transaction; a no-op recipe records nothing. */
+  /** Epoch ms of the last successful write (or the file's mtime on open). */
+  readonly savedAt: number | undefined;
+  /**
+   * Runs `recipe` as one undoable transaction; a no-op recipe records nothing.
+   * Consecutive edits with the same label coalesce into one history entry.
+   */
   edit(label: string, recipe: (doc: Draft<Document>) => void): void;
   undo(): void;
   redo(): void;
@@ -66,15 +71,27 @@ export const createProjectStore = (doc: Document) =>
     applied: [],
     remote: false,
     saving: false,
+    savedAt: undefined,
     edit: (label, recipe) => {
       const { doc, past } = get();
       const [next, patches, inversePatches] = produceWithPatches(doc, recipe);
       if (patches.length === 0) return;
+      const last = past.at(-1);
+      const tx =
+        last?.label === label
+          ? {
+              label,
+              patches: [...last.patches, ...patches],
+              inversePatches: [...inversePatches, ...last.inversePatches],
+            }
+          : { label, patches, inversePatches };
       set({
         doc: next,
         past: [
-          ...past.slice(-(HISTORY_LIMIT - 1)),
-          { label, patches, inversePatches },
+          ...(last?.label === label ? past.slice(0, -1) : past).slice(
+            -(HISTORY_LIMIT - 1),
+          ),
+          tx,
         ],
         future: [],
         applied: patches,
@@ -118,11 +135,13 @@ export type ProjectStore = ReturnType<typeof createProjectStore>;
 
 const ProjectStoreContext = createContext<ProjectStore | undefined>(undefined);
 export const ProjectStoreProvider = ProjectStoreContext;
-export const useProjectStore = <T>(selector: (s: ProjectState) => T) => {
+export const useProjectStoreApi = () => {
   const store = useContext(ProjectStoreContext);
   if (!store) throw new Error('useProjectStore outside a ProjectStoreProvider');
-  return useStore(store, selector);
+  return store;
 };
+export const useProjectStore = <T>(selector: (s: ProjectState) => T) =>
+  useStore(useProjectStoreApi(), selector);
 
 const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 /** The route and OPFS folder id; `metadata.id` is this under the `app.galapa.themes.` prefix. */

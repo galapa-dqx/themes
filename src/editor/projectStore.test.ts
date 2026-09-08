@@ -55,6 +55,29 @@ describe('createProjectStore', () => {
   });
 });
 
+describe('edit coalescing', () => {
+  it('merges consecutive same-label edits into one undo step', () => {
+    const base = newDocument(newProjectId(), 'Fixture');
+    const s = createProjectStore(base).getState;
+    s().edit('Rename theme', (d) => void (d.metadata.name = 'A'));
+    s().edit('Rename theme', (d) => void (d.metadata.name = 'AB'));
+    s().edit('Edit author', (d) => void (d.metadata.author.name = 'me'));
+    s().edit('Rename theme', (d) => void (d.metadata.name = 'ABC'));
+    expect(s().past.map((t) => t.label)).toEqual([
+      'Rename theme',
+      'Edit author',
+      'Rename theme',
+    ]);
+    expect(s().applied).toHaveLength(1); // dirty tracking sees only the latest patches
+    s().undo();
+    s().undo();
+    s().undo();
+    expect(s().doc).toEqual(base);
+    s().redo();
+    expect(s().doc.metadata.name).toBe('AB');
+  });
+});
+
 describe('newDocument', () => {
   it('mints a schema-shaped id', () => {
     expect(newDocument(newProjectId(), 'x').metadata.id).toMatch(
