@@ -1,7 +1,7 @@
 /**
  * The compiler pipeline: load, resolve tokens, resolve controls, lower, then
- * emit the package into a fresh temporary directory whose path is returned.
- * Zipping and prefixing are a separate step.
+ * emit the package into a directory whose path is returned. Zipping and
+ * prefixing are a separate step.
  */
 import { FileSystem } from '@effect/platform';
 import { Effect } from 'effect';
@@ -15,14 +15,13 @@ import {
 } from '@/theme/schema';
 import { resolveControls } from './controls';
 import { Diagnostics } from './diagnostics';
+import { Images } from './images';
 import { lowerTheme } from './lower';
 import { Package } from './package';
 import { loadProject, type Project } from './project';
 import { resolveTokens } from './tokens';
 
-const PREVIEW_LIMIT = 8 * 1024 * 1024;
-const PNG = [0x89, 0x50, 0x4e, 0x47];
-const JPEG = [0xff, 0xd8, 0xff];
+const PREVIEW = { bytes: 8 * 1024 * 1024, side: 4096, area: 16_000_000 };
 
 /** Compiled metadata: the project's minus authoring fields, with the preview packaged. */
 const compileMetadata = (project: Project, pkg: Package) =>
@@ -33,18 +32,29 @@ const compileMetadata = (project: Project, pkg: Package) =>
     const out: CompiledMetadata = rest;
     if (!previewImage) return out;
     const at = { file: 'metadata.json', path: '/previewImage' };
-    // ponytail: bytes are copied as-is. Stripping EXIF/XMP needs an image
-    // codec; add a canvas re-encode in the browser layer when the UI lands.
-    const bytes = yield* fs
+    const fail = (message: string) => d.error('preview', message, at);
+    const source = yield* fs
       .readFile(`${project.dir}/${previewImage.slice(2)}`)
       .pipe(Effect.orElseSucceed(() => undefined));
-    const magic = (m: number[]) => bytes && m.every((b, i) => bytes[i] === b);
-    const ext = magic(PNG) ? 'png' : magic(JPEG) ? 'jpg' : undefined;
-    if (!bytes) yield* d.error('preview', `${previewImage} does not exist`, at);
-    else if (!ext) yield* d.error('preview', 'not a PNG or JPEG', at);
-    else if (bytes.length > PREVIEW_LIMIT) {
-      yield* d.error('preview', 'preview exceeds 8 MiB', at);
-    } else out.previewImage = yield* pkg.add('assets', ext, bytes);
+    if (!source) return (yield* fail(`${previewImage} does not exist`), out);
+    const image = yield* (yield* Images).strip(source).pipe(Effect.either);
+    if (image._tag === 'Left') return (yield* fail(image.left.message), out);
+    const { bytes, format, width, height } = image.right;
+    if (width > PREVIEW.side || height > PREVIEW.side) {
+      yield* fail(
+        `preview is ${width}x${height}; the limit is ${PREVIEW.side} per side`,
+      );
+    } else if (width * height > PREVIEW.area) {
+      yield* fail(`preview is ${width}x${height}; the limit is 16 megapixels`);
+    } else if (bytes.length > PREVIEW.bytes) {
+      yield* fail('preview exceeds 8 MiB');
+    } else {
+      out.previewImage = yield* pkg.add(
+        'assets',
+        format === 'png' ? 'png' : 'jpg',
+        bytes,
+      );
+    }
     return out;
   });
 
@@ -66,7 +76,8 @@ export interface Compiled {
   readonly diagnostics: readonly import('./diagnostics').Diagnostic[];
 }
 
-export const compileProject = (projectDir: string) =>
+/** Compiles `projectDir` into `outDir` (created if needed) or a fresh temp directory. */
+export const compileProject = (projectDir: string, outDir?: string) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const d = yield* Diagnostics;
@@ -76,6 +87,7 @@ export const compileProject = (projectDir: string) =>
     const resolved = yield* resolveControls(project, tokens);
     const { theme, pkg } = yield* lowerTheme(project.dir, tokens, resolved);
     const metadata = yield* compileMetadata(project, pkg);
+    yield* d.checkpoint;
     const licenses = pkg.manifest();
 
     yield* conforms('theme.json', CompiledThemeSchema, theme);
@@ -83,7 +95,9 @@ export const compileProject = (projectDir: string) =>
     yield* conforms('licenses.json', CompiledLicensesSchema, licenses);
     yield* d.checkpoint;
 
-    const dir = yield* fs.makeTempDirectory({ prefix: 'galapatheme-' });
+    const dir =
+      outDir ?? (yield* fs.makeTempDirectory({ prefix: 'galapatheme-' }));
+    yield* fs.makeDirectory(dir, { recursive: true });
     const json = (name: string, value: unknown) =>
       fs.writeFileString(
         `${dir}/${name}`,

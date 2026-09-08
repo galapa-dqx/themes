@@ -48,19 +48,22 @@ export const pickResource = (
 
 export class GoogleFonts extends Effect.Service<GoogleFonts>()('GoogleFonts', {
   effect: Effect.gen(function* () {
-    const key = yield* Config.redacted('GOOGLE_FONTS_API_KEY');
     const http = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
     const fail = (message: string) => (e: { message: string }) =>
       new FontSourceError({ message: `${message}: ${e.message}` });
 
     const catalog = yield* Effect.cached(
-      http
-        .get(API, { urlParams: { capability: 'VF', key: Redacted.value(key) } })
-        .pipe(
-          Effect.flatMap((r) => r.json),
-          Effect.map((body) => (body as { items: GoogleFont[] }).items),
-          Effect.mapError(fail('Google Fonts catalog unavailable')),
+      Config.redacted('GOOGLE_FONTS_API_KEY').pipe(
+        Effect.mapError(() => ({ message: 'GOOGLE_FONTS_API_KEY is not set' })),
+        Effect.flatMap((key) =>
+          http.get(API, {
+            urlParams: { capability: 'VF', key: Redacted.value(key) },
+          }),
         ),
+        Effect.flatMap((r) => r.json),
+        Effect.map((body) => (body as { items: GoogleFont[] }).items),
+        Effect.mapError(fail('Google Fonts catalog unavailable')),
+      ),
     );
 
     return {

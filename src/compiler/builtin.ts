@@ -3,7 +3,7 @@
  * `news-item.gem` variants. Changing it is a deliberate source change; no
  * compile ever fetches an icon.
  */
-import APACHE_2_0 from './builtin/apache-2.0.txt?raw';
+import { APACHE_2_0 } from './builtin/apache-2.0';
 
 const svg = (viewBox: string, body: string) =>
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" preserveAspectRatio="xMidYMid meet">${body}</svg>`;

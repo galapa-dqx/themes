@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { NodeFileSystem } from '@effect/platform-node';
 import { Cause, Effect, Exit, Layer, Option } from 'effect';
 import { loadPyodide, type PyodideInterface } from 'pyodide';
+import sharp from 'sharp';
 import Value from 'typebox/value';
 import { describe, expect, it } from 'vitest';
 import type { Static } from 'typebox';
@@ -18,6 +19,7 @@ import { CompileFailed, Diagnostics } from './diagnostics';
 import { MINIMAL_PROJECT, writeProject } from './fixtures/minimal';
 import { FontTools } from './fontTools';
 import { FontSourceError, GoogleFonts } from './googleFonts';
+import { imagesSharp } from './imagesNode';
 import { Svg } from './svg';
 
 const font = new Uint8Array(
@@ -54,8 +56,17 @@ const layer = Layer.mergeAll(
   Diagnostics.Default,
   Svg.Default,
   FontTools.inProcess(load),
+  imagesSharp,
   google,
 );
+
+/** A 2x1 JPEG whose EXIF orientation says "rotate 90": stripping must yield 1x2 with no EXIF. */
+const preview = sharp({
+  create: { width: 2, height: 1, channels: 3, background: 'red' },
+})
+  .jpeg()
+  .withMetadata({ orientation: 6 })
+  .toBuffer();
 
 const compile = (files: Record<string, unknown>) =>
   Effect.runPromiseExit(
@@ -85,9 +96,9 @@ describe('compileProject', () => {
       ...MINIMAL_PROJECT,
       'metadata.json': {
         ...(MINIMAL_PROJECT['metadata.json'] as object),
-        previewImage: './assets/preview.png',
+        previewImage: './assets/preview.jpg',
       },
-      'assets/preview.png': new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]),
+      'assets/preview.jpg': new Uint8Array(await preview),
       'assets/sg.ttf': font,
       'assets/tinted.svg': wrap('<circle r="4" fill="currentColor"/>'),
       'assets/frame.svg': nine('x="2" y="2" width="6" height="6"'),
@@ -178,10 +189,15 @@ describe('compileProject', () => {
 
     const metadata = read('metadata.json') as Record<string, unknown>;
     expect(metadata).not.toHaveProperty('formatVersion');
-    expect(metadata.previewImage).toMatch(/^\.\/assets\/[0-9a-f]{12}\.png$/);
-    expect(
+    expect(metadata.previewImage).toMatch(/^\.\/assets\/[0-9a-f]{12}\.jpg$/);
+    const stripped = await sharp(
       readFileSync(`${dir}/${(metadata.previewImage as string).slice(2)}`),
-    ).toHaveLength(7);
+    ).metadata();
+    expect([stripped.width, stripped.height, stripped.exif]).toEqual([
+      1,
+      2,
+      undefined,
+    ]);
 
     const licenses = read('licenses.json') as {
       files: string[];
@@ -220,6 +236,11 @@ describe('compileProject', () => {
   it('collects resource errors from every control before failing', async () => {
     const exit = await compile({
       ...MINIMAL_PROJECT,
+      'metadata.json': {
+        ...(MINIMAL_PROJECT['metadata.json'] as object),
+        previewImage: './assets/preview.png',
+      },
+      'assets/preview.png': new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]),
       'assets/tinted.svg': wrap('<circle r="4" fill="currentColor"/>'),
       'controls/carousel.json': {
         shape: 'path',
@@ -251,6 +272,7 @@ describe('compileProject', () => {
       'controls/carousel.json/parts/pip/asset: ./assets/missing.svg does not exist',
       'controls/settings.json/parts/heading/typography: unknown Google Font "gfont:Nope"',
       'controls/subtabs.json/asset: <svg>: nine-slice requires a direct child <rect id="frame">',
+      expect.stringMatching(/^metadata.json\/previewImage: /),
     ]);
   }, 60_000);
 });

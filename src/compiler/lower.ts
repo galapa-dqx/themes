@@ -396,6 +396,6 @@ export const lowerTheme = (
         path: '',
       });
     }
-    yield* (yield* Diagnostics).checkpoint;
+    // No checkpoint: the caller collects metadata problems too before failing.
     return { theme: out as CompiledTheme, pkg: ctx.pkg };
   });
