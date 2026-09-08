@@ -39,7 +39,7 @@ import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
 import { ProjectPage } from '@/editor/ProjectPage';
 import { runtime } from '@/editor/runtime';
 import { ProjectStoreProvider, useProjectStore } from '@/editor/projectStore';
-import { useProject } from '@/editor/useProject';
+import { useProject, type ProjectState } from '@/editor/useProject';
 
 const SECTIONS = [
   { id: 'project', label: 'Project', icon: IconFolder },
@@ -169,7 +169,7 @@ function ThemeMenu({ themeId }: { themeId: string }) {
             <Menu.Item
               key={t.id}
               component={Link}
-              to={`/editor/${t.id}/controls`}
+              to={`/editor/${t.id}/project`}
               leftSection={
                 <Box
                   w={14}
@@ -208,7 +208,7 @@ function ThemeMenu({ themeId }: { themeId: string }) {
 export function EditorIndex() {
   const latest = useAppStore((s) => s.recent[0]);
   const to = latest
-    ? `/editor/${latest.id}/controls`
+    ? `/editor/${latest.id}/project`
     : `/editor/${newProjectId()}/project`;
   return <Navigate to={to} replace />;
 }
@@ -219,42 +219,46 @@ export default function App() {
 
   const current = SECTIONS.find((s) => s.id === section);
   if (!current) return <Navigate to={`/editor/${themeId}/controls`} replace />;
-  if (project.status === 'loading')
-    return (
-      <Center h="100vh">
-        <Loader />
-      </Center>
-    );
-  if (project.status === 'error')
-    return (
-      <Center h="100vh" p="xl">
-        <Alert color="red" title="Could not open this project" maw={520}>
-          <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
-            {project.message}
-          </pre>
-        </Alert>
-      </Center>
-    );
   return (
-    <ProjectStoreProvider value={project.store}>
-      <Shell themeId={themeId} current={current} />
+    <ProjectStoreProvider
+      value={project.status === 'open' ? project.store : undefined}
+    >
+      <Shell themeId={themeId} current={current} project={project} />
     </ProjectStoreProvider>
   );
 }
 
-function Shell({
-  themeId,
-  current,
-}: {
-  themeId: string;
-  current: (typeof SECTIONS)[number];
-}) {
+/** The header name while the project loads: whatever recents knew it as. */
+function RecentName({ themeId }: { themeId: string }) {
+  const name = useAppStore((s) => s.recent.find((r) => r.id === themeId)?.name);
+  return (
+    <Text fw={600} c="dimmed">
+      {name ?? 'Loading…'}
+    </Text>
+  );
+}
+
+/** Records the open project in recents as its name changes. */
+function TouchRecent({ themeId }: { themeId: string }) {
   const name = useProjectStore((s) => s.doc.metadata.name);
   const touchRecent = useAppStore((s) => s.touchRecent);
   useEffect(
     () => touchRecent({ id: themeId, name }),
     [themeId, name, touchRecent],
   );
+  return null;
+}
+
+function Shell({
+  themeId,
+  current,
+  project,
+}: {
+  themeId: string;
+  current: (typeof SECTIONS)[number];
+  project: ProjectState;
+}) {
+  const open = project.status === 'open';
   return (
     <AppShell header={{ height: 52 }} navbar={{ width: 56, breakpoint: 0 }}>
       <AppShell.Header>
@@ -269,10 +273,14 @@ function Shell({
             Galapa Theme Studio
           </Text>
           <Slash />
-          <ThemeMenu themeId={themeId} />
+          {open ? (
+            <ThemeMenu themeId={themeId} />
+          ) : (
+            <RecentName themeId={themeId} />
+          )}
           <Slash />
           <Text c="dimmed">{current.label}</Text>
-          <SaveBadge />
+          {open && <SaveBadge />}
           <Box flex={1} />
           <Button variant="default" size="xs">
             Import sprites
@@ -311,7 +319,22 @@ function Shell({
       </AppShell.Navbar>
 
       <AppShell.Main bg="gray.0">
-        {current.id === 'project' && <ProjectPage />}
+        {project.status === 'loading' && (
+          <Center h="60vh">
+            <Loader />
+          </Center>
+        )}
+        {project.status === 'error' && (
+          <Center h="60vh" p="xl">
+            <Alert color="red" title="Could not open this project" maw={520}>
+              <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>
+                {project.message}
+              </pre>
+            </Alert>
+          </Center>
+        )}
+        {open && <TouchRecent themeId={themeId} />}
+        {open && current.id === 'project' && <ProjectPage />}
       </AppShell.Main>
     </AppShell>
   );
