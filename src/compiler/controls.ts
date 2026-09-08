@@ -7,7 +7,11 @@
 import type { Color } from 'culori';
 import { Effect } from 'effect';
 import type { Static } from 'typebox';
-import { CONTROL_CATALOG, type CatalogEntry } from '@/theme/catalog';
+import {
+  CONTROL_CATALOG,
+  type CatalogEntry,
+  type ControlKind,
+} from '@/theme/catalog';
 import type { CompiledTypographyDisplay, ProjectColor } from '@/theme/schema';
 import { Diagnostics } from './diagnostics';
 import { TokenError, type ResolvedTokens, type Typography } from './tokens';
@@ -120,237 +124,262 @@ class Fail extends Error {
     this.path = path;
   }
 }
+const fail = (path: string, message: string): never => {
+  throw new Fail(path, message);
+};
+
+/** Runs a token evaluator, relocating any `TokenError` under `path`. */
+const lookup = <T>(path: string, f: () => T): T => {
+  try {
+    return f();
+  } catch (e) {
+    if (e instanceof TokenError) return fail(path + e.path, e.message);
+    throw e;
+  }
+};
+
+/** Field resolvers over one token graph. */
+const values = (tokens: ResolvedTokens) => {
+  const color = (v: unknown, path: string) =>
+    lookup(path, () => tokens.color(v as Static<typeof ProjectColor>));
+  return {
+    color,
+    paint: (v: unknown, path: string): Paint =>
+      v === 'none' || v === undefined ? 'none' : color(v, path),
+    optColor: (v: unknown, path: string) =>
+      v === undefined ? undefined : color(v, path),
+    asset: (v: unknown, path: string) =>
+      lookup(path, () => tokens.asset(v as string)),
+    typography: (v: unknown, path: string) =>
+      lookup(path, () => tokens.typography(v as string)),
+  };
+};
+type Values = ReturnType<typeof values>;
+
+/** Completes a typography fragment and checks it against the slot's capability set. */
+const typography = (
+  t: Typography,
+  cap: CatalogEntry['typography'],
+  path: string,
+): ResolvedTypography => {
+  for (const k of ['font', 'fontWeight', 'fontSize'] as const) {
+    if (t[k] === undefined) fail(path, `typography is missing ${k}`);
+  }
+  const axes = t.fontAxes ?? {};
+  if ('wght' in axes) {
+    fail(`${path}/fontAxes/wght`, 'use fontWeight instead of the wght axis');
+  }
+  if (t.fontStyle !== undefined && ('ital' in axes || 'slnt' in axes)) {
+    fail(`${path}/fontAxes`, 'fontStyle and ital/slnt axes both set');
+  }
+  const out: ResolvedTypography = {
+    font: t.font!,
+    fontWeight: t.fontWeight!,
+    fontStyle: t.fontStyle ?? 'normal',
+    fontAxes: axes,
+    fontSize: t.fontSize!,
+    lineHeight: t.lineHeight ?? 1,
+    letterSpacing: t.letterSpacing ?? 0,
+    fontFeatures: t.fontFeatures ?? {},
+  };
+  if (cap !== 'editable') {
+    out.textCase = t.textCase ?? 'none';
+    out.textDecoration = t.textDecoration ?? [];
+  } else if ((t.textCase ?? 'none') !== 'none' || t.textDecoration?.length) {
+    fail(path, 'editable text does not support textCase or textDecoration');
+  }
+  return out;
+};
+
+// ---------------------------------------------------------------- per-kind normalizers
+// Each takes a raw base or merged state and returns one complete configuration.
+
+type Normalizer = (
+  v: Values,
+  e: CatalogEntry,
+  r: Raw,
+  path: string,
+) => ResolvedBase;
+const opacity = (r: Raw) => (r.opacity as number | undefined) ?? 1;
+const size = (r: Raw) => r.size as Size | undefined;
+
+const frame: Normalizer = (v, _e, r, path) => {
+  if (r.shape === 'asset') {
+    return {
+      shape: 'asset',
+      asset: v.asset(r.asset, `${path}/asset`),
+      currentColor: v.optColor(r.currentColor, `${path}/currentColor`),
+      opacity: opacity(r),
+      size: size(r),
+    };
+  }
+  const border = (r.border as Raw | undefined) ?? {};
+  return {
+    shape: 'path',
+    radius: (r.radius as number | 'pill' | undefined) ?? 0,
+    corner: (r.corner as ResolvedPathFrame['corner']) ?? 'round',
+    fill: v.paint(r.fill, `${path}/fill`),
+    border: {
+      color: v.paint(border.color, `${path}/border/color`),
+      thickness: four(border.thickness),
+    },
+    padding: four(r.padding),
+    opacity: opacity(r),
+    size: size(r),
+  };
+};
+
+const text: Normalizer = (v, e, r, path) => {
+  const out: ResolvedText = {
+    color: v.color(r.color, `${path}/color`),
+    typography: typography(
+      v.typography(r.typography, `${path}/typography`),
+      e.typography,
+      `${path}/typography`,
+    ),
+    opacity: opacity(r),
+  };
+  if (e.leftInset !== undefined) {
+    out.leftInset = (r.leftInset as number | undefined) ?? e.leftInset;
+  }
+  return out;
+};
+
+const paint: Normalizer = (v, _e, r, path) => ({
+  color: v.color(r.color, `${path}/color`),
+  opacity: opacity(r),
+});
+
+const image: Normalizer = (v, _e, r, path) => ({
+  asset: r.asset === undefined ? undefined : v.asset(r.asset, `${path}/asset`),
+  currentColor: v.optColor(r.currentColor, `${path}/currentColor`),
+  opacity: opacity(r),
+  size: size(r),
+});
+
+const variantImage: Normalizer = (v, _e, r, path) => ({
+  assets: Object.fromEntries(
+    Object.entries((r.assets as Raw | undefined) ?? {}).map(([k, a]) => [
+      k,
+      v.asset(a, `${path}/assets/${k}`),
+    ]),
+  ),
+  currentColor: v.optColor(r.currentColor, `${path}/currentColor`),
+  opacity: opacity(r),
+  size: size(r),
+});
+
+const windowControl: Normalizer = (v, _e, r, path) => ({
+  fill: v.color(r.fill, `${path}/fill`),
+  borderColor: v.paint(r.borderColor, `${path}/borderColor`),
+});
+
+const focusRing: Normalizer = (v, _e, r, path) => ({
+  color: v.color(r.color, `${path}/color`),
+  width: (r.width as number | undefined) ?? 2,
+  offset: (r.offset as number | undefined) ?? -2,
+});
+
+const NORMALIZE: Record<Exclude<ControlKind, 'composite'>, Normalizer> = {
+  frame,
+  text,
+  paint,
+  image,
+  'variant-image': variantImage,
+  window: windowControl,
+  'focus-ring': focusRing,
+};
+
+// ---------------------------------------------------------------- tree walk
+
+type Problem = { file: string; path: string; message: string };
+
+/** Runs `f`, recording a `Fail` as a problem instead of throwing. */
+const attempt = <T>(
+  problems: Problem[],
+  file: string,
+  f: () => T,
+): T | undefined => {
+  try {
+    return f();
+  } catch (e) {
+    if (!(e instanceof Fail)) throw e;
+    problems.push({ file, path: e.path, message: e.message });
+    return undefined;
+  }
+};
+
+/** Resolves one control and, recursively, its parts. */
+const control = (
+  v: Values,
+  problems: Problem[],
+  e: CatalogEntry,
+  raw: Raw,
+  file: string,
+  path: string,
+): ResolvedControl => {
+  const { states, parts, ...rawBase } = raw;
+  const out: ResolvedControl = {};
+  if (e.kind !== 'composite') {
+    const normalize = NORMALIZE[e.kind];
+    const base = attempt(problems, file, () => normalize(v, e, rawBase, path));
+    // A broken base would only repeat its errors once per state.
+    if (base) Object.assign(out, base);
+    if (base && states) {
+      out.states = {};
+      for (const [name, fragment] of Object.entries(states as Raw)) {
+        const { showRing, ...rest } = fragment as Raw;
+        const statePath = `${path}/states/${name}`;
+        const merged = merge(rawBase, rest) as Raw;
+        const state = attempt(problems, file, () =>
+          normalize(v, e, merged, statePath),
+        );
+        if (!state) continue;
+        out.states[name] =
+          name === 'focused' && e.focusRingOwner
+            ? { ...state, showRing: (showRing as boolean | undefined) ?? true }
+            : state;
+      }
+    }
+  }
+  if (e.parts) {
+    out.parts = {};
+    for (const [name, part] of Object.entries(e.parts)) {
+      const rawPart = (parts as Raw | undefined)?.[name] as Raw | undefined;
+      if (!rawPart) continue; // required parts are checked by the schema
+      out.parts[name] = control(
+        v,
+        problems,
+        part,
+        rawPart,
+        file,
+        `${path}/parts/${name}`,
+      );
+    }
+  }
+  return out;
+};
 
 export const resolveControls = (project: Project, tokens: ResolvedTokens) =>
   Effect.gen(function* () {
     const d = yield* Diagnostics;
-    const pending: { file: string; path: string; message: string }[] = [];
-    const fail = (path: string, message: string): never => {
-      throw new Fail(path, message);
-    };
-
-    const color = (v: unknown, path: string): Color => {
-      try {
-        return tokens.color(v as Static<typeof ProjectColor>);
-      } catch (e) {
-        if (e instanceof TokenError) return fail(path + e.path, e.message);
-        throw e;
-      }
-    };
-    const paint = (v: unknown, path: string): Paint =>
-      v === 'none' || v === undefined ? 'none' : color(v, path);
-    const optColor = (v: unknown, path: string) =>
-      v === undefined ? undefined : color(v, path);
-    const asset = (v: unknown, path: string): string => {
-      try {
-        return tokens.asset(v as string);
-      } catch (e) {
-        if (e instanceof TokenError) return fail(path + e.path, e.message);
-        throw e;
-      }
-    };
-
-    const typography = (
-      v: unknown,
-      cap: CatalogEntry['typography'],
-      path: string,
-    ): ResolvedTypography => {
-      let t: Typography;
-      try {
-        t = tokens.typography(v as string);
-      } catch (e) {
-        if (e instanceof TokenError) return fail(path + e.path, e.message);
-        throw e;
-      }
-      for (const k of ['font', 'fontWeight', 'fontSize'] as const) {
-        if (t[k] === undefined) fail(path, `typography is missing ${k}`);
-      }
-      const axes = t.fontAxes ?? {};
-      if ('wght' in axes) {
-        fail(
-          `${path}/fontAxes/wght`,
-          'use fontWeight instead of the wght axis',
-        );
-      }
-      if (t.fontStyle !== undefined && ('ital' in axes || 'slnt' in axes)) {
-        fail(`${path}/fontAxes`, 'fontStyle and ital/slnt axes both set');
-      }
-      const out: ResolvedTypography = {
-        font: t.font!,
-        fontWeight: t.fontWeight!,
-        fontStyle: t.fontStyle ?? 'normal',
-        fontAxes: axes,
-        fontSize: t.fontSize!,
-        lineHeight: t.lineHeight ?? 1,
-        letterSpacing: t.letterSpacing ?? 0,
-        fontFeatures: t.fontFeatures ?? {},
-      };
-      if (cap === 'editable') {
-        if ((t.textCase ?? 'none') !== 'none' || t.textDecoration?.length) {
-          fail(
-            path,
-            'editable text does not support textCase or textDecoration',
-          );
-        }
-        return out;
-      }
-      return {
-        ...out,
-        textCase: t.textCase ?? 'none',
-        textDecoration: t.textDecoration ?? [],
-      };
-    };
-
-    /** One complete configuration from a raw base or merged state. */
-    const normalize = (e: CatalogEntry, r: Raw, path: string): ResolvedBase => {
-      const opacity = (r.opacity as number | undefined) ?? 1;
-      const size = r.size as Size | undefined;
-      switch (e.kind) {
-        case 'frame': {
-          if (r.shape === 'asset') {
-            return {
-              shape: 'asset',
-              asset: asset(r.asset, `${path}/asset`),
-              currentColor: optColor(r.currentColor, `${path}/currentColor`),
-              opacity,
-              size,
-            };
-          }
-          const border = (r.border as Raw | undefined) ?? {};
-          return {
-            shape: 'path',
-            radius: (r.radius as number | 'pill' | undefined) ?? 0,
-            corner: (r.corner as ResolvedPathFrame['corner']) ?? 'round',
-            fill: paint(r.fill, `${path}/fill`),
-            border: {
-              color: paint(border.color, `${path}/border/color`),
-              thickness: four(border.thickness),
-            },
-            padding: four(r.padding),
-            opacity,
-            size,
-          };
-        }
-        case 'text': {
-          const out: ResolvedText = {
-            color: color(r.color, `${path}/color`),
-            typography: typography(
-              r.typography,
-              e.typography,
-              `${path}/typography`,
-            ),
-            opacity,
-          };
-          if (e.leftInset !== undefined) {
-            out.leftInset = (r.leftInset as number | undefined) ?? e.leftInset;
-          }
-          return out;
-        }
-        case 'paint':
-          return { color: color(r.color, `${path}/color`), opacity };
-        case 'image':
-          return {
-            asset:
-              r.asset === undefined
-                ? undefined
-                : asset(r.asset, `${path}/asset`),
-            currentColor: optColor(r.currentColor, `${path}/currentColor`),
-            opacity,
-            size,
-          };
-        case 'variant-image':
-          return {
-            assets: Object.fromEntries(
-              Object.entries((r.assets as Raw | undefined) ?? {}).map(
-                ([k, v]) => [k, asset(v, `${path}/assets/${k}`)],
-              ),
-            ),
-            currentColor: optColor(r.currentColor, `${path}/currentColor`),
-            opacity,
-            size,
-          };
-        case 'window':
-          return {
-            fill: color(r.fill, `${path}/fill`),
-            borderColor: paint(r.borderColor, `${path}/borderColor`),
-          };
-        case 'focus-ring':
-          return {
-            color: color(r.color, `${path}/color`),
-            width: (r.width as number | undefined) ?? 2,
-            offset: (r.offset as number | undefined) ?? -2,
-          };
-        case 'composite':
-          return {} as never;
-      }
-    };
-
-    const attempt = <T>(file: string, f: () => T): T | undefined => {
-      try {
-        return f();
-      } catch (e) {
-        if (!(e instanceof Fail)) throw e;
-        pending.push({ file, path: e.path, message: e.message });
-        return undefined;
-      }
-    };
-
-    const control = (
-      e: CatalogEntry,
-      raw: Raw,
-      file: string,
-      path: string,
-    ): ResolvedControl => {
-      const { states, parts, ...rawBase } = raw;
-      const out: ResolvedControl = {};
-      if (e.kind !== 'composite') {
-        const base = attempt(file, () => normalize(e, rawBase, path));
-        if (base) {
-          Object.assign(out, base);
-          if (states) {
-            out.states = {};
-            for (const [name, fragment] of Object.entries(states as Raw)) {
-              const { showRing, ...rest } = fragment as Raw;
-              const statePath = `${path}/states/${name}`;
-              const merged = merge(rawBase, rest) as Raw;
-              const state = attempt(file, () =>
-                normalize(e, merged, statePath),
-              );
-              if (!state) continue;
-              out.states[name] =
-                name === 'focused' && e.focusRingOwner
-                  ? {
-                      ...state,
-                      showRing: (showRing as boolean | undefined) ?? true,
-                    }
-                  : state;
-            }
-          }
-        }
-      }
-      if (e.parts) {
-        out.parts = {};
-        for (const [name, part] of Object.entries(e.parts)) {
-          const rawPart = (parts as Raw | undefined)?.[name] as Raw | undefined;
-          if (!rawPart) continue; // required parts are checked by the schema
-          out.parts[name] = control(
-            part,
-            rawPart,
-            file,
-            `${path}/parts/${name}`,
-          );
-        }
-      }
-      return out;
-    };
-
+    const v = values(tokens);
+    const problems: Problem[] = [];
     const theme: ResolvedTheme = {};
     for (const [id, raw] of Object.entries(project.controls)) {
       const e = CONTROL_CATALOG[id as keyof typeof CONTROL_CATALOG];
-      theme[id] = control(e, raw as Raw, `controls/${id}.json`, '');
+      theme[id] = control(
+        v,
+        problems,
+        e,
+        raw as Raw,
+        `controls/${id}.json`,
+        '',
+      );
     }
-    for (const p of pending)
+    for (const p of problems) {
       yield* d.error('control', p.message, { file: p.file, path: p.path });
+    }
     yield* d.checkpoint;
     return theme;
   });
