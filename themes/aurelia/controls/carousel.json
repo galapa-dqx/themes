@@ -1,0 +1,39 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/carousel.schema.json",
+  "shape": "path",
+  "radius": 0,
+  "border": {
+    "color": "{colors.border}",
+    "thickness": 1
+  },
+  "padding": 2,
+  "parts": {
+    "nav": {
+      "asset": "{assets.carousel-nav}",
+      "currentColor": "{colors.border}",
+      "size": {
+        "width": 31,
+        "height": 31
+      },
+      "states": {
+        "hover": {
+          "asset": "{assets.carousel-nav-hover}",
+          "currentColor": "{colors.accent}"
+        }
+      }
+    },
+    "pip": {
+      "asset": "{assets.carousel-pip}",
+      "currentColor": "{colors.text}",
+      "size": {
+        "width": 12,
+        "height": 12
+      },
+      "states": {
+        "selected": {
+          "asset": "{assets.carousel-pip-selected}"
+        }
+      }
+    }
+  }
+}
