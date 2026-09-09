@@ -55,6 +55,8 @@ export const skeleton = (
   const out: Raw = (() => {
     switch (entry.kind) {
       case 'frame':
+        // Nothing styled: this also backs `ensure`, so editing one field of a
+        // missing frame must not paint it. `create` adds the surface look.
         return { shape: 'path' };
       case 'text':
         return {
@@ -85,6 +87,23 @@ export const skeleton = (
       parts.map(([name, p]) => [name, skeleton(p, tokens)]),
     );
   return out;
+};
+
+/**
+ * main's "Convert to Path" default (ControlsPage 518-531), which is also what
+ * every first-party frame is: a surface with a hairline border. Only the
+ * conventional token names — an arbitrary colour as a fill is worse than none.
+ * Deliberately *not* part of `skeleton`: only an explicit `create` paints.
+ */
+const frameLook = (tokens: Document['tokens']): Raw => {
+  const names = Object.keys(tokens.colors ?? {});
+  const pick = (wanted: string[]) => wanted.find((n) => names.includes(n));
+  const fill = pick(['surface', 'bg']);
+  const line = pick(['border', 'outline']);
+  return {
+    ...(fill && { fill: `{colors.${fill}}` }),
+    ...(line && { border: { color: `{colors.${line}}`, thickness: 1 } }),
+  };
 };
 
 const entryAt = (root: CatalogEntry, path: PartPath) =>
@@ -220,7 +239,14 @@ export function controlEdit(
     /** Creates the whole control from the skeleton when the project lacks it. */
     create() {
       edit(`Create ${id}`, (d) => {
-        (d.controls as Record<string, Raw>)[id] ??= skeleton(root, d.tokens);
+        const controls = d.controls as Record<string, Raw>;
+        if (controls[id]) return;
+        const s = skeleton(root, d.tokens);
+        // Root frames only, and only here: a created frame should be visible.
+        controls[id] =
+          root.kind === 'frame'
+            ? { shape: 'path', ...frameLook(d.tokens), ...s }
+            : s;
       });
     },
     entryAt: (path: PartPath) => entryAt(root, path),

@@ -8,6 +8,7 @@ import type { RootControlId } from '@/theme/catalog';
 import type { SpecimenComponent } from '@/editor/preview/Island';
 import type { StateName } from '@/editor/preview/resolve';
 import { FocusRingSpecimen } from './specimens/focus-ring';
+import { PanelSpecimen } from './specimens/panel';
 import { WindowSpecimen } from './specimens/window';
 
 export type { SpecimenComponent };
@@ -20,5 +21,6 @@ export interface ControlModule {
 
 export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   window: { Specimen: WindowSpecimen },
+  panel: { Specimen: PanelSpecimen },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };

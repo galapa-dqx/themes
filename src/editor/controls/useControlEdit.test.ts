@@ -34,6 +34,36 @@ describe('controlEdit', () => {
     });
   });
 
+  it('creates a frame from the conventional surface tokens', () => {
+    const store = createProjectStore({
+      ...doc,
+      tokens: { colors: { surface: '#ffffff', border: '#000000' } },
+    });
+    controlEdit('panel', EMPTY, store.getState().edit).create();
+    expect(store.getState().doc.controls.panel).toEqual({
+      shape: 'path',
+      fill: '{colors.surface}',
+      border: { color: '{colors.border}', thickness: 1 },
+    });
+  });
+
+  it('writes only the edited field into a missing frame', () => {
+    const store = createProjectStore({
+      ...doc,
+      tokens: { colors: { surface: '#ffffff', border: '#000000' } },
+    });
+    controlEdit('panel', EMPTY, store.getState().edit).set(
+      [],
+      'default',
+      'radius',
+      6,
+    );
+    expect(store.getState().doc.controls.panel).toEqual({
+      shape: 'path',
+      radius: 6,
+    });
+  });
+
   it('deletes through the chain and prunes emptied states', () => {
     const { button, edit } = setup();
     edit().set([], 'hover', 'border.thickness', 2);
