@@ -1,0 +1,13 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/metadata.schema.json",
+  "formatVersion": 1,
+  "id": "app.galapa.themes.galapayuliza00000000",
+  "name": "Yuliza",
+  "author": {
+    "name": "Galapa Team",
+    "url": "https://galapa.app/"
+  },
+  "description": "Built-in theme in the authoring format.",
+  "updates": null,
+  "chromeStyle": "light"
+}
