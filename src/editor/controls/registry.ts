@@ -8,6 +8,7 @@ import type { RootControlId } from '@/theme/catalog';
 import type { SpecimenComponent } from '@/editor/preview/Island';
 import type { StateName } from '@/editor/preview/resolve';
 import { ButtonSpecimen } from './specimens/button';
+import { CarouselSpecimen } from './specimens/carousel';
 import { FocusRingSpecimen } from './specimens/focus-ring';
 import { InputSpecimen } from './specimens/input';
 import { PanelSpecimen } from './specimens/panel';
@@ -22,12 +23,15 @@ export interface ControlModule {
   Specimen: SpecimenComponent;
   /** Rendered after the kind cards, in the same state scope. */
   Fields?: ComponentType<{ id: RootControlId; state: StateName }>;
+  /** Minimum width of a state cell in the preview grid (default 150). */
+  cellWidth?: number;
 }
 
 export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   window: { Specimen: WindowSpecimen },
   panel: { Specimen: PanelSpecimen },
   button: { Specimen: ButtonSpecimen },
+  carousel: { Specimen: CarouselSpecimen, cellWidth: 260 },
   input: { Specimen: InputSpecimen },
   tab: { Specimen: TabSpecimen },
   subtab: { Specimen: SubtabSpecimen },

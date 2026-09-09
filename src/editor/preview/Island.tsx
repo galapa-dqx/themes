@@ -48,11 +48,14 @@ export function StateGrid({
   id,
   Specimen,
   current,
+  cellWidth = 150,
 }: {
   id: RootControlId;
   Specimen: SpecimenComponent;
   /** The editor's active state tab, highlighted. */
   current: StateName;
+  /** Minimum cell width; a wide specimen (the carousel) asks for more. */
+  cellWidth?: number;
 }) {
   const states: StateName[] = ['default', ...statesOf(CONTROL_CATALOG[id])];
   const ring = useFocusRing();
@@ -62,7 +65,9 @@ export function StateGrid({
         display: 'grid',
         // A stateless control gets the whole panel instead of one narrow cell.
         gridTemplateColumns:
-          states.length > 1 ? 'repeat(auto-fill, minmax(150px, 1fr))' : '1fr',
+          states.length > 1
+            ? `repeat(auto-fill, minmax(${cellWidth}px, 1fr))`
+            : '1fr',
         gap: 14,
       }}
     >

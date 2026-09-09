@@ -313,7 +313,12 @@ function PreviewPanel({ id, state }: { id: RootControlId; state: StateName }) {
         </Text>
         <BoxesContext.Provider value={boxes}>
           <Island>
-            <StateGrid id={id} Specimen={Specimen} current={state} />
+            <StateGrid
+              id={id}
+              Specimen={Specimen}
+              current={state}
+              cellWidth={CONTROLS[id]?.cellWidth}
+            />
           </Island>
         </BoxesContext.Provider>
       </Stack>

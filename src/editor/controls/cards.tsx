@@ -36,7 +36,7 @@ import {
   type Size,
   type StateName,
 } from '@/editor/preview/resolve';
-import { useAsset } from '@/editor/preview/useAsset';
+import { useAsset, useSvgText } from '@/editor/preview/useAsset';
 import { useProjectStore } from '@/editor/projectStore';
 import { runtime } from '@/editor/runtime';
 import { SliceEditor } from '@/editor/SliceEditor';
@@ -187,16 +187,31 @@ const sizeRow = (r: ReturnType<typeof useRows>, entry: CatalogEntry) =>
         />,
       )
     : null;
-const currentColorRow = (r: ReturnType<typeof useRows>) =>
-  r.row(
+/**
+ * The tint, with the picked SVG's own answer about it: art that never says
+ * `currentColor` ignores the field, art that does fails to compile without
+ * it. Variant images have no single `asset`, so they keep the plain hint.
+ */
+function CurrentColorRow({ r }: { r: ReturnType<typeof useRows> }) {
+  const tokens = useProjectStore((s) => s.doc.tokens);
+  const { raw } = useSvgText(resolveAsset(tokens, r.value<string>('asset')));
+  // Unknown (still loading, or a variant image with no single asset) is not
+  // an answer: only art that certainly ignores or certainly needs the tint says so.
+  const uses = raw?.includes('currentColor');
+  const value = r.value<Paint>('currentColor');
+  return r.row(
     'Current color',
     'currentColor',
     <PaintField
-      value={r.value<Paint>('currentColor')}
+      value={value}
       onChange={(v) => r.set('currentColor', v)}
+      error={uses && value === undefined ? 'Required' : undefined}
     />,
-    'Tints currentColor in the SVG',
+    uses === false
+      ? 'This SVG has no currentColor — the tint does nothing'
+      : 'Tints currentColor in the SVG',
   );
+}
 
 export function FrameCard(props: CardProps) {
   const { entry, state, edit, path, title } = props;
@@ -231,7 +246,7 @@ export function FrameCard(props: CardProps) {
                 onChange={(v) => r.set('asset', v)}
               />,
             )}
-            {currentColorRow(r)}
+            <CurrentColorRow r={r} />
           </>
         ) : (
           <>
@@ -504,7 +519,7 @@ export function ImageCard(props: CardProps) {
             optional={entry.assetOptional || r.stateScope}
           />,
         )}
-        {currentColorRow(r)}
+        <CurrentColorRow r={r} />
         {opacityRow(r)}
         {sizeRow(r, entry)}
         {state === 'focused' &&
@@ -563,7 +578,7 @@ export function VariantImageCard(props: CardProps) {
             )}
           </Fragment>
         ))}
-        {currentColorRow(r)}
+        <CurrentColorRow r={r} />
         {opacityRow(r)}
         {sizeRow(r, entry)}
       </Rows>
