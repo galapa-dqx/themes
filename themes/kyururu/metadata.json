@@ -1,0 +1,12 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/metadata.schema.json",
+  "formatVersion": 1,
+  "id": "app.galapa.themes.galapakyururu0000000",
+  "name": "Kyururu",
+  "author": {
+    "name": "Galapa Team",
+    "url": "https://galapa.app/"
+  },
+  "updates": null,
+  "chromeStyle": "light"
+}
