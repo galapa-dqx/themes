@@ -11,6 +11,7 @@ import { ButtonSpecimen } from './specimens/button';
 import { FocusRingSpecimen } from './specimens/focus-ring';
 import { InputSpecimen } from './specimens/input';
 import { PanelSpecimen } from './specimens/panel';
+import { TabSpecimen } from './specimens/tab';
 import { WindowSpecimen } from './specimens/window';
 
 export type { SpecimenComponent };
@@ -26,5 +27,6 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   panel: { Specimen: PanelSpecimen },
   button: { Specimen: ButtonSpecimen },
   input: { Specimen: InputSpecimen },
+  tab: { Specimen: TabSpecimen },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };
