@@ -1,0 +1,25 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/progress.schema.json",
+  "parts": {
+    "track": {
+      "shape": "path",
+      "radius": 5,
+      "corner": "bevel",
+      "fill": "{colors.surface-2}",
+      "border": {
+        "color": "{colors.border}",
+        "thickness": 1
+      },
+      "padding": [2, 2.83, 2, 2.83],
+      "size": {
+        "height": 10
+      }
+    },
+    "indicator": {
+      "shape": "path",
+      "radius": 3,
+      "corner": "bevel",
+      "fill": "{colors.accent}"
+    }
+  }
+}

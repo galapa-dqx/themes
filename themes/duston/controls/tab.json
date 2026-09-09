@@ -1,0 +1,35 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/tab.schema.json",
+  "shape": "path",
+  "border": {
+    "color": "none",
+    "thickness": [0, 0, 2, 0]
+  },
+  "padding": [0, 10, 0, 10],
+  "states": {
+    "selected": {
+      "border": {
+        "color": "{colors.accent}"
+      }
+    }
+  },
+  "parts": {
+    "text": {
+      "color": "{colors.muted}",
+      "typography": {
+        "$extends": "{typography.heading}",
+        "fontSize": 16,
+        "letterSpacing": 0.8,
+        "textCase": "uppercase"
+      },
+      "states": {
+        "hover": {
+          "color": "{colors.accent}"
+        },
+        "selected": {
+          "color": "{colors.accent}"
+        }
+      }
+    }
+  }
+}
