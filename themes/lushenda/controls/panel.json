@@ -1,0 +1,10 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/panel.schema.json",
+  "shape": "path",
+  "radius": 6,
+  "fill": "{colors.surface}",
+  "border": {
+    "color": "{colors.border}",
+    "thickness": 1
+  }
+}

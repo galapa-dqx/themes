@@ -1,0 +1,4 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/focus-ring.schema.json",
+  "color": "{colors.accent}"
+}
