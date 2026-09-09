@@ -16,6 +16,7 @@ import { PanelSpecimen } from './specimens/panel';
 import { ProgressSpecimen, ProgressFields } from './specimens/progress';
 import { ScrollbarSpecimen, ScrollbarFields } from './specimens/scrollbar';
 import { SettingRowSpecimen, SettingRowFields } from './specimens/setting-row';
+import { SettingsSpecimen } from './specimens/settings';
 import { SubtabSpecimen } from './specimens/subtab';
 import { SubtabsSpecimen } from './specimens/subtabs';
 import { SwitchSpecimen, SwitchFields } from './specimens/switch';
@@ -57,6 +58,7 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
     Fields: SettingRowFields,
     cellWidth: 300,
   },
+  settings: { Specimen: SettingsSpecimen },
   titlebar: {
     Specimen: TitlebarSpecimen,
     Fields: TitlebarFields,

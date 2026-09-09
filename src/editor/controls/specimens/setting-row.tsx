@@ -60,14 +60,15 @@ const summary = (view: ControlView) => {
   ].join(' · ');
 };
 
-export function SettingRowSpecimen({
+/** The rows themselves, so the `settings` heading can stand above them. */
+export function SettingRows({
   view,
-  state,
   ring,
+  rows,
 }: {
   view: ControlView;
-  state: StateName;
   ring: FocusRingView;
+  rows: readonly { label: string; value: string }[];
 }) {
   if (view.kind !== 'frame') return null;
   const text = (name: string): TextView => {
@@ -75,17 +76,8 @@ export function SettingRowSpecimen({
     return p?.kind === 'text' ? p.text : NO_TEXT;
   };
   return (
-    <div
-      style={{
-        width: '100%',
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      {/* main's SettingsShared.module.css `.Column`: gap 10. */}
-      {(state === 'default' ? BOTH : ONE).map((row) => (
+    <>
+      {rows.map((row) => (
         <Frame
           key={row.label}
           view={view.frame}
@@ -117,6 +109,36 @@ export function SettingRowSpecimen({
           </TextPart>
         </Frame>
       ))}
+    </>
+  );
+}
+
+export function SettingRowSpecimen({
+  view,
+  state,
+  ring,
+}: {
+  view: ControlView;
+  state: StateName;
+  ring: FocusRingView;
+}) {
+  if (view.kind !== 'frame') return null;
+  return (
+    <div
+      style={{
+        width: '100%',
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}
+    >
+      {/* main's SettingsShared.module.css `.Column`: gap 10. */}
+      <SettingRows
+        view={view}
+        ring={ring}
+        rows={state === 'default' ? BOTH : ONE}
+      />
       <span style={mono}>{summary(view)}</span>
     </div>
   );
