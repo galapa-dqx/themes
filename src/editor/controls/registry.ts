@@ -12,6 +12,7 @@ import { FocusRingSpecimen } from './specimens/focus-ring';
 import { InputSpecimen } from './specimens/input';
 import { PanelSpecimen } from './specimens/panel';
 import { SubtabSpecimen } from './specimens/subtab';
+import { SwitchSpecimen, SwitchFields } from './specimens/switch';
 import { TabSpecimen } from './specimens/tab';
 import { WindowSpecimen } from './specimens/window';
 
@@ -30,5 +31,6 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   input: { Specimen: InputSpecimen },
   tab: { Specimen: TabSpecimen },
   subtab: { Specimen: SubtabSpecimen },
+  switch: { Specimen: SwitchSpecimen, Fields: SwitchFields },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };
