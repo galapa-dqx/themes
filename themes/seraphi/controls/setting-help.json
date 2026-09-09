@@ -6,6 +6,7 @@
       "typography": {
         "$extends": "{typography.heading}",
         "fontSize": 16,
+        "lineHeight": 1.2,
         "textCase": "uppercase"
       }
     },
@@ -13,7 +14,8 @@
       "color": "{colors.text}",
       "typography": {
         "$extends": "{typography.body}",
-        "fontSize": 13
+        "fontSize": 13,
+        "lineHeight": 1.45
       }
     }
   }

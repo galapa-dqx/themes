@@ -13,13 +13,9 @@
  * is V2's default 1 instead of the UA's `normal`, which makes the line box a
  * few px shorter.
  */
-import { fontLabel } from '@/editor/tokenView';
-import type {
-  ControlView,
-  FocusRingView,
-  TextView,
-} from '@/editor/preview/resolve';
+import type { ControlView, FocusRingView } from '@/editor/preview/resolve';
 import { TextPart } from '@/editor/preview/TextPart';
+import { textSummary } from '@/editor/preview/textStyle';
 import { useView } from '@/editor/preview/useView';
 import { SettingRows } from './setting-row';
 
@@ -28,20 +24,6 @@ const ROWS = [
   { label: 'Screen Mode', value: 'Borderless Windowed' },
   { label: 'Vsync', value: 'Idle row' },
 ];
-
-const summary = (t: TextView | undefined) =>
-  [
-    t?.color ?? 'no colour',
-    t?.typography?.font ? fontLabel(t.typography.font) : 'no font',
-    t?.typography?.fontWeight,
-    t?.typography?.fontSize !== undefined
-      ? `${t.typography.fontSize}px`
-      : undefined,
-    t?.typography?.textCase !== 'none' ? t?.typography?.textCase : undefined,
-    t?.opacity !== 1 ? `α ${t?.opacity}` : undefined,
-  ]
-    .filter(Boolean)
-    .join(' · ');
 
 export function SettingsSpecimen({
   view,
@@ -77,7 +59,7 @@ export function SettingsSpecimen({
           wordBreak: 'break-all',
         }}
       >
-        {summary(heading)}
+        {textSummary(heading)}
       </span>
     </div>
   );

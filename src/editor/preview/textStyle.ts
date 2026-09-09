@@ -5,6 +5,7 @@
  */
 import type { CSSProperties } from 'react';
 import type { Typography } from '@/compiler/tokens';
+import { fontLabel } from '@/editor/tokenView';
 import { useFontFamily } from '@/editor/useProjectFile';
 import type { TextView } from './resolve';
 
@@ -50,3 +51,21 @@ export function useTextStyle(view: TextView): CSSProperties {
     opacity: view.opacity,
   };
 }
+
+/** A one-line mono read-back of what a text part resolves to (specimen captions). */
+export const textSummary = (t: TextView | undefined) =>
+  [
+    t?.color ?? 'no colour',
+    t?.typography?.font ? fontLabel(t.typography.font) : 'no font',
+    t?.typography?.fontWeight,
+    t?.typography?.fontSize !== undefined
+      ? `${t.typography.fontSize}px`
+      : undefined,
+    t?.typography?.lineHeight !== undefined
+      ? `/${t.typography.lineHeight}`
+      : undefined,
+    t?.typography?.textCase !== 'none' ? t?.typography?.textCase : undefined,
+    t?.opacity !== 1 ? `α ${t?.opacity}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(' · ');

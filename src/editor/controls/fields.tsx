@@ -440,7 +440,8 @@ export function TypographyField({
     typeof value === 'string' ? { $extends: value } : (value ?? {});
   const parent = resolveTypography(tokens, object.$extends);
   const resolved = resolveTypography(tokens, object);
-  const own = Object.keys(object).filter((k) => k !== '$extends').length;
+  const ownKeys = Object.keys(object).filter((k) => k !== '$extends');
+  const own = ownKeys.length;
   const name = object.$extends?.slice(12, -1);
   const summary = resolved
     ? [
@@ -462,6 +463,8 @@ export function TypographyField({
       <Popover.Target>
         <UnstyledButton
           onClick={() => setOpened((o) => !o)}
+          // `+n` alone hides which keys they are.
+          title={own ? `Overrides ${ownKeys.join(', ')}` : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',

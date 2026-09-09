@@ -6,6 +6,7 @@ import {
   ActionIcon,
   Button,
   Group,
+  MultiSelect,
   NumberInput,
   Select,
   Text,
@@ -24,11 +25,25 @@ const FIELDS = [
   { key: 'font', label: 'Family' },
   { key: 'fontSize', label: 'Size', step: 1, min: 1 },
   { key: 'fontWeight', label: 'Weight', step: 100, min: 1, max: 1000 },
+  { key: 'fontStyle', label: 'Style' },
   { key: 'lineHeight', label: 'Line height', step: 0.1, min: 0.1 },
   { key: 'letterSpacing', label: 'Letter spacing', step: 0.1 },
   { key: 'textCase', label: 'Transform' },
+  { key: 'textDecoration', label: 'Decoration' },
 ] as const;
 type FieldKey = (typeof FIELDS)[number]['key'];
+/** Only `ProjectTypographyDisplay` carries these; editable text has neither. */
+const DISPLAY_ONLY: FieldKey[] = ['textCase', 'textDecoration'];
+// The schema's fourth value, 'baseline', renders as nothing: not offered.
+const DECORATIONS = ['underline', 'strikethrough', 'overline'];
+
+/** `('axes', {wght: 700})` → `axes wght 700`; empty or absent → ''. */
+const tags = (what: string, o: Record<string, number | boolean> | undefined) =>
+  o && Object.keys(o).length
+    ? `${what} ${Object.entries(o)
+        .map(([k, v]) => `${k} ${typeof v === 'boolean' ? +v : v}`)
+        .join(', ')}`
+    : '';
 
 const orange = {
   input: {
@@ -48,7 +63,7 @@ export interface TypographyPanelProps {
   fonts: Fonts;
   /** Choices for the Extends row; omit the row entirely when undefined. */
   extendsOptions?: string[];
-  /** Editable text (an input's value) has no text transform. */
+  /** Editable text (an input's value) has no transform and no decoration. */
   hideCase?: boolean;
 }
 
@@ -60,7 +75,9 @@ export function TypographyPanel({
   extendsOptions,
   hideCase,
 }: TypographyPanelProps) {
-  const fields = hideCase ? FIELDS.filter((f) => f.key !== 'textCase') : FIELDS;
+  const fields = hideCase
+    ? FIELDS.filter((f) => !DISPLAY_ONLY.includes(f.key))
+    : FIELDS;
   const set = (key: FieldKey, v: unknown) => {
     const next = { ...value } as Record<string, unknown>;
     if (v === undefined || v === '' || v === null) delete next[key];
@@ -77,6 +94,12 @@ export function TypographyPanel({
       label: `${n} · ${fontLabel(fonts[n])}`,
     }));
   const fontValue = value.font ?? parent?.font;
+  const openType = [
+    tags('axes', value.fontAxes ?? parent?.fontAxes),
+    tags('features', value.fontFeatures ?? parent?.fontFeatures),
+  ]
+    .filter(Boolean)
+    .join(' · ');
   if (fontValue && !fontData.some((d) => d.value === fontValue))
     fontData.push({ value: fontValue, label: fontLabel(fontValue) });
 
@@ -152,7 +175,9 @@ export function TypographyPanel({
               >
                 {f.key === 'font'
                   ? fontLabel(String(inherited))
-                  : String(inherited)}
+                  : Array.isArray(inherited)
+                    ? inherited.join(' ')
+                    : String(inherited)}
               </Text>
             ) : undefined;
           return (
@@ -173,17 +198,33 @@ export function TypographyPanel({
                   rightSection={struck}
                   rightSectionWidth={struck ? 'auto' : undefined}
                 />
-              ) : f.key === 'textCase' ? (
+              ) : f.key === 'textCase' || f.key === 'fontStyle' ? (
                 <Select
                   size="xs"
                   clearable
                   placeholder="none"
                   styles={styles}
-                  data={['none', 'uppercase', 'lowercase']}
+                  data={
+                    f.key === 'textCase'
+                      ? ['none', 'uppercase', 'lowercase']
+                      : ['normal', 'italic', 'oblique']
+                  }
                   value={(own ?? inherited ?? null) as string | null}
-                  onChange={(v) => set('textCase', v ?? undefined)}
+                  onChange={(v) => set(f.key, v ?? undefined)}
                   rightSection={struck}
                   rightSectionWidth={struck ? 'auto' : undefined}
+                />
+              ) : f.key === 'textDecoration' ? (
+                <MultiSelect
+                  size="xs"
+                  clearable
+                  placeholder="none"
+                  styles={styles}
+                  data={DECORATIONS}
+                  value={(own ?? inherited ?? []) as string[]}
+                  onChange={(v) =>
+                    set('textDecoration', v.length ? v : undefined)
+                  }
                 />
               ) : (
                 <NumberInput
@@ -204,6 +245,15 @@ export function TypographyPanel({
             </FieldRow>
           );
         })}
+        {/* ponytail: fontAxes/fontFeatures are code-only — a read-back so a
+            theme that sets them is at least visible; tag editor if asked. */}
+        {openType && (
+          <FieldRow label="OpenType">
+            <Text c="dimmed" fz={11} title="Not editable here">
+              {openType}
+            </Text>
+          </FieldRow>
+        )}
       </div>
     </div>
   );
