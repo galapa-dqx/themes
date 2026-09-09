@@ -545,6 +545,7 @@ export function ImageCard(props: CardProps) {
 export function VariantImageCard(props: CardProps) {
   const { entry, edit, path } = props;
   const r = useRows(props);
+  const tokens = useProjectStore((s) => s.doc.tokens);
   const builtin = BUILTIN[[edit.id, ...path].join('.')] ?? {};
   return (
     <CardShell title={props.title}>
@@ -555,10 +556,12 @@ export function VariantImageCard(props: CardProps) {
               controlLabel(v),
               `assets.${v}`,
               <Group gap={8} wrap="nowrap">
-                {/* The built-in artwork an omitted variant falls back to. */}
+                {/* What this variant actually draws: its own art, or the built-in. */}
                 <ImagePart
                   view={{
-                    assets: {},
+                    assets: {
+                      [v]: resolveAsset(tokens, r.value(`assets.${v}`)),
+                    },
                     builtin,
                     opacity: 1,
                     size: { width: 16, height: 16 },
@@ -571,10 +574,10 @@ export function VariantImageCard(props: CardProps) {
                     value={r.value<string>(`assets.${v}`)}
                     onChange={(x) => r.set(`assets.${v}`, x)}
                     optional
+                    placeholder="Default (built in)"
                   />
                 </div>
               </Group>,
-              'Built-in when unset',
             )}
           </Fragment>
         ))}

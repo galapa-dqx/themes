@@ -344,10 +344,13 @@ export function AssetField({
   value,
   onChange,
   optional,
+  placeholder,
 }: {
   value: string | undefined;
   onChange(v: string | undefined): void;
   optional?: boolean;
+  /** What "unset" means here; defaults to nothing being drawn. */
+  placeholder?: string;
 }) {
   const { id: themeId = '' } = useParams();
   const assets = useProjectStore((s) => s.doc.tokens.assets ?? EMPTY);
@@ -373,7 +376,7 @@ export function AssetField({
       <Select
         size="xs"
         flex={1}
-        placeholder={optional ? 'none' : 'Choose an asset'}
+        placeholder={placeholder ?? (optional ? 'none' : 'Choose an asset')}
         clearable={optional}
         leftSection={token ? <IconLink size={13} /> : undefined}
         error={missing}
