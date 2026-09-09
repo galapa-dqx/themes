@@ -12,6 +12,7 @@ import { CarouselSpecimen } from './specimens/carousel';
 import { FocusRingSpecimen } from './specimens/focus-ring';
 import { InputSpecimen } from './specimens/input';
 import { PanelSpecimen } from './specimens/panel';
+import { ScrollbarSpecimen, ScrollbarFields } from './specimens/scrollbar';
 import { SubtabSpecimen } from './specimens/subtab';
 import { SwitchSpecimen, SwitchFields } from './specimens/switch';
 import { TabSpecimen } from './specimens/tab';
@@ -36,5 +37,10 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   tab: { Specimen: TabSpecimen },
   subtab: { Specimen: SubtabSpecimen },
   switch: { Specimen: SwitchSpecimen, Fields: SwitchFields },
+  scrollbar: {
+    Specimen: ScrollbarSpecimen,
+    Fields: ScrollbarFields,
+    cellWidth: 220,
+  },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };
