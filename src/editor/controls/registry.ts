@@ -9,6 +9,7 @@ import type { SpecimenComponent } from '@/editor/preview/Island';
 import type { StateName } from '@/editor/preview/resolve';
 import { ButtonSpecimen } from './specimens/button';
 import { FocusRingSpecimen } from './specimens/focus-ring';
+import { InputSpecimen } from './specimens/input';
 import { PanelSpecimen } from './specimens/panel';
 import { WindowSpecimen } from './specimens/window';
 
@@ -24,5 +25,6 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   window: { Specimen: WindowSpecimen },
   panel: { Specimen: PanelSpecimen },
   button: { Specimen: ButtonSpecimen },
+  input: { Specimen: InputSpecimen },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };

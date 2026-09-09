@@ -136,6 +136,24 @@ function CardShell({
   );
 }
 
+/** The switch only picks whether the owner draws the ring; the ring is its own control. */
+function RingHint() {
+  const { id: themeId = '' } = useParams();
+  return (
+    <>
+      The ring itself is the{' '}
+      <Anchor
+        component={Link}
+        to={`/editor/${themeId}/controls/focus-ring`}
+        fz={11}
+      >
+        Focus ring
+      </Anchor>{' '}
+      control
+    </>
+  );
+}
+
 /** Why the Default tab has rows this one doesn't: the schema has no per-state field for them. */
 const StateNote = () => (
   <Text fz={11} c="dimmed" mt={12}>
@@ -284,7 +302,7 @@ export function FrameCard(props: CardProps) {
                 r.set('showRing', e.currentTarget.checked ? undefined : false)
               }
             />,
-            'The ring itself is the Focus ring control',
+            <RingHint />,
           )}
       </Rows>
       {asset && !r.stateScope && (
@@ -502,6 +520,7 @@ export function ImageCard(props: CardProps) {
                 r.set('showRing', e.currentTarget.checked ? undefined : false)
               }
             />,
+            <RingHint />,
           )}
       </Rows>
     </CardShell>
