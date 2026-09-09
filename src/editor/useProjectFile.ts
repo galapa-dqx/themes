@@ -6,7 +6,8 @@ import {
   GoogleFonts,
   type GoogleFont,
 } from '@/compiler/googleFonts';
-import { readProjectFile } from './persistence';
+import { useStore } from 'zustand';
+import { fileRevisions, readProjectFile } from './persistence';
 import { useProjectStore } from './projectStore';
 import { runtime } from './runtime';
 
@@ -22,6 +23,10 @@ export function useProjectFile(
   type = 'application/octet-stream',
 ) {
   const dir = useProjectStore((s) => s.dir);
+  const rev = useStore(
+    fileRevisions,
+    (s) => s[`${dir}/${path?.replace(/^\.\//, '')}`] ?? 0,
+  );
   const [file, setFile] = useState<{
     path: string;
     file?: ProjectFile;
@@ -43,7 +48,7 @@ export function useProjectFile(
       live = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [dir, path, type]);
+  }, [dir, path, type, rev]);
   return file?.path === path ? file : undefined;
 }
 

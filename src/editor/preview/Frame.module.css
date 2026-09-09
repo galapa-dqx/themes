@@ -1,0 +1,141 @@
+/* The themed box, ported from main's Themed.module.css minus transitions and
+   pseudo-class state rules: the editor always renders one forced state, so
+   every --part-* value is set inline from the resolved view.
+
+   The stroke is two bands stacked vertically: .TopEdge owns the top border
+   and both top corners; .Body owns the other three sides and the bottom
+   corners. That split is what seats a label in the border — .TopEdge is a
+   flex row, so a node dropped into it pushes the stroke aside. */
+.Host {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  isolation: isolate;
+  background: none;
+  border: 0;
+}
+
+.Surface {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  --band: min(
+    max(var(--part-radius), var(--part-bw-t)) + var(--part-corner-pad),
+    50%
+  );
+  background: var(--part-fill);
+  border-radius: var(--part-radius);
+  pointer-events: none;
+}
+
+.TopEdge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  height: var(--band);
+}
+
+.Lead,
+.Trail,
+.Body {
+  border-style: solid;
+  border-width: var(--part-bw);
+  border-color: var(--part-bc);
+}
+
+.Lead {
+  flex: none;
+  height: 100%;
+  min-width: var(--part-lead);
+  border-right-width: 0;
+  border-bottom-width: 0;
+  border-top-left-radius: var(--part-radius);
+  aspect-ratio: 1;
+}
+
+.Trail {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border-left-width: 0;
+  border-bottom-width: 0;
+  border-top-right-radius: var(--part-radius);
+}
+
+.Body {
+  position: absolute;
+  inset: var(--band) 0 0;
+  border-top-width: 0;
+  border-bottom-right-radius: var(--part-radius);
+  border-bottom-left-radius: var(--part-radius);
+}
+
+@supports (corner-shape: bevel) {
+  .Surface,
+  .Lead,
+  .Trail,
+  .Body {
+    corner-shape: var(--part-corner);
+  }
+}
+
+/* Seated in the stroke, centred on it. Colour is the label part's own. */
+.Label {
+  flex: none;
+  align-self: flex-start;
+  white-space: nowrap;
+  pointer-events: auto;
+  translate: 0 calc(var(--part-bw-t) / 2 - 50%);
+}
+
+.LayerStack {
+  position: absolute;
+  z-index: -1;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.LayerFill {
+  position: absolute;
+  inset: 0;
+}
+
+.Placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  outline: 1px dashed #ff00ff;
+  outline-offset: -1px;
+  pointer-events: none;
+}
+
+/* "Show boxes": the layout box and the content (padding) box. */
+.LayoutBox,
+.ContentBox {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.LayoutBox {
+  inset: 0;
+  outline: 1px dashed var(--mantine-color-blue-5);
+  outline-offset: -1px;
+}
+
+.ContentBox {
+  outline: 1px dashed var(--mantine-color-orange-5);
+  outline-offset: -1px;
+}
+
+.Image {
+  display: inline-flex;
+  flex: none;
+}
+
+.Image > svg {
+  width: 100%;
+  height: 100%;
+}

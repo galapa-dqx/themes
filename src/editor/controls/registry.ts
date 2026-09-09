@@ -1,0 +1,19 @@
+/**
+ * Per-control modules: a faithful specimen for the preview panel and, when a
+ * control needs rows the kind cards don't cover, extra fields. Filled in one
+ * port at a time; a control without an entry gets the generic specimen.
+ */
+import type { ComponentType } from 'react';
+import type { RootControlId } from '@/theme/catalog';
+import type { SpecimenComponent } from '@/editor/preview/Island';
+import type { StateName } from '@/editor/preview/resolve';
+
+export type { SpecimenComponent };
+
+export interface ControlModule {
+  Specimen: SpecimenComponent;
+  /** Rendered after the kind cards, in the same state scope. */
+  Fields?: ComponentType<{ id: RootControlId; state: StateName }>;
+}
+
+export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {};

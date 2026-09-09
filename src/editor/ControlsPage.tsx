@@ -5,13 +5,10 @@
  */
 import { useState, type ComponentType } from 'react';
 import {
-  Badge,
-  Card,
   Group,
   NavLink,
   Stack,
   Switch,
-  Tabs,
   Text,
   TextInput,
   Title,
@@ -38,12 +35,18 @@ import {
   IconToggleRight,
   type IconProps,
 } from '@tabler/icons-react';
-import { Link, Navigate, useParams } from 'react-router';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router';
 import {
   CONTROL_CATALOG,
-  type CatalogEntry,
+  type ControlState,
   type RootControlId,
 } from '@/theme/catalog';
+import { ControlEditor } from './controls/ControlEditor';
+import { CONTROLS } from './controls/registry';
+import { GenericSpecimen } from './preview/GenericSpecimen';
+import { Island, StateGrid } from './preview/Island';
+import { statesOf, type StateName } from './preview/resolve';
+import { BoxesContext } from './preview/useView';
 import { useProjectStore } from './projectStore';
 import { SplitPane } from './SplitPane';
 import { controlLabel } from './tokensUtil';
@@ -240,81 +243,44 @@ export function ControlsPage() {
           })}
         </Stack>
       </Stack>
-      <SplitPane side={<PreviewPanel />}>
-        <Stack key={current} gap={0} style={{ overflow: 'auto', minWidth: 0 }}>
-          <Group gap={12} p="20px 24px 0" wrap="nowrap">
-            <div style={{ flex: 1 }}>
-              <Title order={2} fz={20}>
-                {controlLabel(current)}
-              </Title>
-              <Text c="dimmed" fz={13}>
-                {META[current].description}
-              </Text>
-            </div>
-          </Group>
-          <ControlEditor id={current} />
-        </Stack>
-      </SplitPane>
+      <Workspace key={current} id={current} />
     </div>
   );
 }
 
-/** The editor for one control; each control's port fills in its body. */
-function ControlEditor({ id }: { id: RootControlId }) {
-  const entry: CatalogEntry = CONTROL_CATALOG[id];
-  const states = ['default', ...(entry.states ?? [])];
-  const [state, setState] = useState(states[0]);
+/** Editor and preview of one control; the state tab lives in `?state=`. */
+function Workspace({ id }: { id: RootControlId }) {
+  const [params, setParams] = useSearchParams();
+  const wanted = params.get('state');
+  const state: StateName =
+    wanted && statesOf(CONTROL_CATALOG[id]).includes(wanted as ControlState)
+      ? (wanted as StateName)
+      : 'default';
+  const setState = (s: StateName) =>
+    setParams(s === 'default' ? {} : { state: s }, { replace: true });
   return (
-    <>
-      {states.length > 1 && (
-        <Tabs
-          value={state}
-          onChange={(v) => setState(v ?? 'default')}
-          p="16px 24px 0"
-        >
-          <Tabs.List>
-            {states.map((s) => (
-              <Tabs.Tab key={s} value={s}>
-                {controlLabel(s)}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-        </Tabs>
-      )}
-      <Stack gap={16} p="20px 24px">
-        {/* ponytail: placeholder until this control is ported from main. */}
-        <Card shadow="xs">
-          <Group gap={8} mb={8}>
-            <Text fw={600}>Not built yet</Text>
-            <Badge variant="light" color="gray" size="sm" tt="none" fw={400}>
-              {entry.kind}
-            </Badge>
-            {entry.required && (
-              <Badge
-                variant="light"
-                color="orange"
-                size="sm"
-                tt="none"
-                fw={400}
-              >
-                required
-              </Badge>
-            )}
-          </Group>
-          <Text fz={13} c="dimmed">
-            {entry.parts
-              ? `Parts: ${Object.entries(entry.parts)
-                  .map(([name, p]) => `${name} (${p.kind})`)
-                  .join(', ')}.`
-              : 'No parts.'}
-          </Text>
-        </Card>
+    <SplitPane side={<PreviewPanel id={id} state={state} />}>
+      <Stack gap={0} style={{ overflow: 'auto', minWidth: 0 }}>
+        <Group gap={12} p="20px 24px 0" wrap="nowrap">
+          <div style={{ flex: 1 }}>
+            <Title order={2} fz={20}>
+              {controlLabel(id)}
+            </Title>
+            <Text c="dimmed" fz={13}>
+              {META[id].description}
+            </Text>
+          </div>
+        </Group>
+        <ControlEditor id={id} state={state} onState={setState} />
       </Stack>
-    </>
+    </SplitPane>
   );
 }
 
-function PreviewPanel() {
+function PreviewPanel({ id, state }: { id: RootControlId; state: StateName }) {
+  const [boxes, setBoxes] = useState(false);
+  // ponytail: the 4a "In context · Launcher" shot is the future Preview page.
+  const Specimen = CONTROLS[id]?.Specimen ?? GenericSpecimen;
   return (
     <div
       style={{
@@ -334,11 +300,23 @@ function PreviewPanel() {
       >
         <Text fw={600}>Preview</Text>
         <div style={{ flex: 1 }} />
-        <Switch label="Show boxes" size="xs" defaultChecked disabled />
+        <Switch
+          label="Show boxes"
+          size="xs"
+          checked={boxes}
+          onChange={(e) => setBoxes(e.currentTarget.checked)}
+        />
       </Group>
-      <Text fz={12} c="dimmed" p={16}>
-        Isolated and in-context previews arrive with each control.
-      </Text>
+      <Stack gap={8} p={16}>
+        <Text fz={11} fw={600} c="dimmed" tt="uppercase" lts={0.4}>
+          Isolated · {controlLabel(id)} · {controlLabel(state)}
+        </Text>
+        <BoxesContext.Provider value={boxes}>
+          <Island>
+            <StateGrid id={id} Specimen={Specimen} current={state} />
+          </Island>
+        </BoxesContext.Provider>
+      </Stack>
     </div>
   );
 }

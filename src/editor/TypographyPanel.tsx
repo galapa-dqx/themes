@@ -48,6 +48,8 @@ export interface TypographyPanelProps {
   fonts: Fonts;
   /** Choices for the Extends row; omit the row entirely when undefined. */
   extendsOptions?: string[];
+  /** Editable text (an input's value) has no text transform. */
+  hideCase?: boolean;
 }
 
 export function TypographyPanel({
@@ -56,7 +58,9 @@ export function TypographyPanel({
   parent,
   fonts,
   extendsOptions,
+  hideCase,
 }: TypographyPanelProps) {
+  const fields = hideCase ? FIELDS.filter((f) => f.key !== 'textCase') : FIELDS;
   const set = (key: FieldKey, v: unknown) => {
     const next = { ...value } as Record<string, unknown>;
     if (v === undefined || v === '' || v === null) delete next[key];
@@ -129,7 +133,7 @@ export function TypographyPanel({
           borderTop: '1px solid var(--mantine-color-default-border)',
         }}
       >
-        {FIELDS.map((f) => {
+        {fields.map((f) => {
           const own = value[f.key];
           const inherited = parent?.[f.key];
           const over = overridden(f.key);

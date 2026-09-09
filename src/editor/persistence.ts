@@ -13,6 +13,7 @@ import { Diagnostics, type Diagnostic } from '@/compiler/diagnostics';
 import { loadProject } from '@/compiler/project';
 import type { RootControlId } from '@/theme/catalog';
 import { schemaUrl } from '@/theme/schema';
+import { createStore } from 'zustand/vanilla';
 import {
   createProjectStore,
   dirtyFiles,
@@ -276,10 +277,16 @@ export const duplicateProject = (from: string, doc: Document) =>
     return id;
   });
 
+const fullPath = (dir: string, path: string) =>
+  `${dir}/${path.replace(/^\.\//, '')}`;
+
+/** Write count per full path, so `useProjectFile` re-reads after a write in this tab. */
+export const fileRevisions = createStore<Record<string, number>>(() => ({}));
+
 /** Bytes of a project-relative file (`./assets/x.svg` or `assets/x.svg`). */
 export const readProjectFile = (dir: string, path: string) =>
   Effect.flatMap(FileSystem.FileSystem, (fs) =>
-    fs.readFile(`${dir}/${path.replace(/^\.\//, '')}`),
+    fs.readFile(fullPath(dir, path)),
   );
 
 /** Writes a project-relative file, creating parent folders. */
@@ -290,7 +297,8 @@ export const writeProjectFile = (
 ) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
-    const full = `${dir}/${path.replace(/^\.\//, '')}`;
+    const full = fullPath(dir, path);
     yield* fs.makeDirectory(full.replace(/\/[^/]+$/, ''), { recursive: true });
     yield* fs.writeFile(full, bytes);
+    fileRevisions.setState((s) => ({ [full]: (s[full] ?? 0) + 1 }));
   });

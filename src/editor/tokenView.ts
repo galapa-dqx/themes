@@ -20,7 +20,7 @@ type Result<R> =
   { value: R; error?: undefined } | { value?: undefined; error: string };
 
 /** A memoizing, cycle-detecting getter over one token category. */
-const resolver = <V, R>(
+export const resolver = <V, R>(
   record: Record<string, V>,
   evaluate: (value: V, get: (name: string, path?: string) => R) => R,
 ) => {
@@ -61,7 +61,7 @@ const resolver = <V, R>(
 };
 
 const REF = /^\{(fonts|assets)\.([a-z0-9-]+)\}$/;
-const evalAlias = (value: string, get: (name: string) => string) => {
+export const evalAlias = (value: string, get: (name: string) => string) => {
   const m = REF.exec(value);
   return m ? get(m[2]) : value;
 };
