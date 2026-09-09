@@ -19,6 +19,7 @@ import { SettingRowSpecimen, SettingRowFields } from './specimens/setting-row';
 import { SubtabSpecimen } from './specimens/subtab';
 import { SwitchSpecimen, SwitchFields } from './specimens/switch';
 import { TabSpecimen } from './specimens/tab';
+import { TitlebarSpecimen, TitlebarFields } from './specimens/titlebar';
 import { WindowSpecimen } from './specimens/window';
 
 export type { SpecimenComponent };
@@ -51,6 +52,11 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
     Specimen: SettingRowSpecimen,
     Fields: SettingRowFields,
     cellWidth: 300,
+  },
+  titlebar: {
+    Specimen: TitlebarSpecimen,
+    Fields: TitlebarFields,
+    cellWidth: 320,
   },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };
