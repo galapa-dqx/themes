@@ -36,6 +36,7 @@ import {
 import { useAppStore } from '@/editor/appStore';
 import { duplicateProject } from '@/editor/persistence';
 import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
+import { ControlsPage } from '@/editor/ControlsPage';
 import { ProjectPage } from '@/editor/ProjectPage';
 import { SettingsPage } from '@/editor/SettingsPage';
 import { TokensPage } from '@/editor/TokensPage';
@@ -242,6 +243,7 @@ export default function App() {
         {open && <TouchRecent themeId={themeId} />}
         {open && current.id === 'project' && <ProjectPage />}
         {open && current.id === 'tokens' && <TokensPage />}
+        {open && current.id === 'controls' && <ControlsPage />}
       </Shell>
     </ProjectStoreProvider>
   );

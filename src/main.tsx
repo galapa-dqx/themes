@@ -17,7 +17,7 @@ createRoot(document.getElementById('root')!).render(
             path="/editor/:id"
             element={<Navigate to="controls" replace />}
           />
-          <Route path="/editor/:id/:section" element={<App />} />
+          <Route path="/editor/:id/:section/:item?" element={<App />} />
           <Route path="*" element={<Navigate to="/editor" replace />} />
         </Routes>
       </BrowserRouter>
