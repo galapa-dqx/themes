@@ -8,6 +8,7 @@
  * Every tile is `disabled`: the grid forces one state per tile with inline
  * styles, so a live button's own hover/focus would contradict its caption.
  */
+import type { CSSProperties, ReactNode } from 'react';
 import { Frame } from '@/editor/preview/Frame';
 import type {
   ControlView,
@@ -36,6 +37,36 @@ const paint = (view: ControlView) => {
     .join(' · ');
 };
 
+/** main's `<Button>`: the frame plus its text part. Also the play-row's host row. */
+export function ThemedButton({
+  view,
+  ring,
+  style,
+  children,
+}: {
+  view: ControlView;
+  /** Pass only when the state shows the ring. */
+  ring?: FocusRingView;
+  style?: CSSProperties;
+  children?: ReactNode;
+}) {
+  if (view.kind !== 'frame') return null;
+  const label =
+    view.parts.text?.kind === 'text' ? view.parts.text.text : undefined;
+  return (
+    <Frame
+      as="button"
+      type="button"
+      disabled
+      view={view.frame}
+      ring={ring}
+      style={{ justifyContent: 'center', cursor: 'pointer', ...style }}
+    >
+      {label && <TextPart view={label}>{children}</TextPart>}
+    </Frame>
+  );
+}
+
 export function ButtonSpecimen({
   view,
   state,
@@ -46,8 +77,6 @@ export function ButtonSpecimen({
   ring: FocusRingView;
 }) {
   if (view.kind !== 'frame') return null;
-  const label =
-    view.parts.text?.kind === 'text' ? view.parts.text.text : undefined;
   return (
     <div
       style={{
@@ -58,19 +87,13 @@ export function ButtonSpecimen({
         minWidth: 0,
       }}
     >
-      <Frame
-        as="button"
-        type="button"
-        disabled
-        view={view.frame}
+      <ThemedButton
+        view={view}
         ring={view.showRing ? ring : undefined}
-        style={{
-          justifyContent: 'center',
-          cursor: state === 'disabled' ? 'default' : 'pointer',
-        }}
+        style={{ cursor: state === 'disabled' ? 'default' : 'pointer' }}
       >
-        {label && <TextPart view={label}>Play</TextPart>}
-      </Frame>
+        Play
+      </ThemedButton>
       <span
         style={{
           fontFamily: 'monospace',

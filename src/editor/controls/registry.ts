@@ -13,6 +13,7 @@ import { FocusRingSpecimen } from './specimens/focus-ring';
 import { InputSpecimen } from './specimens/input';
 import { NewsItemSpecimen } from './specimens/news-item';
 import { PanelSpecimen } from './specimens/panel';
+import { PlayRowSpecimen } from './specimens/play-row';
 import { ProgressSpecimen, ProgressFields } from './specimens/progress';
 import { ScrollbarSpecimen, ScrollbarFields } from './specimens/scrollbar';
 import { SettingHelpSpecimen } from './specimens/setting-help';
@@ -67,4 +68,5 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
     cellWidth: 320,
   },
   'focus-ring': { Specimen: FocusRingSpecimen },
+  'play-row': { Specimen: PlayRowSpecimen },
 };
