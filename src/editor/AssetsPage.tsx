@@ -34,6 +34,7 @@ import { runtime } from './runtime';
 import { Slicer } from './slicer';
 import { DropZone } from './FontsPage';
 import { SliceEditor } from './SliceEditor';
+import { SplitPane } from './SplitPane';
 import { Heading, RowMenu, UsedBy } from './tokensShared';
 import {
   EMPTY,
@@ -203,12 +204,22 @@ export function AssetsPage({ view }: { view: TokenView }) {
   );
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(360px, 1fr) minmax(240px, 320px)',
-        minHeight: 0,
-      }}
+    <SplitPane
+      side={
+        current ? (
+          <AssetDetail
+            key={current.name}
+            row={current}
+            onReplace={(f) => void upload(f, current.name)}
+          />
+        ) : (
+          <div
+            style={{
+              borderLeft: '1px solid var(--mantine-color-default-border)',
+            }}
+          />
+        )
+      }
     >
       <Stack gap={16} p="20px 24px" style={{ overflow: 'auto', minWidth: 0 }}>
         <Heading
@@ -381,20 +392,7 @@ export function AssetsPage({ view }: { view: TokenView }) {
           </Text>
         )}
       </Stack>
-      {current ? (
-        <AssetDetail
-          key={current.name}
-          row={current}
-          onReplace={(f) => void upload(f, current.name)}
-        />
-      ) : (
-        <div
-          style={{
-            borderLeft: '1px solid var(--mantine-color-default-border)',
-          }}
-        />
-      )}
-    </div>
+    </SplitPane>
   );
 }
 

@@ -16,6 +16,9 @@ export interface AppState {
   readonly recent: readonly RecentProject[];
   /** Last picked hex colors, newest first. */
   readonly recentColors: readonly string[];
+  /** Share of the page given to the right-hand panel, on every page that has one. */
+  readonly sideFraction: number;
+  setSideFraction(fraction: number): void;
   pushRecentColor(hex: string): void;
   touchRecent(project: Pick<RecentProject, 'id' | 'name'>): void;
   forgetRecent(id: string): void;
@@ -28,6 +31,8 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       recent: [],
       recentColors: [],
+      sideFraction: 1 / 3,
+      setSideFraction: (sideFraction) => set({ sideFraction }),
       pushRecentColor: (hex) =>
         set((s) => ({
           recentColors: [hex, ...s.recentColors.filter((c) => c !== hex)].slice(

@@ -44,6 +44,7 @@ import {
   TOKEN_NAME,
   type TokenView,
 } from './tokenView';
+import { SplitPane } from './SplitPane';
 import {
   googleFaces,
   useFontFamily,
@@ -133,12 +134,18 @@ export function FontsPage({ view }: { view: TokenView }) {
   const rows = view.fonts;
   const current = rows.find((r) => r.name === selected) ?? rows[0];
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'minmax(360px, 1fr) minmax(240px, 320px)',
-        minHeight: 0,
-      }}
+    <SplitPane
+      side={
+        current ? (
+          <FontDetail key={current.name} row={current} />
+        ) : (
+          <div
+            style={{
+              borderLeft: '1px solid var(--mantine-color-default-border)',
+            }}
+          />
+        )
+      }
     >
       <Stack gap={16} p="20px 24px" style={{ overflow: 'auto', minWidth: 0 }}>
         <FontTable
@@ -147,16 +154,7 @@ export function FontsPage({ view }: { view: TokenView }) {
           onSelect={setSelected}
         />
       </Stack>
-      {current ? (
-        <FontDetail key={current.name} row={current} />
-      ) : (
-        <div
-          style={{
-            borderLeft: '1px solid var(--mantine-color-default-border)',
-          }}
-        />
-      )}
-    </div>
+    </SplitPane>
   );
 }
 
