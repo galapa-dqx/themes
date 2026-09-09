@@ -1,0 +1,13 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/metadata.schema.json",
+  "formatVersion": 1,
+  "id": "app.galapa.themes.galapamaille00000000",
+  "name": "Maille",
+  "author": {
+    "name": "Galapa Team",
+    "url": "https://galapa.app/"
+  },
+  "description": "A rose-tinted theme with a filled-pill button.",
+  "updates": null,
+  "chromeStyle": "light"
+}

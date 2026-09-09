@@ -1,0 +1,58 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/titlebar.schema.json",
+  "shape": "path",
+  "fill": "{colors.surface-2}",
+  "border": {
+    "color": "{colors.border}",
+    "thickness": [0, 0, 1, 0]
+  },
+  "padding": [0, 0, 0, 23],
+  "size": {
+    "height": 34
+  },
+  "parts": {
+    "wordmark": {
+      "color": "{colors.accent}",
+      "typography": {
+        "$extends": "{typography.heading}",
+        "fontSize": 20,
+        "textCase": "uppercase"
+      }
+    },
+    "caption": {
+      "shape": "path",
+      "size": {
+        "width": 34,
+        "height": 34
+      },
+      "states": {
+        "hover": {
+          "fill": "{colors.surface}"
+        }
+      }
+    },
+    "caption-icon": {
+      "color": "{colors.muted}"
+    },
+    "close": {
+      "shape": "path",
+      "size": {
+        "width": 34,
+        "height": 34
+      },
+      "states": {
+        "hover": {
+          "fill": "{colors.danger}"
+        }
+      }
+    },
+    "close-icon": {
+      "color": "{colors.danger}",
+      "states": {
+        "hover": {
+          "color": "{colors.surface}"
+        }
+      }
+    }
+  }
+}

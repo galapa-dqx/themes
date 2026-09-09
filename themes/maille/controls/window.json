@@ -1,0 +1,5 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/window.schema.json",
+  "fill": "{colors.bg}",
+  "borderColor": "{colors.border}"
+}

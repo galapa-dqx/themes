@@ -1,0 +1,12 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/subtabs.schema.json",
+  "shape": "path",
+  "fill": "{colors.surface-2}",
+  "border": {
+    "color": "{colors.border}",
+    "thickness": [0, 0, 1, 0]
+  },
+  "size": {
+    "height": 34
+  }
+}
