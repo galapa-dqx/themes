@@ -38,6 +38,7 @@ import { duplicateProject } from '@/editor/persistence';
 import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
 import { ProjectPage } from '@/editor/ProjectPage';
 import { SettingsPage } from '@/editor/SettingsPage';
+import { TokensPage } from '@/editor/TokensPage';
 import { runtime } from '@/editor/runtime';
 import { ProjectStoreProvider, useProjectStore } from '@/editor/projectStore';
 import { useProject, type ProjectState } from '@/editor/useProject';
@@ -240,6 +241,7 @@ export default function App() {
         )}
         {open && <TouchRecent themeId={themeId} />}
         {open && current.id === 'project' && <ProjectPage />}
+        {open && current.id === 'tokens' && <TokensPage />}
       </Shell>
     </ProjectStoreProvider>
   );

@@ -14,6 +14,9 @@ export interface RecentProject {
 
 export interface AppState {
   readonly recent: readonly RecentProject[];
+  /** Last picked hex colors, newest first. */
+  readonly recentColors: readonly string[];
+  pushRecentColor(hex: string): void;
   touchRecent(project: Pick<RecentProject, 'id' | 'name'>): void;
   forgetRecent(id: string): void;
 }
@@ -24,6 +27,14 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       recent: [],
+      recentColors: [],
+      pushRecentColor: (hex) =>
+        set((s) => ({
+          recentColors: [hex, ...s.recentColors.filter((c) => c !== hex)].slice(
+            0,
+            8,
+          ),
+        })),
       touchRecent: ({ id, name }) =>
         set((s) => ({
           recent: [
