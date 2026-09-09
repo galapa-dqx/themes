@@ -1,0 +1,23 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/scrollbar.schema.json",
+  "parts": {
+    "track": {
+      "shape": "path",
+      "radius": 4,
+      "corner": "bevel",
+      "fill": "{colors.surface-2}",
+      "size": {
+        "width": 8
+      }
+    },
+    "thumb": {
+      "shape": "path",
+      "radius": 4,
+      "corner": "bevel",
+      "fill": "{colors.muted}",
+      "size": {
+        "width": 8
+      }
+    }
+  }
+}

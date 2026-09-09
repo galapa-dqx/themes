@@ -1,0 +1,40 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/switch.schema.json",
+  "parts": {
+    "track": {
+      "shape": "path",
+      "radius": "pill",
+      "corner": "bevel",
+      "fill": "{colors.surface-2}",
+      "border": {
+        "color": "{colors.border}",
+        "thickness": 1
+      },
+      "padding": 2,
+      "size": {
+        "width": 34,
+        "height": 17
+      },
+      "states": {
+        "disabled": {
+          "opacity": 0.5
+        }
+      }
+    },
+    "thumb": {
+      "shape": "path",
+      "radius": 6.5,
+      "corner": "bevel",
+      "fill": "{colors.border}",
+      "size": {
+        "width": 13,
+        "height": 13
+      },
+      "states": {
+        "checked": {
+          "fill": "{colors.accent}"
+        }
+      }
+    }
+  }
+}

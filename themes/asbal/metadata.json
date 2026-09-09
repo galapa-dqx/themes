@@ -1,0 +1,13 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/metadata.schema.json",
+  "formatVersion": 1,
+  "id": "app.galapa.themes.galapaasbal000000000",
+  "name": "Asbal",
+  "author": {
+    "name": "Galapa Team",
+    "url": "https://galapa.app/"
+  },
+  "description": "Dark crimson built-in, filled-pill buttons.",
+  "updates": null,
+  "chromeStyle": "dark"
+}
