@@ -136,6 +136,13 @@ function CardShell({
   );
 }
 
+/** Why the Default tab has rows this one doesn't: the schema has no per-state field for them. */
+const StateNote = () => (
+  <Text fz={11} c="dimmed" mt={12}>
+    Only these fields can differ per state.
+  </Text>
+);
+
 const opacityRow = (r: ReturnType<typeof useRows>) =>
   r.row(
     'Opacity',
@@ -283,6 +290,7 @@ export function FrameCard(props: CardProps) {
       {asset && !r.stateScope && (
         <SlicingSection value={r.value<string>('asset')} />
       )}
+      {r.stateScope && <StateNote />}
     </CardShell>
   );
 }
@@ -428,6 +436,7 @@ export function TextCard(props: CardProps) {
             'Run of stroke before the label',
           )}
       </Rows>
+      {r.stateScope && <StateNote />}
     </CardShell>
   );
 }

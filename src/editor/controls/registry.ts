@@ -7,6 +7,7 @@ import type { ComponentType } from 'react';
 import type { RootControlId } from '@/theme/catalog';
 import type { SpecimenComponent } from '@/editor/preview/Island';
 import type { StateName } from '@/editor/preview/resolve';
+import { ButtonSpecimen } from './specimens/button';
 import { FocusRingSpecimen } from './specimens/focus-ring';
 import { PanelSpecimen } from './specimens/panel';
 import { WindowSpecimen } from './specimens/window';
@@ -22,5 +23,6 @@ export interface ControlModule {
 export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   window: { Specimen: WindowSpecimen },
   panel: { Specimen: PanelSpecimen },
+  button: { Specimen: ButtonSpecimen },
   'focus-ring': { Specimen: FocusRingSpecimen },
 };
