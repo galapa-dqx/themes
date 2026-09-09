@@ -78,28 +78,29 @@ export function FieldRow({
   label: string;
   /** This state overrides the field: orange label and a reset arrow. */
   overridden?: boolean;
-  /** Small text under the label, e.g. the inherited value. */
+  /** Small text under the field, e.g. the inherited value. */
   hint?: ReactNode;
   onReset?: () => void;
   children: ReactNode;
 }) {
   return (
     <>
+      <Text
+        fz={13}
+        c={overridden ? 'orange.7' : 'dimmed'}
+        fw={overridden ? 600 : undefined}
+        style={{ minWidth: 0, alignSelf: hint ? 'start' : undefined }}
+      >
+        {label}
+      </Text>
       <div style={{ minWidth: 0 }}>
-        <Text
-          fz={13}
-          c={overridden ? 'orange.7' : 'dimmed'}
-          fw={overridden ? 600 : undefined}
-        >
-          {label}
-        </Text>
+        {children}
         {hint && (
-          <Text fz={11} c="dimmed" truncate>
+          <Text fz={11} c="dimmed" mt={4}>
             {hint}
           </Text>
         )}
       </div>
-      <div style={{ minWidth: 0 }}>{children}</div>
       {onReset ? (
         <Tooltip label="Reset to Default state" position="left">
           <ActionIcon
@@ -134,13 +135,16 @@ export function PaintField({
 }) {
   const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
   const first = Object.keys(colors)[0];
-  const seed: ColorValue = first ? `{colors.${first}}` : '#888888';
   const none = value === 'none';
+  // Turning None back off restores the colour it replaced, not a random token.
+  const last = useRef<ColorValue | undefined>(undefined);
+  const seed = (): ColorValue =>
+    last.current ?? (first ? `{colors.${first}}` : '#888888');
   return (
     <Group gap={6} wrap="nowrap">
       {value === undefined || none ? (
         <UnstyledButton
-          onClick={() => onChange(seed)}
+          onClick={() => onChange(seed())}
           style={{
             flex: 1,
             padding: '6px 10px',
@@ -166,7 +170,10 @@ export function PaintField({
             color={none ? 'gray' : undefined}
             size={30}
             aria-label="None"
-            onClick={() => onChange(none ? seed : 'none')}
+            onClick={() => {
+              if (!none && value !== undefined) last.current = value;
+              onChange(none ? seed() : 'none');
+            }}
           >
             <IconBan size={15} />
           </ActionIcon>

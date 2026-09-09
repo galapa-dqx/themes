@@ -545,7 +545,6 @@ export function VariantImageCard(props: CardProps) {
 
 export function WindowCard(props: CardProps) {
   const r = useRows(props);
-  const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
   const fill = r.value<Paint>('fill');
   return (
     <CardShell title={props.title}>
@@ -553,19 +552,14 @@ export function WindowCard(props: CardProps) {
         {r.row(
           'Fill',
           'fill',
-          fill === undefined || fill === 'none' ? (
-            <PaintField
-              value={undefined}
-              onChange={(v) => r.set('fill', v)}
-              error="Required"
-            />
-          ) : (
-            <ColorField
-              value={fill}
-              onChange={(v) => r.set('fill', v)}
-              colors={colors}
-            />
-          ),
+          <PaintField
+            value={fill}
+            onChange={(v) => r.set('fill', v)}
+            error={
+              fill === undefined || fill === 'none' ? 'Required' : undefined
+            }
+          />,
+          'Behind every page of the app',
         )}
         {r.row(
           'Border',
@@ -575,7 +569,7 @@ export function WindowCard(props: CardProps) {
             onChange={(v) => r.set('borderColor', v)}
             allowNone
           />,
-          '1px on the OS window frame; hidden when maximized',
+          '1px on the OS window frame; hidden when maximized and in console mode',
         )}
       </Rows>
     </CardShell>

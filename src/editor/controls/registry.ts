@@ -7,6 +7,7 @@ import type { ComponentType } from 'react';
 import type { RootControlId } from '@/theme/catalog';
 import type { SpecimenComponent } from '@/editor/preview/Island';
 import type { StateName } from '@/editor/preview/resolve';
+import { WindowSpecimen } from './specimens/window';
 
 export type { SpecimenComponent };
 
@@ -16,4 +17,6 @@ export interface ControlModule {
   Fields?: ComponentType<{ id: RootControlId; state: StateName }>;
 }
 
-export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {};
+export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
+  window: { Specimen: WindowSpecimen },
+};
