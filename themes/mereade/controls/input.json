@@ -1,0 +1,58 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/input.schema.json",
+  "shape": "path",
+  "border": {
+    "color": "{colors.border}",
+    "thickness": 1
+  },
+  "padding": [6, 10, 6, 10],
+  "states": {
+    "focused": {
+      "border": {
+        "color": "{colors.accent}",
+        "thickness": 2
+      },
+      "showRing": false
+    },
+    "disabled": {
+      "opacity": 0.5
+    }
+  },
+  "parts": {
+    "label": {
+      "color": {
+        "$type": "mix",
+        "inputs": ["{colors.border}", "{colors.muted}"],
+        "amount": 0.6,
+        "space": "oklab"
+      },
+      "typography": {
+        "$extends": "{typography.heading}",
+        "fontSize": 12
+      },
+      "leftInset": 10
+    },
+    "value": {
+      "color": "{colors.text}",
+      "typography": {
+        "$extends": "{typography.body}",
+        "fontSize": 16
+      }
+    },
+    "placeholder": {
+      "color": {
+        "$type": "mix",
+        "inputs": ["{colors.muted}", "#00000000"],
+        "amount": 0.4,
+        "space": "srgb"
+      },
+      "typography": {
+        "$extends": "{typography.body}",
+        "fontSize": 16
+      }
+    },
+    "caret": {
+      "color": "{colors.accent}"
+    }
+  }
+}
