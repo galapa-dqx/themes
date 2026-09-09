@@ -1,0 +1,47 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/setting-row.schema.json",
+  "shape": "path",
+  "fill": "{colors.surface}",
+  "border": {
+    "color": "{colors.border}",
+    "thickness": 1
+  },
+  "padding": [0, 13, 0, 13],
+  "size": {
+    "height": 43
+  },
+  "states": {
+    "selected": {
+      "border": {
+        "color": "{colors.accent}",
+        "thickness": 2
+      }
+    }
+  },
+  "parts": {
+    "label": {
+      "color": "{colors.muted}",
+      "typography": {
+        "$extends": "{typography.heading}",
+        "fontSize": 14
+      },
+      "states": {
+        "selected": {
+          "color": "{colors.accent}"
+        }
+      }
+    },
+    "value": {
+      "color": "{colors.muted}",
+      "typography": {
+        "$extends": "{typography.heading}",
+        "fontSize": 14
+      },
+      "states": {
+        "selected": {
+          "color": "{colors.accent}"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/button.schema.json",
+  "shape": "path",
+  "radius": 4,
+  "fill": "none",
+  "border": {
+    "color": "{colors.border}",
+    "thickness": 1
+  },
+  "padding": [6, 20, 6, 20],
+  "states": {
+    "hover": {
+      "border": {
+        "color": "{colors.accent}"
+      }
+    },
+    "pressed": {
+      "fill": {
+        "$type": "mix",
+        "inputs": ["{colors.accent}", "#00000000"],
+        "amount": 0.92,
+        "space": "srgb"
+      }
+    },
+    "disabled": {
+      "opacity": 0.5
+    }
+  },
+  "parts": {
+    "text": {
+      "color": "{colors.accent}",
+      "typography": {
+        "$extends": "{typography.strong}",
+        "fontSize": 16,
+        "letterSpacing": 0.2,
+        "textCase": "uppercase"
+      }
+    }
+  }
+}

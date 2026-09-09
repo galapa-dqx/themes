@@ -1,0 +1,13 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/metadata.schema.json",
+  "formatVersion": 1,
+  "id": "app.galapa.themes.galapaestella0000000",
+  "name": "Estella",
+  "author": {
+    "name": "Galapa Team",
+    "url": "https://galapa.app/"
+  },
+  "description": "A bordered, natural-case, italic-heading theme.",
+  "updates": null,
+  "chromeStyle": "light"
+}

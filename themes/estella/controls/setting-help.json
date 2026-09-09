@@ -1,0 +1,19 @@
+{
+  "$schema": "https://galapa-dqx.github.io/themes/theme-project/controls/setting-help.schema.json",
+  "parts": {
+    "title": {
+      "color": "{colors.text}",
+      "typography": {
+        "$extends": "{typography.heading}",
+        "fontSize": 16
+      }
+    },
+    "body": {
+      "color": "{colors.text}",
+      "typography": {
+        "$extends": "{typography.body}",
+        "fontSize": 13
+      }
+    }
+  }
+}
