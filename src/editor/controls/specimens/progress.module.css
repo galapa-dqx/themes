@@ -1,0 +1,49 @@
+/* The indeterminate sweep, from main's ProgressBar.module.css L27-66: the fill
+   grows out of the left edge, travels, and shrinks into the right, so offset +
+   width never pass 100% and it stays inside the trough without `overflow:
+   hidden` (which would crop an asset frame's overdraw). */
+.Bar {
+  transition: width 200ms ease;
+}
+
+/* The keyframes override this while animating; under reduced motion the rule
+   below wins with 100%, which an inline width could not be overridden by. */
+.Sweep {
+  width: 0;
+  animation: sweep 1400ms ease infinite;
+}
+
+@keyframes sweep {
+  0% {
+    margin-left: 0;
+    width: 0;
+  }
+
+  45% {
+    margin-left: 0;
+    width: 40%;
+  }
+
+  55% {
+    margin-left: 20%;
+    width: 40%;
+  }
+
+  100% {
+    margin-left: 100%;
+    width: 0;
+  }
+}
+
+/* Nothing to report and no sweep to run: the trough reads as busy-and-full. */
+@media (prefers-reduced-motion: reduce) {
+  .Bar {
+    transition: none;
+  }
+
+  .Sweep {
+    width: 100%;
+    margin-left: 0;
+    animation: none;
+  }
+}
