@@ -71,6 +71,12 @@ export const skeleton = (
         return { fill: firstToken(tokens, 'colors', ['bg']) ?? '#ffffff' };
       case 'focus-ring':
         return { color: firstToken(tokens, 'colors', ['accent']) ?? color };
+      // The built-in art every variant falls back to is drawn in currentColor,
+      // so a tint is what makes it visible at all.
+      case 'variant-image':
+        return {
+          currentColor: firstToken(tokens, 'colors', ['muted']) ?? color,
+        };
       case 'image': {
         const asset = entry.assetOptional
           ? undefined

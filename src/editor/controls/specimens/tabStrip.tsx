@@ -7,6 +7,7 @@
  * control is a transparent box whose only paint is a bottom border, and on
  * the window fill the selected underline reads against the wrong ground.
  */
+import type { ReactNode } from 'react';
 import type { RootControlId } from '@/theme/catalog';
 import { Frame } from '@/editor/preview/Frame';
 import type {
@@ -39,6 +40,74 @@ const summary = (view: ControlView) => {
     .join(' · ');
 };
 
+/**
+ * main's `.TabBar` row inside the strip control it sits in: gap 5, its own
+ * 10px gutters, the hints centred and the tabs stretched (`.Tabs`).
+ */
+export function Strip({
+  host,
+  stroke,
+  children,
+}: {
+  /** The strip control painted behind the tabs. */
+  host: RootControlId;
+  /**
+   * How the strip's bottom stroke is drawn on main: `inset` when a frame
+   * behind the content paints it (TitleBar), so it costs no height and the
+   * tab's underline covers it; `border` when the strip's own CSS does
+   * (`.SubTabs`), which eats a row of the border-box.
+   */
+  stroke: 'inset' | 'border';
+  children: ReactNode;
+}) {
+  const h = useView(host, 'default');
+  // ponytail: an asset strip stays transparent (the island's window fill); no
+  // first-party theme has one, and it is only the backdrop.
+  const strip =
+    h.kind === 'frame' && h.frame.shape === 'path' ? h.frame : undefined;
+  const line =
+    strip && strip.border.color !== 'none'
+      ? `${strip.border.thickness[2]}px solid ${strip.border.color}`
+      : undefined;
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        height: strip?.size?.height ?? 34,
+        padding: '0 10px',
+        minWidth: 0,
+        background: strip && strip.fill !== 'none' ? strip.fill : 'transparent',
+        borderBottom: stroke === 'border' ? line : undefined,
+        boxShadow:
+          stroke === 'inset' && strip && strip.border.color !== 'none'
+            ? `inset 0 -${strip.border.thickness[2]}px 0 ${strip.border.color}`
+            : undefined,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** main's `.Tabs`: the pills, stretched to the strip. */
+export function Tabs({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'stretch',
+        gap: 5,
+        height: '100%',
+        minWidth: 0,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function TabStrip({
   view,
   ring,
@@ -49,30 +118,14 @@ export function TabStrip({
 }: {
   view: ControlView;
   ring: FocusRingView;
-  /** The strip control painted behind the tabs. */
   host: RootControlId;
-  /**
-   * How the strip's bottom stroke is drawn on main: `inset` when a frame
-   * behind the content paints it (TitleBar), so it costs no height and the
-   * tab's underline covers it; `border` when the strip's own CSS does
-   * (`.SubTabs`), which eats a row of the border-box.
-   */
   stroke: 'inset' | 'border';
   minWidth: number;
   label: string;
 }) {
-  const h = useView(host, 'default');
-  // ponytail: an asset strip stays transparent (the island's window fill); no
-  // first-party theme has one, and it is only the backdrop.
-  const strip =
-    h.kind === 'frame' && h.frame.shape === 'path' ? h.frame : undefined;
   if (view.kind !== 'frame') return null;
   const text =
     view.parts.text?.kind === 'text' ? view.parts.text.text : undefined;
-  const line =
-    strip && strip.border.color !== 'none'
-      ? `${strip.border.thickness[2]}px solid ${strip.border.color}`
-      : undefined;
   return (
     <div
       style={{
@@ -83,31 +136,17 @@ export function TabStrip({
         minWidth: 0,
       }}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'stretch',
-          gap: 5,
-          height: strip?.size?.height ?? 34,
-          padding: '0 10px',
-          minWidth: 0,
-          background:
-            strip && strip.fill !== 'none' ? strip.fill : 'transparent',
-          borderBottom: stroke === 'border' ? line : undefined,
-          boxShadow:
-            stroke === 'inset' && strip && strip.border.color !== 'none'
-              ? `inset 0 -${strip.border.thickness[2]}px 0 ${strip.border.color}`
-              : undefined,
-        }}
-      >
-        <Frame
-          view={view.frame}
-          ring={view.showRing ? ring : undefined}
-          style={{ minWidth, justifyContent: 'center' }}
-        >
-          {text && <TextPart view={text}>{label}</TextPart>}
-        </Frame>
-      </div>
+      <Strip host={host} stroke={stroke}>
+        <Tabs>
+          <Frame
+            view={view.frame}
+            ring={view.showRing ? ring : undefined}
+            style={{ minWidth, justifyContent: 'center' }}
+          >
+            {text && <TextPart view={text}>{label}</TextPart>}
+          </Frame>
+        </Tabs>
+      </Strip>
       <span
         style={{
           fontFamily: 'monospace',

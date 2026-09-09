@@ -20,6 +20,7 @@ import { SubtabSpecimen } from './specimens/subtab';
 import { SubtabsSpecimen } from './specimens/subtabs';
 import { SwitchSpecimen, SwitchFields } from './specimens/switch';
 import { TabSpecimen } from './specimens/tab';
+import { TabBarSpecimen, TabBarFields } from './specimens/tab-bar';
 import { TitlebarSpecimen, TitlebarFields } from './specimens/titlebar';
 import { WindowSpecimen } from './specimens/window';
 
@@ -42,6 +43,7 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   'news-item': { Specimen: NewsItemSpecimen, cellWidth: 320 },
   tab: { Specimen: TabSpecimen },
   subtab: { Specimen: SubtabSpecimen },
+  'tab-bar': { Specimen: TabBarSpecimen, Fields: TabBarFields },
   subtabs: { Specimen: SubtabsSpecimen },
   switch: { Specimen: SwitchSpecimen, Fields: SwitchFields },
   progress: { Specimen: ProgressSpecimen, Fields: ProgressFields },

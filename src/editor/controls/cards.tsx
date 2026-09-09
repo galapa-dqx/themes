@@ -192,12 +192,19 @@ const sizeRow = (r: ReturnType<typeof useRows>, entry: CatalogEntry) =>
  * `currentColor` ignores the field, art that does fails to compile without
  * it. Variant images have no single `asset`, so they keep the plain hint.
  */
-function CurrentColorRow({ r }: { r: ReturnType<typeof useRows> }) {
+function CurrentColorRow({
+  r,
+  uses: forced,
+}: {
+  r: ReturnType<typeof useRows>;
+  /** A variant image answers for its whole set of variants (no single asset). */
+  uses?: boolean;
+}) {
   const tokens = useProjectStore((s) => s.doc.tokens);
   const { raw } = useSvgText(resolveAsset(tokens, r.value<string>('asset')));
   // Unknown (still loading, or a variant image with no single asset) is not
   // an answer: only art that certainly ignores or certainly needs the tint says so.
-  const uses = raw?.includes('currentColor');
+  const uses = forced ?? raw?.includes('currentColor');
   const value = r.value<Paint>('currentColor');
   return r.row(
     'Current color',
@@ -581,7 +588,17 @@ export function VariantImageCard(props: CardProps) {
             )}
           </Fragment>
         ))}
-        <CurrentColorRow r={r} />
+        <CurrentColorRow
+          r={r}
+          // A variant left to the built-in art needs the tint; only a set
+          // where every variant is the project's own art can go without.
+          uses={
+            (entry.variants ?? []).some((v) => !r.value(`assets.${v}`)) &&
+            Object.values(builtin).some((a) => a.includes('currentColor'))
+              ? true
+              : undefined
+          }
+        />
         {opacityRow(r)}
         {sizeRow(r, entry)}
       </Rows>
