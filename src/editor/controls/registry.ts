@@ -17,6 +17,7 @@ import { ProgressSpecimen, ProgressFields } from './specimens/progress';
 import { ScrollbarSpecimen, ScrollbarFields } from './specimens/scrollbar';
 import { SettingRowSpecimen, SettingRowFields } from './specimens/setting-row';
 import { SubtabSpecimen } from './specimens/subtab';
+import { SubtabsSpecimen } from './specimens/subtabs';
 import { SwitchSpecimen, SwitchFields } from './specimens/switch';
 import { TabSpecimen } from './specimens/tab';
 import { TitlebarSpecimen, TitlebarFields } from './specimens/titlebar';
@@ -41,6 +42,7 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   'news-item': { Specimen: NewsItemSpecimen, cellWidth: 320 },
   tab: { Specimen: TabSpecimen },
   subtab: { Specimen: SubtabSpecimen },
+  subtabs: { Specimen: SubtabsSpecimen },
   switch: { Specimen: SwitchSpecimen, Fields: SwitchFields },
   progress: { Specimen: ProgressSpecimen, Fields: ProgressFields },
   scrollbar: {
