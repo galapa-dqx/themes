@@ -67,6 +67,9 @@ export class GoogleFonts extends Effect.Service<GoogleFonts>()('GoogleFonts', {
         Effect.flatMap((key) =>
           http.get(API, {
             urlParams: { capability: 'VF', key: Redacted.value(key) },
+            // The key is referrer-restricted to the editor. Browsers ignore
+            // this forbidden header and send their own; Node needs it.
+            headers: { Referer: 'https://themes.galapa.app/' },
           }),
         ),
         Effect.flatMap((r) => r.json),
