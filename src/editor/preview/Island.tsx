@@ -60,7 +60,9 @@ export function StateGrid({
     <div
       style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+        // A stateless control gets the whole panel instead of one narrow cell.
+        gridTemplateColumns:
+          states.length > 1 ? 'repeat(auto-fill, minmax(150px, 1fr))' : '1fr',
         gap: 14,
       }}
     >
