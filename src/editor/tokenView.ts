@@ -166,6 +166,16 @@ export const resolveColor = (
   }
 };
 
+/** SVG text with every `{colors.name}` paint replaced by its resolved hex, for display. */
+export const bakeColors = (
+  text: string,
+  colors: NonNullable<ProjectTokens['colors']>,
+) =>
+  text.replace(
+    /\{colors\.([a-z0-9-]+)\}/g,
+    (m, n: string) => resolveColor(colors, `{colors.${n}}`) ?? m,
+  );
+
 /** Short label for a color value: `#E0114A`, `accent`, or `mix(a, b, 70%)`. */
 export const describeColor = (
   v: NonNullable<ProjectTokens['colors']>[string],

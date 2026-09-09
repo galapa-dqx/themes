@@ -4,6 +4,7 @@ import { ConfigProvider, Layer, ManagedRuntime } from 'effect';
 import { FontTools } from '@/compiler/fontTools';
 import { GoogleFonts } from '@/compiler/googleFonts';
 import { layerOpfs } from '@/compiler/opfs';
+import { Slicer } from './slicer';
 
 const config = Layer.setConfigProvider(
   ConfigProvider.fromMap(
@@ -26,5 +27,6 @@ export const runtime = ManagedRuntime.make(
         }),
     ),
     GoogleFonts.Default.pipe(Layer.provide(FetchHttpClient.layer)),
+    Slicer.Default,
   ),
 );

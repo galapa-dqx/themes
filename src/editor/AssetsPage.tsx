@@ -1,9 +1,13 @@
 /**
  * 4i/4j: SVG assets packaged with the theme, as a card grid or a list, with
- * a detail panel. Version 1 asset tokens are SVG only; slicing lives on the
- * control that uses the asset.
+ * a detail panel that hosts the nine-slice editor. Version 1 asset tokens
+ * are SVG only; slicing is stored in the SVG itself.
+ *
+ * ponytail: slicing edits write straight to OPFS, outside the document's
+ * undo history and tab sync. Route them through the project writer if undo
+ * for artwork edits is ever wanted.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionIcon,
   Button,
@@ -22,10 +26,14 @@ import {
   IconUpload,
   IconTrash,
 } from '@tabler/icons-react';
+import { Effect } from 'effect';
+import { defaultSlicing, parseAsset, type Asset } from './nineSlice';
 import { writeProjectFile } from './persistence';
 import { useProjectStore } from './projectStore';
 import { runtime } from './runtime';
+import { Slicer } from './slicer';
 import { DropZone } from './FontsPage';
+import { SliceEditor } from './SliceEditor';
 import { Heading, RowMenu, UsedBy } from './tokensShared';
 import {
   EMPTY,
@@ -37,9 +45,9 @@ import {
 } from './tokensUtil';
 import { NameInput } from './tokensShared';
 import {
+  bakeColors,
   freeName,
   replaceReferences,
-  resolveColor,
   type TokenView,
 } from './tokenView';
 import { useProjectFile } from './useProjectFile';
@@ -66,6 +74,18 @@ const svgSize = (text: string | undefined) => {
   return w && h ? ([w, h] as const) : undefined;
 };
 
+/** Cuts an asset and writes it, yielding slicing warnings (or the failure). */
+const persist = (dir: string, path: string, a: Asset) =>
+  runtime.runPromise(
+    Effect.flatMap(Slicer, (s) => s.cut(a)).pipe(
+      Effect.tap((cut) =>
+        writeProjectFile(dir, path, new TextEncoder().encode(cut.text)),
+      ),
+      Effect.map((cut) => cut.warnings),
+      Effect.catchAll((e) => Effect.succeed([e.message])),
+    ),
+  );
+
 /** The SVG with `{colors.name}` paints replaced by their resolved hex, as a data URL. */
 function useSvg(path: string | undefined) {
   const file = useProjectFile(path, 'image/svg+xml');
@@ -74,11 +94,9 @@ function useSvg(path: string | undefined) {
     const bytes = file?.file?.bytes;
     if (!bytes) return { error: file?.error };
     const raw = new TextDecoder().decode(bytes);
-    const text = raw.replace(
-      /\{colors\.([a-z0-9-]+)\}/g,
-      (m, n) => resolveColor(colors, `{colors.${n}}`) ?? m,
-    );
+    const text = bakeColors(raw, colors);
     return {
+      raw,
       text,
       size: svgSize(raw),
       bytes: bytes.length,
@@ -517,7 +535,44 @@ function AssetDetail({
   row: Row;
   onReplace(file: File): void;
 }) {
-  const svg = useSvg(r.resolved.value);
+  const path = r.resolved.value;
+  const svg = useSvg(path);
+  const dir = useProjectStore((s) => s.dir);
+  const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
+  const parsed = useMemo(() => {
+    if (!svg.raw) return undefined;
+    try {
+      return { asset: parseAsset(svg.raw) };
+    } catch (e) {
+      return { error: (e as Error).message };
+    }
+  }, [svg.raw]);
+  const [edited, setEdited] = useState<Asset>();
+  const asset = edited ?? parsed?.asset;
+  const [notes, setNotes] = useState<string[]>([]);
+  // Edits show immediately and reach OPFS a moment later, or on unmount.
+  const pending = useRef<{ timer: number; asset: Asset }>(undefined);
+  const save = (a: Asset) => {
+    setEdited(a);
+    if (pending.current) clearTimeout(pending.current.timer);
+    pending.current = {
+      asset: a,
+      timer: window.setTimeout(() => {
+        pending.current = undefined;
+        void persist(dir, path!, a).then(setNotes);
+      }, 300),
+    };
+  };
+  useEffect(
+    () => () => {
+      const p = pending.current;
+      if (!p) return;
+      clearTimeout(p.timer);
+      pending.current = undefined;
+      void persist(dir, path!, p.asset);
+    },
+    [dir, path],
+  );
   return (
     <div
       style={{
@@ -543,7 +598,27 @@ function AssetDetail({
         </Text>
       </div>
       <Stack gap={12} p={16} fz={12}>
-        <Preview url={svg.url} height={140} error={svg.error} />
+        {asset?.slicing ? (
+          <SliceEditor
+            art={bakeColors(asset.art, colors)}
+            viewBox={asset.viewBox}
+            value={asset.slicing}
+            onChange={(slicing) => save({ ...asset, slicing })}
+            height={170}
+          />
+        ) : (
+          <Preview url={svg.url} height={140} error={svg.error} />
+        )}
+        {parsed?.error && (
+          <Text fz={11} c="red">
+            {parsed.error}
+          </Text>
+        )}
+        {notes.map((n) => (
+          <Text key={n} fz={11} c="orange">
+            {n}
+          </Text>
+        ))}
         <div
           style={{
             display: 'grid',
@@ -556,24 +631,46 @@ function AssetDetail({
             Logical
           </Text>
           <Text {...mono}>
-            {svg.size ? `${svg.size[0]} × ${svg.size[1]}` : '—'}
+            {asset
+              ? `${asset.viewBox[2]} × ${asset.viewBox[3]}`
+              : svg.size
+                ? `${svg.size[0]} × ${svg.size[1]}`
+                : '—'}
           </Text>
           <Text c="dimmed" fz={12}>
             Used by
           </Text>
           <UsedBy controls={r.usedBy} tokens={r.usedByTokens} />
         </div>
-        <Text fz={11} fw={600} c="dimmed" tt="uppercase" lts={0.4}>
-          Slicing lives on the control
-        </Text>
-        <Text fz={12} c="dimmed" lh={1.5}>
-          Slices, content area and overdraw are set per control state, since two
-          controls may slice the same asset differently.
+        <Text fz={11} c="dimmed" lh={1.5}>
+          {asset?.slicing
+            ? 'Slicing is stored in the SVG itself, so every control using this asset shares it.'
+            : 'A plain image. Frame-style controls need slices, a content area and an overdraw margin: add them here.'}
         </Text>
         <Group gap={8}>
           <DropZone onFile={onReplace} accept=".svg" solid>
             Replace file…
           </DropZone>
+          {asset &&
+            (asset.slicing ? (
+              <Button
+                variant="subtle"
+                size="xs"
+                onClick={() => save({ ...asset, slicing: undefined })}
+              >
+                Remove slicing
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                size="xs"
+                onClick={() =>
+                  save({ ...asset, slicing: defaultSlicing(asset.viewBox) })
+                }
+              >
+                Add slicing
+              </Button>
+            ))}
           {/* ponytail: enabled once the Controls page exists. */}
           <Button variant="subtle" size="xs" disabled>
             Open in control
