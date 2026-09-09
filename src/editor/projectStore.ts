@@ -49,6 +49,8 @@ export interface ProjectState {
   readonly saving: boolean;
   /** Epoch ms of the last successful write (or the file's mtime on open). */
   readonly savedAt: number | undefined;
+  /** The project's OPFS folder, e.g. `/projects/<id>`; set by persistence. */
+  readonly dir: string;
   /**
    * Runs `recipe` as one undoable transaction; a no-op recipe records nothing.
    * Consecutive edits with the same label coalesce into one history entry.
@@ -72,6 +74,7 @@ export const createProjectStore = (doc: Document) =>
     remote: false,
     saving: false,
     savedAt: undefined,
+    dir: '',
     edit: (label, recipe) => {
       const { doc, past } = get();
       const [next, patches, inversePatches] = produceWithPatches(doc, recipe);

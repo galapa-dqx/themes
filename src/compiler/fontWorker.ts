@@ -7,6 +7,7 @@ import { loadPyodide, type PyodideInterface } from 'pyodide';
 import {
   compileFace,
   errorMessage,
+  inspectFont,
   type WorkerRequest,
   type WorkerResponse,
 } from './fontTools';
@@ -21,9 +22,14 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       indexURL: new URL('/pyodide/', self.location.origin).href,
       packages: ['fonttools'],
     });
-    const face = await compileFace(await runtime, e.data.bytes, e.data.request);
-    response = { ok: true, face };
-    transfer.push(face.bytes.buffer as ArrayBuffer);
+    const py = await runtime;
+    if (e.data.kind === 'inspect') {
+      response = { ok: true, result: await inspectFont(py, e.data.bytes) };
+    } else {
+      const face = await compileFace(py, e.data.bytes, e.data.request);
+      response = { ok: true, result: face };
+      transfer.push(face.bytes.buffer as ArrayBuffer);
+    }
   } catch (err) {
     response = { ok: false, message: errorMessage(err) };
   }

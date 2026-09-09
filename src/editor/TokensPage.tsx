@@ -1,48 +1,35 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActionIcon,
-  Badge,
   Button,
   Card,
   ColorSwatch,
   Group,
-  Menu,
   NavLink,
   Stack,
-  Table,
   Text,
-  TextInput,
-  Title,
   UnstyledButton,
 } from '@mantine/core';
 import {
-  IconArrowsExchange,
   IconChevronDown,
   IconChevronRight,
-  IconColorPicker,
-  IconComponents,
-  IconCopy,
-  IconDots,
-  IconFocus2,
   IconInfoCircle,
-  IconLink,
-  IconPencil,
   IconPlus,
   IconTrash,
 } from '@tabler/icons-react';
-import type { RootControlId } from '@/theme/catalog';
+import { AssetsPage } from './AssetsPage';
 import { ColorField } from './ColorField';
-import { OverflowChips } from './OverflowChips';
+import { FontsPage } from './FontsPage';
 import { useProjectStore } from './projectStore';
+import { Heading, NameInput, RowMenu, UsedBy } from './tokensShared';
+import { EMPTY, mono, useRename } from './tokensUtil';
 import {
   describeColor,
   fontLabel,
   freeName,
-  renameToken,
   replaceReferences,
   TOKEN_NAME,
   tokenView,
-  type TokenCategory,
   type TokenView,
 } from './tokenView';
 import { TypographyPanel, type TypographyValue } from './TypographyPanel';
@@ -54,12 +41,6 @@ const CATEGORIES = [
   { id: 'assets', label: 'Assets' },
 ] as const;
 type Category = (typeof CATEGORIES)[number]['id'];
-
-const mono = { ff: 'monospace', fz: 12 } as const;
-// Selectors must return a stable reference; a fresh `{}` per call re-renders forever.
-const EMPTY: Record<string, never> = Object.freeze({});
-const controlLabel = (id: string) =>
-  id.charAt(0).toUpperCase() + id.slice(1).replaceAll('-', ' ');
 
 export function TokensPage() {
   const [category, setCategory] = useState<Category>('colors');
@@ -103,283 +84,17 @@ export function TokensPage() {
           />
         ))}
       </Stack>
-      <Stack gap={16} p="20px 24px" style={{ overflow: 'auto', minWidth: 0 }}>
-        {category === 'colors' && <Colors rows={view.colors} />}
-        {category === 'typography' && <Typography rows={view.typography} />}
-        {category === 'fonts' && (
-          <Sources
-            title="Fonts"
-            description="Font files and Google Fonts references."
-            rows={view.fonts}
-          />
-        )}
-        {category === 'assets' && (
-          <Sources
-            title="Assets"
-            description="SVG files referenced by controls."
-            rows={view.assets}
-          />
-        )}
-      </Stack>
+      {category === 'fonts' && <FontsPage view={view} />}
+      {category === 'assets' && <AssetsPage view={view} />}
+      {(category === 'colors' || category === 'typography') && (
+        <Stack gap={16} p="20px 24px" style={{ overflow: 'auto', minWidth: 0 }}>
+          {category === 'colors' && <Colors rows={view.colors} />}
+          {category === 'typography' && <Typography rows={view.typography} />}
+        </Stack>
+      )}
     </div>
   );
 }
-
-function Heading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description: string;
-  action?: ReactNode;
-}) {
-  return (
-    <Group gap={12} wrap="nowrap">
-      <div style={{ flex: 1 }}>
-        <Title order={2} fz={20}>
-          {title}
-        </Title>
-        <Text c="dimmed" fz={13}>
-          {description}
-        </Text>
-      </div>
-      {action}
-    </Group>
-  );
-}
-
-const Chip = ({
-  icon,
-  children,
-  token,
-}: {
-  icon: ReactNode;
-  children: ReactNode;
-  token?: boolean;
-}) => (
-  <Badge
-    variant="light"
-    color={token ? 'blue' : 'gray'}
-    size="sm"
-    tt="none"
-    fw={400}
-    ff={token ? 'monospace' : undefined}
-    leftSection={icon}
-  >
-    {children}
-  </Badge>
-);
-
-/** 4f "Used by": control and token chips, collapsing to `+N` only when the column runs out of room. */
-function UsedBy({
-  controls,
-  tokens,
-}: {
-  controls: RootControlId[];
-  tokens: string[];
-}) {
-  if (controls.length === 0 && tokens.length === 0)
-    return (
-      <Text fz={11} c="dimmed">
-        Not used yet
-      </Text>
-    );
-  const controlChips = controls.map((id) => (
-    <Chip key={`c:${id}`} icon={<IconComponents size={11} />}>
-      {controlLabel(id)}
-    </Chip>
-  ));
-  const tokenChips = tokens.map((t) => (
-    <Chip key={`t:${t}`} icon={<IconLink size={11} />} token>
-      {t.replace(/^[a-z]+\./, '')}
-    </Chip>
-  ));
-  // Alternate kinds so neither monopolises the visible chips before the `+N`.
-  const chips: ReactNode[] = [];
-  const kinds: ('control' | 'token')[] = [];
-  for (let k = 0; k < Math.max(controlChips.length, tokenChips.length); k++) {
-    if (controlChips[k]) {
-      chips.push(controlChips[k]);
-      kinds.push('control');
-    }
-    if (tokenChips[k]) {
-      chips.push(tokenChips[k]);
-      kinds.push('token');
-    }
-  }
-  return (
-    <OverflowChips
-      chips={chips}
-      overflow={(visible) => {
-        const hidden = kinds.slice(visible);
-        const c = hidden.filter((k) => k === 'control').length;
-        const t = hidden.length - c;
-        return (
-          <span style={{ display: 'inline-flex', gap: 4 }}>
-            {c > 0 && <Chip icon={<IconComponents size={11} />}>+{c}</Chip>}
-            {t > 0 && (
-              <Chip icon={<IconLink size={11} />} token>
-                +{t}
-              </Chip>
-            )}
-          </span>
-        );
-      }}
-    />
-  );
-}
-
-/** A token name being typed: valid, unique, kebab-case. */
-function NameInput({
-  value,
-  onChange,
-  taken,
-  onSubmit,
-  onBlur,
-  onCancel,
-}: {
-  value: string;
-  onChange(v: string): void;
-  taken: (name: string) => boolean;
-  onSubmit(): void;
-  onBlur?(): void;
-  onCancel(): void;
-}) {
-  const error = !value
-    ? undefined
-    : !TOKEN_NAME.test(value)
-      ? 'lowercase letters, digits, dashes'
-      : taken(value)
-        ? 'already exists'
-        : undefined;
-  return (
-    <TextInput
-      size="xs"
-      styles={{
-        input: {
-          fontFamily: 'var(--mantine-font-family-monospace)',
-          fontSize: 12,
-        },
-      }}
-      value={value}
-      error={error}
-      autoFocus
-      onChange={(e) => onChange(e.target.value)}
-      onBlur={() => value && !error && onBlur?.()}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' && value && !error) onSubmit();
-        if (e.key === 'Escape') onCancel();
-      }}
-    />
-  );
-}
-
-/** The 4f row menu. `flatten` and `replace` are omitted where they don't apply. */
-function RowMenu({
-  used,
-  usedByControls,
-  onRename,
-  onDuplicate,
-  flatten,
-  replace,
-  onDelete,
-}: {
-  used: number;
-  usedByControls: number;
-  onRename(): void;
-  onDuplicate(): void;
-  /** Resolved hex to flatten a reference or mix into; omit for literals. */
-  flatten?: { hex: string; onFlatten(): void };
-  /** Other tokens this one's uses can be repointed to. */
-  replace?: { options: string[]; onReplace(name: string): void };
-  onDelete(): void;
-}) {
-  const hint = (text: ReactNode) => (
-    <Text span fz={11} c="dimmed">
-      {text}
-    </Text>
-  );
-  return (
-    <Menu position="bottom-end" shadow="md" width={240}>
-      <Menu.Target>
-        <ActionIcon variant="subtle" color="gray" size="sm" aria-label="More">
-          <IconDots size={16} />
-        </ActionIcon>
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Item leftSection={<IconPencil size={16} />} onClick={onRename}>
-          Rename…
-        </Menu.Item>
-        <Menu.Item leftSection={<IconCopy size={16} />} onClick={onDuplicate}>
-          Duplicate
-        </Menu.Item>
-        {/* ponytail: enabled once the Controls page can show a token's uses. */}
-        <Menu.Item
-          leftSection={<IconFocus2 size={16} />}
-          rightSection={hint(usedByControls)}
-          disabled
-        >
-          Find uses
-        </Menu.Item>
-        {(flatten || replace) && <Menu.Divider />}
-        {flatten && (
-          <Menu.Item
-            leftSection={<IconColorPicker size={16} />}
-            rightSection={hint(flatten.hex.toUpperCase())}
-            onClick={flatten.onFlatten}
-          >
-            Flatten to picked color
-          </Menu.Item>
-        )}
-        {replace && replace.options.length > 0 && (
-          <Menu.Sub>
-            <Menu.Sub.Target>
-              <Menu.Sub.Item leftSection={<IconArrowsExchange size={16} />}>
-                Replace with…
-              </Menu.Sub.Item>
-            </Menu.Sub.Target>
-            <Menu.Sub.Dropdown>
-              {replace.options.map((n) => (
-                <Menu.Item
-                  key={n}
-                  ff="monospace"
-                  fz={12}
-                  onClick={() => replace.onReplace(n)}
-                >
-                  {n}
-                </Menu.Item>
-              ))}
-            </Menu.Sub.Dropdown>
-          </Menu.Sub>
-        )}
-        <Menu.Divider />
-        <Menu.Item
-          leftSection={<IconTrash size={16} />}
-          color="red"
-          disabled={used > 0}
-          rightSection={used > 0 ? hint('in use') : undefined}
-          onClick={onDelete}
-        >
-          Delete
-        </Menu.Item>
-      </Menu.Dropdown>
-    </Menu>
-  );
-}
-
-const useRename = (category: TokenCategory) => {
-  const edit = useProjectStore((s) => s.edit);
-  const [renaming, setRenaming] = useState<{ from: string; to: string }>();
-  const commit = () => {
-    if (renaming && renaming.to && renaming.to !== renaming.from)
-      edit(`Rename ${renaming.from}`, (d) =>
-        renameToken(d, category, renaming.from, renaming.to),
-      );
-    setRenaming(undefined);
-  };
-  return { renaming, setRenaming, commit };
-};
 
 // ---------------------------------------------------------------- colors (4f)
 
@@ -832,59 +547,6 @@ function Typography({ rows }: { rows: TokenView['typography'] }) {
           </Text>
         )}
       </Stack>
-    </>
-  );
-}
-
-// ---------------------------------------------------------------- fonts & assets
-
-function Sources({
-  title,
-  description,
-  rows,
-}: {
-  title: string;
-  description: string;
-  rows: TokenView['fonts'];
-}) {
-  return (
-    <>
-      <Heading title={title} description={description} />
-      <Card shadow="xs" padding={0}>
-        <Table verticalSpacing={12} horizontalSpacing={16} fz={12}>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th w={150}>Token</Table.Th>
-              <Table.Th>Source</Table.Th>
-              <Table.Th w={150}>Used by</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.map((r) => (
-              <Table.Tr key={r.name}>
-                <Table.Td {...mono}>{r.name}</Table.Td>
-                <Table.Td {...mono} c={r.resolved.error ? 'red' : undefined}>
-                  {r.resolved.error ?? r.value}
-                  {r.resolved.value && r.resolved.value !== r.value && (
-                    <Text span c="dimmed" {...mono}>
-                      {' '}
-                      → {r.resolved.value}
-                    </Text>
-                  )}
-                </Table.Td>
-                <Table.Td>
-                  <UsedBy controls={r.usedBy} tokens={r.usedByTokens} />
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-        {rows.length === 0 && (
-          <Text p={16} c="dimmed" fz={13}>
-            Nothing here yet.
-          </Text>
-        )}
-      </Card>
     </>
   );
 }

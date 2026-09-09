@@ -33,6 +33,7 @@ const load = () =>
 const google = Layer.succeed(
   GoogleFonts,
   new GoogleFonts({
+    list: Effect.succeed([]),
     lookup: (uri) =>
       uri === 'gfont:Space+Grotesk'
         ? Effect.succeed({

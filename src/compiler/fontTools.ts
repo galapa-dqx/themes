@@ -27,17 +27,30 @@ export interface Face {
 export class FontError extends Data.TaggedError('FontError')<{
   readonly message: string;
 }> {}
+/** What a font resource offers, for the editor's Fonts page and typography pickers. */
+export interface FontInfo {
+  readonly family: string | null;
+  readonly faces: readonly {
+    readonly weight: number;
+    readonly style: 'normal' | 'italic' | 'oblique';
+    readonly subfamily: string | null;
+    readonly variable: boolean;
+  }[];
+  readonly axes: readonly {
+    readonly tag: string;
+    readonly min: number;
+    readonly max: number;
+    readonly default: number;
+  }[];
+  readonly license: FontLicense;
+}
 
 const INPUT = '/tmp/galapa-font-input';
 const OUTPUT = '/tmp/galapa-font-output';
 
-/** Reads `request_json`, writes OUTPUT, evaluates to a JSON result string. */
-export const PYTHON = String.raw`
+const PRELUDE = String.raw`
 import json
 from fontTools.ttLib import TTFont, TTCollection
-from fontTools.varLib.instancer import instantiateVariableFont
-
-request = json.loads(request_json)
 
 def name(font, identifier):
     table = font.get("name")
@@ -68,10 +81,38 @@ def supports(font):
         return False
     return True
 
-try:
-    fonts = TTCollection("${INPUT}", lazy=False).fonts
-except Exception:
-    fonts = [TTFont("${INPUT}", lazy=False)]
+def license_of(font):
+    description = (name(font, 13) or "").lower()
+    url = (name(font, 14) or "").lower()
+    identifier = None
+    if "open font license" in description or "scripts.sil.org/ofl" in url or "openfontlicense" in url:
+        identifier = "OFL-1.1"
+    elif "apache" in description or "apache.org/licenses/license-2.0" in url:
+        identifier = "Apache-2.0"
+    elif "ubuntu font license" in description:
+        identifier = "UFL-1.0"
+    return {
+        "identifier": identifier,
+        "copyright": name(font, 0),
+        "description": name(font, 13),
+        "url": name(font, 14),
+    }
+
+def load_fonts(lazy):
+    try:
+        return TTCollection("${INPUT}", lazy=lazy).fonts
+    except Exception:
+        return [TTFont("${INPUT}", lazy=lazy)]
+`;
+
+/** Reads `request_json`, writes OUTPUT, evaluates to a JSON result string. */
+export const PYTHON =
+  PRELUDE +
+  String.raw`
+from fontTools.varLib.instancer import instantiateVariableFont
+
+request = json.loads(request_json)
+fonts = load_fonts(False)
 
 families = {name(f, 16) or name(f, 1) for f in fonts} - {None}
 if len(families) > 1:
@@ -106,23 +147,36 @@ if fvar is not None:
 
 font.flavor = None
 font.save("${OUTPUT}")
-description = (name(font, 13) or "").lower()
-url = (name(font, 14) or "").lower()
-identifier = None
-if "open font license" in description or "scripts.sil.org/ofl" in url or "openfontlicense" in url:
-    identifier = "OFL-1.1"
-elif "apache" in description or "apache.org/licenses/license-2.0" in url:
-    identifier = "Apache-2.0"
-elif "ubuntu font license" in description:
-    identifier = "UFL-1.0"
 json.dumps({
     "extension": "otf" if font.sfntVersion == "OTTO" else "ttf",
-    "license": {
-        "identifier": identifier,
-        "copyright": name(font, 0),
-        "description": name(font, 13),
-        "url": name(font, 14),
-    },
+    "license": license_of(font),
+})
+`;
+
+/** Evaluates to a JSON `FontInfo` for INPUT without touching the bytes. */
+export const INSPECT_PYTHON =
+  PRELUDE +
+  String.raw`
+fonts = load_fonts(True)
+faces = []
+axes = []
+for f in fonts:
+    fvar = f.get("fvar")
+    if fvar is not None:
+        for a in fvar.axes:
+            if not any(x["tag"] == a.axisTag for x in axes):
+                axes.append({"tag": a.axisTag, "min": a.minValue, "max": a.maxValue, "default": a.defaultValue})
+    faces.append({
+        "weight": int(getattr(f.get("OS/2"), "usWeightClass", 400)),
+        "style": style_of(f),
+        "subfamily": name(f, 17) or name(f, 2),
+        "variable": fvar is not None,
+    })
+json.dumps({
+    "family": name(fonts[0], 16) or name(fonts[0], 1),
+    "faces": faces,
+    "axes": axes,
+    "license": license_of(fonts[0]),
 })
 `;
 
@@ -141,6 +195,17 @@ export const compileFace = async (
   return { ...result, bytes: py.FS.readFile(OUTPUT) };
 };
 
+/** Runs the inspection program on one runtime. Not concurrency-safe. */
+export const inspectFont = async (
+  py: PyodideInterface,
+  bytes: Uint8Array,
+): Promise<FontInfo> => {
+  py.FS.writeFile(INPUT, bytes);
+  return JSON.parse(
+    String(await py.runPythonAsync(INSPECT_PYTHON)),
+  ) as FontInfo;
+};
+
 /** The last line of a Python traceback is the ValueError we raised. */
 export const errorMessage = (e: unknown) =>
   e instanceof Error ? e.message.trim().split('\n').at(-1)! : String(e);
@@ -153,6 +218,7 @@ export class FontTools extends Context.Tag('FontTools')<
       bytes: Uint8Array,
       request: FaceRequest,
     ) => Effect.Effect<Face, FontError>;
+    readonly inspect: (bytes: Uint8Array) => Effect.Effect<FontInfo, FontError>;
   }
 >() {
   /** Runs Pyodide on the calling thread, loading it on first use. */
@@ -168,6 +234,15 @@ export class FontTools extends Context.Tag('FontTools')<
               Effect.flatMap(runtime, (py) =>
                 Effect.tryPromise({
                   try: () => compileFace(py, bytes, request),
+                  catch: toFontError,
+                }),
+              ),
+            ),
+          inspect: (bytes) =>
+            lock.withPermits(1)(
+              Effect.flatMap(runtime, (py) =>
+                Effect.tryPromise({
+                  try: () => inspectFont(py, bytes),
                   catch: toFontError,
                 }),
               ),
@@ -188,30 +263,35 @@ export class FontTools extends Context.Tag('FontTools')<
         };
         yield* Effect.addFinalizer(() => Effect.sync(stop));
         const lock = yield* Effect.makeSemaphore(1);
+        const call = <A>(request: WorkerRequest) =>
+          lock.withPermits(1)(
+            Effect.async<A, FontError>((resume) => {
+              worker ??= make();
+              worker.onmessage = (e: MessageEvent<WorkerResponse>) =>
+                resume(
+                  e.data.ok
+                    ? Effect.succeed(e.data.result as A)
+                    : Effect.fail(new FontError({ message: e.data.message })),
+                );
+              worker.onerror = (e) => {
+                stop();
+                resume(Effect.fail(new FontError({ message: e.message })));
+              };
+              worker.postMessage(request);
+              return Effect.sync(stop);
+            }),
+          );
         return {
           compile: (bytes, request) =>
-            lock.withPermits(1)(
-              Effect.async<Face, FontError>((resume) => {
-                worker ??= make();
-                worker.onmessage = (e: MessageEvent<WorkerResponse>) =>
-                  resume(
-                    e.data.ok
-                      ? Effect.succeed(e.data.face)
-                      : Effect.fail(new FontError({ message: e.data.message })),
-                  );
-                worker.onerror = (e) => {
-                  stop();
-                  resume(Effect.fail(new FontError({ message: e.message })));
-                };
-                worker.postMessage({ bytes, request } satisfies WorkerRequest);
-                return Effect.sync(stop);
-              }),
-            ),
+            call<Face>({ kind: 'compile', bytes, request }),
+          inspect: (bytes) => call<FontInfo>({ kind: 'inspect', bytes }),
         };
       }),
     );
 }
 
-export type WorkerRequest = { bytes: Uint8Array; request: FaceRequest };
+export type WorkerRequest =
+  | { kind: 'compile'; bytes: Uint8Array; request: FaceRequest }
+  | { kind: 'inspect'; bytes: Uint8Array };
 export type WorkerResponse =
-  { ok: true; face: Face } | { ok: false; message: string };
+  { ok: true; result: Face | FontInfo } | { ok: false; message: string };

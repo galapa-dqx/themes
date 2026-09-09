@@ -236,6 +236,7 @@ export const openProject = (id: string, options?: Partial<OpenOptions>) =>
     }
 
     const store = createProjectStore(doc);
+    store.setState({ dir });
     if (!fresh) {
       const stat = yield* Effect.option(fs.stat(`${dir}/metadata.json`));
       const mtime = Option.flatMap(stat, (s) => s.mtime);
@@ -273,4 +274,23 @@ export const duplicateProject = (from: string, doc: Document) =>
       { discard: true },
     );
     return id;
+  });
+
+/** Bytes of a project-relative file (`./assets/x.svg` or `assets/x.svg`). */
+export const readProjectFile = (dir: string, path: string) =>
+  Effect.flatMap(FileSystem.FileSystem, (fs) =>
+    fs.readFile(`${dir}/${path.replace(/^\.\//, '')}`),
+  );
+
+/** Writes a project-relative file, creating parent folders. */
+export const writeProjectFile = (
+  dir: string,
+  path: string,
+  bytes: Uint8Array,
+) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const full = `${dir}/${path.replace(/^\.\//, '')}`;
+    yield* fs.makeDirectory(full.replace(/\/[^/]+$/, ''), { recursive: true });
+    yield* fs.writeFile(full, bytes);
   });

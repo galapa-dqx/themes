@@ -55,6 +55,31 @@ json.dumps({
   };
 };
 
+describe('FontTools.inspect', () => {
+  it('reports faces, axes, and license for a variable font and a collection', async () => {
+    const run = (bytes: Uint8Array) =>
+      Effect.runPromise(
+        Effect.flatMap(FontTools, (f) => f.inspect(bytes)).pipe(
+          Effect.provide(layer),
+        ),
+      );
+    const variable = await run(source);
+    expect(variable.family).toMatch(/Space Grotesk/);
+    expect(variable.faces).toHaveLength(1);
+    expect(variable.faces[0]).toMatchObject({
+      style: 'normal',
+      variable: true,
+    });
+    expect(variable.axes).toEqual([
+      { tag: 'wght', min: 300, max: 700, default: expect.any(Number) },
+    ]);
+    expect(variable.license.identifier).toBe('OFL-1.1');
+    const faces = await run(collection);
+    expect(faces.faces.map((f) => f.weight).sort()).toEqual([400, 700]);
+    expect(faces.axes).toEqual([]);
+  });
+});
+
 describe('FontTools', () => {
   it('instantiates a variable font into an exact static face with its license', async () => {
     const r = await compile(source, { weight: 500, style: 'normal', axes: {} });

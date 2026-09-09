@@ -116,6 +116,7 @@ describe('OPFS FileSystem', () => {
       Layer.succeed(
         GoogleFonts,
         new GoogleFonts({
+          list: Effect.succeed([]),
           lookup: () =>
             Effect.fail(new FontSourceError({ message: 'offline' })),
           download: () =>

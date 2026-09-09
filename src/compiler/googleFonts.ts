@@ -48,9 +48,18 @@ export const pickResource = (
 
 export class GoogleFonts extends Effect.Service<GoogleFonts>()('GoogleFonts', {
   effect: Effect.gen(function* () {
-    const http = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk);
-    const fail = (message: string) => (e: { message: string }) =>
-      new FontSourceError({ message: `${message}: ${e.message}` });
+    // No b3/traceparent headers: they force a CORS preflight the API rejects.
+    const http = (yield* HttpClient.HttpClient).pipe(
+      HttpClient.filterStatusOk,
+      HttpClient.withTracerPropagation(false),
+    );
+    const fail =
+      (message: string) => (e: { message: string; cause?: unknown }) =>
+        new FontSourceError({
+          message: `${message}: ${e.message}${
+            e.cause instanceof Error ? ` (${e.cause.message})` : ''
+          }`,
+        });
 
     const catalog = yield* Effect.cached(
       Config.redacted('GOOGLE_FONTS_API_KEY').pipe(
@@ -67,6 +76,8 @@ export class GoogleFonts extends Effect.Service<GoogleFonts>()('GoogleFonts', {
     );
 
     return {
+      /** The whole catalog, fetched once per service instance. */
+      list: catalog,
       /** Resolves a `gfont:` URI case-insensitively to its catalog entry. */
       lookup: (uri: string) =>
         Effect.gen(function* () {
