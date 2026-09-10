@@ -35,6 +35,7 @@ import {
 } from '@tabler/icons-react';
 import { useAppStore } from '@/editor/appStore';
 import { duplicateProject } from '@/editor/persistence';
+import { ago } from '@/editor/projectList';
 import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
 import { ControlsPage } from '@/editor/ControlsPage';
 import { ProjectPage } from '@/editor/ProjectPage';
@@ -59,14 +60,6 @@ const Slash = () => (
     /
   </Text>
 );
-
-const ago = (t: number) => {
-  const s = (Date.now() - t) / 1000;
-  if (s < 60) return 'just now';
-  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  return new Date(t).toLocaleDateString();
-};
 
 function SaveBadge() {
   const saving = useProjectStore((s) => s.saving);
@@ -161,6 +154,8 @@ function ThemeMenu({ themeId }: { themeId: string }) {
           <Menu.Item
             leftSection={<IconFolderOpen size={16} />}
             rightSection={<Kbd>⌘ O</Kbd>}
+            component={Link}
+            to="/editor"
           >
             Open theme…
           </Menu.Item>
@@ -205,15 +200,6 @@ function ThemeMenu({ themeId }: { themeId: string }) {
       </Menu>
     </>
   );
-}
-
-/** Resumes the most recent project, or starts a blank one. ponytail: becomes a picker. */
-export function EditorIndex() {
-  const latest = useAppStore((s) => s.recent[0]);
-  const to = latest
-    ? `/editor/${latest.id}/project`
-    : `/editor/${newProjectId()}/project`;
-  return <Navigate to={to} replace />;
 }
 
 export default function App() {
@@ -304,7 +290,14 @@ function Shell({
           wrap="nowrap"
           style={{ whiteSpace: 'nowrap' }}
         >
-          <Text fw={700} c="blue.6" fz={16}>
+          <Text
+            fw={700}
+            c="blue.6"
+            fz={16}
+            component={Link}
+            to="/editor"
+            style={{ textDecoration: 'none' }}
+          >
             Galapa Theme Studio
           </Text>
           <Slash />
