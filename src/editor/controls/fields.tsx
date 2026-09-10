@@ -18,10 +18,13 @@ import {
 } from '@mantine/core';
 import {
   IconArrowBackUp,
-  IconBan,
+  IconBorderRadius,
   IconLink,
+  IconSquareLetterH,
+  IconSquareLetterW,
   IconTypography,
   IconUpload,
+  type Icon,
 } from '@tabler/icons-react';
 import { Link, useParams } from 'react-router';
 import type { Static } from 'typebox';
@@ -43,8 +46,13 @@ import {
 
 export type Paint = Static<typeof ProjectPaint>;
 const CORNERS: Corner[] = ['round', 'bevel', 'scoop', 'notch', 'squircle'];
+/** Row inputs share the 4px radius and 30px height of the color and font fields. */
 const mono = {
-  input: { fontFamily: 'var(--mantine-font-family-monospace)', fontSize: 11 },
+  input: {
+    fontFamily: 'var(--mantine-font-family-monospace)',
+    fontSize: 11,
+    borderRadius: 4,
+  },
 };
 const orange = {
   borderColor: 'var(--mantine-color-orange-5)',
@@ -135,51 +143,114 @@ export function PaintField({
 }) {
   const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
   const first = Object.keys(colors)[0];
-  const none = value === 'none';
-  // Turning None back off restores the colour it replaced, not a random token.
-  const last = useRef<ColorValue | undefined>(undefined);
-  const seed = (): ColorValue =>
-    last.current ?? (first ? `{colors.${first}}` : '#888888');
+  // Leaving None restores the colour it replaced, not a random token.
+  const [last, setLast] = useState<ColorValue>();
+  const seed: ColorValue = last ?? (first ? `{colors.${first}}` : '#888888');
+  if (value === undefined)
+    return (
+      <UnstyledButton
+        onClick={() => onChange(seed)}
+        style={{
+          width: '100%',
+          padding: '0 10px',
+          minHeight: 30,
+          border: `1px solid var(--mantine-color-${error ? 'red-6' : 'default-border'})`,
+          borderRadius: 4,
+          fontFamily: 'var(--mantine-font-family-monospace)',
+          fontSize: 12,
+          color: 'var(--mantine-color-dimmed)',
+          background: error ? 'var(--mantine-color-red-light)' : undefined,
+        }}
+      >
+        {error ?? 'unset'}
+      </UnstyledButton>
+    );
   return (
-    <Group gap={6} wrap="nowrap">
-      {value === undefined || none ? (
-        <UnstyledButton
-          onClick={() => onChange(seed())}
+    <ColorField
+      value={value}
+      seed={seed}
+      allowNone={allowNone}
+      onChange={(v) => {
+        if (v === 'none' && value !== 'none') setLast(value);
+        onChange(v);
+      }}
+      colors={colors}
+    />
+  );
+}
+
+/**
+ * A number input whose leading icon scrubs the value Figma-style: drag
+ * sideways, `step` per pixel. Typing still works as usual.
+ */
+export function ScrubField({
+  icon: IconGlyph,
+  label,
+  value,
+  onChange,
+  placeholder,
+  min = -Infinity,
+  max = Infinity,
+  step = 1,
+  w,
+}: {
+  icon: Icon;
+  label: string;
+  value: number | undefined;
+  onChange(v: number | undefined): void;
+  /** The default shown while the field is empty, and the scrub's starting point. */
+  placeholder?: number;
+  min?: number;
+  max?: number;
+  /** Change per pixel dragged; also the input's step. */
+  step?: number;
+  w?: number;
+}) {
+  const scrub = useRef<{ x: number; start: number }>(undefined);
+  const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+  const round = (v: number) =>
+    Math.min(max, Math.max(min, Number(v.toFixed(decimals))));
+  return (
+    <NumberInput
+      size="xs"
+      hideControls
+      w={w}
+      styles={mono}
+      aria-label={label}
+      value={value ?? ''}
+      placeholder={placeholder === undefined ? undefined : String(placeholder)}
+      min={Number.isFinite(min) ? min : undefined}
+      max={Number.isFinite(max) ? max : undefined}
+      step={step}
+      onChange={(v) => onChange(typeof v === 'number' ? v : undefined)}
+      leftSectionPointerEvents="all"
+      leftSection={
+        <span
+          title={`Drag to adjust ${label.toLowerCase()}`}
           style={{
-            flex: 1,
-            padding: '6px 10px',
-            border: `1px solid var(--mantine-color-${error ? 'red-6' : 'default-border'})`,
-            borderRadius: 4,
-            fontFamily: 'var(--mantine-font-family-monospace)',
-            fontSize: 12,
+            display: 'inline-flex',
+            cursor: 'ew-resize',
+            touchAction: 'none',
             color: 'var(--mantine-color-dimmed)',
-            background: error ? 'var(--mantine-color-red-light)' : undefined,
           }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            scrub.current = { x: e.clientX, start: value ?? placeholder ?? 0 };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => {
+            if (!scrub.current) return;
+            const v = round(
+              scrub.current.start + (e.clientX - scrub.current.x) * step,
+            );
+            if (v !== value) onChange(v);
+          }}
+          onPointerUp={() => (scrub.current = undefined)}
         >
-          {error ?? (none ? 'none' : 'unset')}
-        </UnstyledButton>
-      ) : (
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <ColorField value={value} onChange={onChange} colors={colors} />
-        </div>
-      )}
-      {allowNone && (
-        <Tooltip label={none ? 'Pick a color' : 'None'} position="top">
-          <ActionIcon
-            variant={none ? 'filled' : 'default'}
-            color={none ? 'gray' : undefined}
-            size={30}
-            aria-label="None"
-            onClick={() => {
-              if (!none && value !== undefined) last.current = value;
-              onChange(none ? seed() : 'none');
-            }}
-          >
-            <IconBan size={15} />
-          </ActionIcon>
-        </Tooltip>
-      )}
-    </Group>
+          <IconGlyph size={14} />
+        </span>
+      }
+    />
   );
 }
 
@@ -263,12 +334,13 @@ export function RadiusField({
   return (
     <Group gap={6} wrap="nowrap">
       {!pill && (
-        <NumberField
+        <ScrubField
+          icon={IconBorderRadius}
+          label="Radius"
           value={value}
           onChange={onChange}
           placeholder={0}
           min={0}
-          suffix=" px"
           w={90}
         />
       )}
@@ -321,13 +393,14 @@ export function SizeFields({
       {(['width', 'height'] as const)
         .filter((a) => axes[a] !== undefined)
         .map((a) => (
-          <NumberField
+          <ScrubField
             key={a}
+            icon={a === 'width' ? IconSquareLetterW : IconSquareLetterH}
+            label={a === 'width' ? 'Width' : 'Height'}
             value={value?.[a]}
             onChange={(v) => set(a, v)}
             placeholder={axes[a]}
             min={1}
-            suffix={a === 'width' ? ' W' : ' H'}
             w={90}
           />
         ))}
@@ -470,7 +543,8 @@ export function TypographyField({
             alignItems: 'center',
             gap: 8,
             width: '100%',
-            padding: '6px 10px',
+            padding: '0 10px',
+            minHeight: 30,
             border: `1px solid var(--mantine-color-${opened ? 'blue-6' : error ? 'red-6' : 'default-border'})`,
             boxShadow: opened ? '0 0 0 2px rgba(34, 139, 230, 0.2)' : undefined,
             background: error

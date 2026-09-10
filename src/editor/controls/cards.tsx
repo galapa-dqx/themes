@@ -21,6 +21,7 @@ import {
   Text,
 } from '@mantine/core';
 import { Effect } from 'effect';
+import { IconDroplet } from '@tabler/icons-react';
 import { Link, useParams } from 'react-router';
 import { merge } from '@/compiler/controls';
 import type { CatalogEntry } from '@/theme/catalog';
@@ -49,6 +50,7 @@ import {
   InsetField,
   NumberField,
   PaintField,
+  ScrubField,
   RadiusField,
   Rows,
   SizeFields,
@@ -165,13 +167,15 @@ const opacityRow = (r: ReturnType<typeof useRows>) =>
   r.row(
     'Opacity',
     'opacity',
-    <NumberField
+    <ScrubField
+      icon={IconDroplet}
+      label="Opacity"
       value={r.value<number>('opacity')}
       onChange={(v) => r.set('opacity', v)}
       placeholder={1}
       min={0}
       max={1}
-      step={0.05}
+      step={0.01}
       w={90}
     />,
   );

@@ -27,6 +27,7 @@ import {
 import {
   IconAlertCircle,
   IconArrowRight,
+  IconBan,
   IconBlendMode,
   IconCheck,
   IconChevronDown,
@@ -154,8 +155,12 @@ export function Swatch({
 }
 
 export interface ColorFieldProps {
-  value: ColorValue;
-  onChange(value: ColorValue): void;
+  /** `'none'` only with `allowNone`. */
+  value: ColorValue | 'none';
+  onChange(value: ColorValue | 'none'): void;
+  /** Adds a None tab; the other tabs edit `seed` while the value is none. */
+  allowNone?: boolean;
+  seed?: ColorValue;
   /** Available tokens; `exclude` hides one (a token editing itself). */
   colors: Colors;
   exclude?: string;
@@ -172,8 +177,10 @@ export interface ColorFieldProps {
 }
 
 export function ColorField({
-  value,
+  value: raw,
   onChange,
+  allowNone,
+  seed = '#888888',
   colors,
   exclude,
   allowMix = true,
@@ -188,8 +195,10 @@ export function ColorField({
   // the outer's click-outside check walks the event path, so a portaled
   // inner dropdown would count as outside and close both.
   const nested = !allowMix;
+  const none = raw === 'none';
+  const value: ColorValue = none ? seed : raw;
   const hex = resolveColor(colors, value);
-  const active = tab ?? kind(value);
+  const active = tab ?? (none ? 'none' : kind(value));
 
   return (
     <Popover
@@ -210,7 +219,8 @@ export function ColorField({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-                padding: nested ? '5px 8px' : '6px 10px',
+                padding: nested ? '5px 8px' : '0 10px',
+                minHeight: nested ? undefined : 30,
                 border: `1px solid var(--mantine-color-${opened ? 'blue-6' : error ? 'red-6' : 'default-border'})`,
                 boxShadow: opened
                   ? '0 0 0 2px rgba(34, 139, 230, 0.2)'
@@ -225,7 +235,10 @@ export function ColorField({
                 minWidth: 0,
               }}
             >
-              {withSwatch && <Swatch hex={hex} size={nested ? 12 : 14} />}
+              {/* None shows the checkerboard swatch; the ban icon is the source icon. */}
+              {withSwatch && (
+                <Swatch hex={none ? undefined : hex} size={nested ? 12 : 14} />
+              )}
               <span
                 style={{
                   flex: 1,
@@ -235,7 +248,7 @@ export function ColorField({
                   whiteSpace: 'nowrap',
                 }}
               >
-                {describeColor(value)}
+                {none ? 'none' : describeColor(value)}
               </span>
               {error ? (
                 <IconAlertCircle size={15} color="var(--mantine-color-red-6)" />
@@ -243,6 +256,11 @@ export function ColorField({
                 <IconChevronDown
                   size={14}
                   color="var(--mantine-color-dimmed)"
+                />
+              ) : none ? (
+                <IconBan
+                  size={15}
+                  color={`var(--mantine-color-${opened ? 'blue-6' : 'dimmed'})`}
                 />
               ) : (
                 <SourceIcon v={value} active={opened} />
@@ -255,12 +273,35 @@ export function ColorField({
         p={0}
         onKeyDown={(e) => nested && e.key === 'Escape' && e.stopPropagation()}
       >
-        <Tabs value={active} onChange={setTab}>
+        <Tabs
+          value={active}
+          onChange={(t) => {
+            setTab(t);
+            if (t === 'none') onChange('none');
+          }}
+        >
           <Tabs.List>
             <Tabs.Tab value="token">Token</Tabs.Tab>
             <Tabs.Tab value="pick">Pick</Tabs.Tab>
             {allowMix && <Tabs.Tab value="mix">Mix</Tabs.Tab>}
+            {allowNone && (
+              <Tabs.Tab
+                value="none"
+                ml="auto"
+                aria-label="None"
+                title="None"
+                leftSection={<IconBan size={15} />}
+              />
+            )}
           </Tabs.List>
+          {allowNone && (
+            <Tabs.Panel value="none">
+              <Text fz={12} c="dimmed" p="12px 14px">
+                Nothing is painted. Pick a token, colour, or mix to paint it
+                again.
+              </Text>
+            </Tabs.Panel>
+          )}
           <Tabs.Panel value="token">
             <TokenTab
               value={value}

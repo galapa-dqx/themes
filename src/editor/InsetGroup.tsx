@@ -12,30 +12,63 @@ import {
 } from '@tabler/icons-react';
 import { SIDES, type Box, type Side } from './nineSlice';
 
-const SideIcon = ({ sides }: { sides: Side[] }) => (
-  <svg width="12" height="12" viewBox="0 0 12 12" style={{ flex: 'none' }}>
-    <rect
-      x="1.5"
-      y="1.5"
-      width="9"
-      height="9"
+/**
+ * Tabler's border-top/bottom/left/right/outer grammar (24-grid, 2px round
+ * strokes, dots as zero-length paths) with the interior dots removed: the
+ * chosen sides are solid, the others dotted, all four the rounded outer rect.
+ */
+const SideIcon = ({ sides }: { sides: Side[] }) => {
+  const on = (side: Side) => sides.includes(side);
+  const all = SIDES.every(on);
+  const lines: string[] = [];
+  const dots: [number, number][] = [];
+  if (!all) {
+    if (on('top')) lines.push('M4 4h16');
+    if (on('bottom')) lines.push('M4 20h16');
+    if (on('left')) lines.push('M4 4v16');
+    if (on('right')) lines.push('M20 4v16');
+    for (const t of [8, 12, 16]) {
+      if (!on('top')) dots.push([t, 4]);
+      if (!on('bottom')) dots.push([t, 20]);
+      if (!on('left')) dots.push([4, t]);
+      if (!on('right')) dots.push([20, t]);
+    }
+    // Corners belong to whichever side is solid; dotted when neither is.
+    for (const [x, y, a, b] of [
+      [4, 4, 'top', 'left'],
+      [20, 4, 'top', 'right'],
+      [4, 20, 'bottom', 'left'],
+      [20, 20, 'bottom', 'right'],
+    ] as const)
+      if (!on(a) && !on(b)) dots.push([x, y]);
+  }
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
       fill="none"
-      stroke="var(--mantine-color-gray-5)"
-      strokeWidth="1"
-      strokeDasharray="1.5 1.5"
-    />
-    <g
-      stroke="var(--mantine-color-gray-7)"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
     >
-      {sides.includes('top') && <line x1="1" y1="1.5" x2="11" y2="1.5" />}
-      {sides.includes('right') && <line x1="10.5" y1="1" x2="10.5" y2="11" />}
-      {sides.includes('bottom') && <line x1="1" y1="10.5" x2="11" y2="10.5" />}
-      {sides.includes('left') && <line x1="1.5" y1="1" x2="1.5" y2="11" />}
-    </g>
-  </svg>
-);
+      {all ? (
+        <path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+      ) : (
+        <>
+          {lines.map((d) => (
+            <path key={d} d={d} />
+          ))}
+          {dots.map(([x, y]) => (
+            <path key={`${x},${y}`} d={`M${x} ${y}l0 .01`} />
+          ))}
+        </>
+      )}
+    </svg>
+  );
+};
 
 const FIELDS: Record<1 | 2 | 4, Side[][]> = {
   1: [SIDES],
@@ -109,7 +142,8 @@ export function InsetGroup({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 5,
-                padding: '5px 6px',
+                padding: '0 6px',
+                minHeight: 28,
                 borderRight:
                   i < count - 1
                     ? '1px solid var(--mantine-color-default-border)'
