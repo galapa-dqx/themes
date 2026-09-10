@@ -51,7 +51,7 @@ export function TokensPage() {
       style={{
         display: 'grid',
         gridTemplateColumns: '180px minmax(0, 1fr)',
-        minHeight: 'calc(100vh - 52px)',
+        height: 'calc(100vh - 52px)',
       }}
     >
       <Stack

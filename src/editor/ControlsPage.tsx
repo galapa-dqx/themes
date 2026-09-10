@@ -161,7 +161,7 @@ export function ControlsPage() {
       style={{
         display: 'grid',
         gridTemplateColumns: '220px minmax(0, 1fr)',
-        minHeight: 'calc(100vh - 52px)',
+        height: 'calc(100vh - 52px)',
       }}
     >
       <Stack
@@ -177,7 +177,11 @@ export function ControlsPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <Stack gap={1} p="0 8px 12px" style={{ overflow: 'auto' }}>
+        <Stack
+          gap={1}
+          p="0 8px 12px"
+          style={{ overflow: 'auto', minHeight: 0 }}
+        >
           {GROUPS.map((g) => {
             const ids = g.ids.filter((id) =>
               controlLabel(id).toLowerCase().includes(q),
