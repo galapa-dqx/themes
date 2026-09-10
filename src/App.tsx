@@ -24,6 +24,7 @@ import {
   IconComponents,
   IconCopy,
   IconEye,
+  IconFile,
   IconFileExport,
   IconFileImport,
   IconFolder,
@@ -51,9 +52,6 @@ const SECTIONS = [
   { id: 'controls', label: 'Controls', icon: IconComponents },
   { id: 'preview', label: 'Preview', icon: IconEye },
 ] as const;
-
-// ponytail: swatch is a placeholder until themes carry an accent color.
-const SWATCH = '#e0114a';
 
 const Slash = () => (
   <Text c="gray.4" component="span">
@@ -168,21 +166,16 @@ function ThemeMenu({ themeId }: { themeId: string }) {
               key={t.id}
               component={Link}
               to={`/editor/${t.id}/project`}
-              leftSection={
-                <Box
-                  w={14}
-                  h={14}
-                  bg={SWATCH}
-                  style={{
-                    borderRadius: 3,
-                    border: '1px solid var(--mantine-color-gray-3)',
-                  }}
-                />
-              }
+              leftSection={<IconFile size={16} />}
               rightSection={
-                t.id === themeId ? (
-                  <IconCheck size={16} color="var(--mantine-color-blue-6)" />
-                ) : null
+                <Group gap={6} wrap="nowrap">
+                  <Text fz={11} c="dimmed">
+                    {ago(t.lastOpened)}
+                  </Text>
+                  {t.id === themeId && (
+                    <IconCheck size={16} color="var(--mantine-color-blue-6)" />
+                  )}
+                </Group>
               }
             >
               {t.name}

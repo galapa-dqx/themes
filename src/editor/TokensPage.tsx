@@ -12,7 +12,6 @@ import {
 } from '@mantine/core';
 import {
   IconChevronDown,
-  IconChevronRight,
   IconInfoCircle,
   IconPlus,
   IconTrash,
@@ -20,19 +19,18 @@ import {
 import { AssetsPage } from './AssetsPage';
 import { ColorField } from './ColorField';
 import { FontsPage } from './FontsPage';
+import { TypographyPage } from './TypographyPage';
 import { useProjectStore } from './projectStore';
 import { Heading, NameInput, RowMenu, UsedBy } from './tokensShared';
 import { EMPTY, mono, useRename } from './tokensUtil';
 import {
   describeColor,
-  fontLabel,
   freeName,
   replaceReferences,
   TOKEN_NAME,
   tokenView,
   type TokenView,
 } from './tokenView';
-import { TypographyPanel, type TypographyValue } from './TypographyPanel';
 
 const CATEGORIES = [
   { id: 'colors', label: 'Colors' },
@@ -85,11 +83,11 @@ export function TokensPage() {
         ))}
       </Stack>
       {category === 'fonts' && <FontsPage view={view} />}
+      {category === 'typography' && <TypographyPage view={view} />}
       {category === 'assets' && <AssetsPage view={view} />}
-      {(category === 'colors' || category === 'typography') && (
+      {category === 'colors' && (
         <Stack gap={16} p="20px 24px" style={{ overflow: 'auto', minWidth: 0 }}>
-          {category === 'colors' && <Colors rows={view.colors} />}
-          {category === 'typography' && <Typography rows={view.typography} />}
+          <Colors rows={view.colors} />
         </Stack>
       )}
     </div>
@@ -355,198 +353,3 @@ function Colors({ rows }: { rows: TokenView['colors'] }) {
 }
 
 // ---------------------------------------------------------------- typography (4g)
-
-function Typography({ rows }: { rows: TokenView['typography'] }) {
-  const edit = useProjectStore((s) => s.edit);
-  const fonts = useProjectStore((s) => s.doc.tokens.fonts ?? EMPTY);
-  const typography = useProjectStore((s) => s.doc.tokens.typography ?? EMPTY);
-  const [open, setOpen] = useState<string>();
-  const { renaming, setRenaming, commit } = useRename('typography');
-  const add = () => {
-    const name = freeName(typography, 'style');
-    edit(
-      'Add style',
-      (d) => void ((d.tokens.typography ??= {})[name] = { fontSize: 14 }),
-    );
-    setOpen(name);
-  };
-  const parentOf = (v: TypographyValue) => {
-    const name = v.$extends?.slice(12, -1);
-    return name ? rows.find((r) => r.name === name)?.resolved.value : undefined;
-  };
-  return (
-    <>
-      <Heading
-        title="Typography"
-        description="Each token is a collapsed row; expanding it shows the editor. Tokens can extend another token."
-        action={
-          <Button size="xs" leftSection={<IconPlus size={14} />} onClick={add}>
-            Add style
-          </Button>
-        }
-      />
-      <Stack gap={10}>
-        {rows.map((r) => {
-          const expanded = open === r.name;
-          const value = r.value as TypographyValue;
-          const parentName = value.$extends?.slice(12, -1);
-          const overrides = Object.keys(value).filter(
-            (k) => k !== '$extends',
-          ).length;
-          const t = r.resolved.value;
-          return (
-            <div
-              key={r.name}
-              style={{
-                border: `1px solid ${expanded ? 'var(--mantine-color-blue-6)' : 'var(--mantine-color-default-border)'}`,
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: expanded
-                  ? '0 0 0 2px rgba(34,139,230,.2)'
-                  : undefined,
-              }}
-            >
-              <Group
-                gap={8}
-                px={12}
-                py={8}
-                wrap="nowrap"
-                bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6))"
-                style={{
-                  fontFamily: 'var(--mantine-font-family-monospace)',
-                  fontSize: 12,
-                }}
-              >
-                <UnstyledButton
-                  onClick={() => setOpen(expanded ? undefined : r.name)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    flex: 1,
-                    minWidth: 0,
-                    font: 'inherit',
-                  }}
-                >
-                  {expanded ? (
-                    <IconChevronDown
-                      size={16}
-                      color="var(--mantine-color-dimmed)"
-                    />
-                  ) : (
-                    <IconChevronRight
-                      size={16}
-                      color="var(--mantine-color-dimmed)"
-                    />
-                  )}
-                  {renaming?.from === r.name ? (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ width: 160 }}
-                    >
-                      <NameInput
-                        value={renaming.to}
-                        onChange={(to) => setRenaming({ ...renaming, to })}
-                        taken={(n) => n !== r.name && n in typography}
-                        onSubmit={commit}
-                        onCancel={() => setRenaming(undefined)}
-                      />
-                    </div>
-                  ) : (
-                    r.name
-                  )}
-                  {parentName && (
-                    <Text span c="dimmed" fz={12}>
-                      extends {parentName}
-                    </Text>
-                  )}
-                  {parentName && overrides > 0 && (
-                    <Text span c="orange.6" fz={12}>
-                      +{overrides}
-                    </Text>
-                  )}
-                  <span style={{ flex: 1 }} />
-                  {t ? (
-                    <span
-                      style={{
-                        fontFamily: t.font
-                          ? `'${fontLabel(t.font)}', sans-serif`
-                          : undefined,
-                        fontWeight: t.fontWeight,
-                        fontStyle: t.fontStyle,
-                        fontSize: Math.min(t.fontSize ?? 14, 24),
-                        letterSpacing: t.letterSpacing,
-                        textTransform:
-                          t.textCase === 'none' ? undefined : t.textCase,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      The quick brown fox
-                    </span>
-                  ) : (
-                    <Text span c="red" fz={11}>
-                      {r.resolved.error}
-                    </Text>
-                  )}
-                  <Text span c="dimmed" fz={11} ml={8}>
-                    ×{r.used}
-                  </Text>
-                </UnstyledButton>
-                <RowMenu
-                  used={r.used}
-                  usedByControls={r.usedBy.length}
-                  onRename={() => setRenaming({ from: r.name, to: r.name })}
-                  onDuplicate={() =>
-                    edit(
-                      `Duplicate ${r.name}`,
-                      (d) =>
-                        void (d.tokens.typography![
-                          freeName(d.tokens.typography!, r.name)
-                        ] = r.value),
-                    )
-                  }
-                  replace={{
-                    options: rows
-                      .map((x) => x.name)
-                      .filter((n) => n !== r.name),
-                    onReplace: (to) =>
-                      edit(`Replace ${r.name}`, (d) =>
-                        replaceReferences(d, 'typography', r.name, to),
-                      ),
-                  }}
-                  onDelete={() =>
-                    edit(
-                      `Delete ${r.name}`,
-                      (d) => void delete d.tokens.typography![r.name],
-                    )
-                  }
-                />
-              </Group>
-              {expanded && (
-                <TypographyPanel
-                  value={value}
-                  parent={parentOf(value)}
-                  fonts={fonts}
-                  extendsOptions={rows
-                    .map((x) => x.name)
-                    .filter((n) => n !== r.name)}
-                  onChange={(next) =>
-                    edit(
-                      `Edit ${r.name}`,
-                      (d) => void (d.tokens.typography![r.name] = next),
-                    )
-                  }
-                />
-              )}
-            </div>
-          );
-        })}
-        {rows.length === 0 && (
-          <Text c="dimmed" fz={13}>
-            No text styles yet.
-          </Text>
-        )}
-      </Stack>
-    </>
-  );
-}

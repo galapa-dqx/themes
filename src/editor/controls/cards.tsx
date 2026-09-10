@@ -21,7 +21,7 @@ import {
   Text,
 } from '@mantine/core';
 import { Effect } from 'effect';
-import { IconDroplet } from '@tabler/icons-react';
+import { IconArrowRightBar, IconDroplet } from '@tabler/icons-react';
 import { Link, useParams } from 'react-router';
 import { merge } from '@/compiler/controls';
 import type { CatalogEntry } from '@/theme/catalog';
@@ -470,11 +470,13 @@ export function TextCard(props: CardProps) {
           r.row(
             'Left inset',
             'leftInset',
-            <NumberField
+            <ScrubField
+              icon={IconArrowRightBar}
+              label="Left inset"
               value={r.value<number>('leftInset')}
               onChange={(v) => r.set('leftInset', v)}
               placeholder={entry.leftInset}
-              suffix=" px"
+              min={0}
               w={90}
             />,
             'Run of stroke before the label',

@@ -77,7 +77,7 @@ export function InputSpecimen({
         <TextPart view={line} style={LINE}>
           {content}
         </TextPart>
-        {/* The real caret only shows on real focus; this stands in for it. */}
+        {/* The real caret only shows on real focus; this stands in for it, right after the text. */}
         {state === 'focused' && caret && (
           <span
             style={{
@@ -89,6 +89,7 @@ export function InputSpecimen({
             }}
           />
         )}
+        <span style={{ flex: 1 }} />
       </Frame>
     );
   };
@@ -128,7 +129,7 @@ const LABEL: CSSProperties = { paddingInline: 5, display: 'block' };
 
 /** main's `.Input`: full width, clipped like a real field. */
 const LINE: CSSProperties = {
-  flex: 1,
+  flex: '0 1 auto',
   minWidth: 0,
   overflow: 'hidden',
   whiteSpace: 'nowrap',
