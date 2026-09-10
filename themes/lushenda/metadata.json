@@ -9,5 +9,6 @@
   },
   "description": "Built-in theme in the authoring format.",
   "updates": null,
-  "chromeStyle": "dark"
+  "chromeStyle": "dark",
+  "previewImage": "./assets/preview.svg"
 }

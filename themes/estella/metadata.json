@@ -9,5 +9,6 @@
   },
   "description": "A bordered, natural-case, italic-heading theme.",
   "updates": null,
-  "chromeStyle": "light"
+  "chromeStyle": "light",
+  "previewImage": "./assets/preview.svg"
 }

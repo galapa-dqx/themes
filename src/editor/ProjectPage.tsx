@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Card,
+  FileButton,
   Group,
   Stack,
   Text,
@@ -11,7 +12,12 @@ import {
 } from '@mantine/core';
 import { ROOT_CONTROL_IDS } from '@/theme/catalog';
 import { THEME_FORMAT_VERSION } from '@/theme/schema';
-import { useProjectStore } from './projectStore';
+import { COVER_PATH, coverSvg } from './cover';
+import { writeProjectFile } from './persistence';
+import { previewMime } from './projectList';
+import { useProjectStore, useProjectStoreApi } from './projectStore';
+import { runtime } from './runtime';
+import { useProjectFile } from './useProjectFile';
 
 // ponytail: every keystroke is one undo entry; coalesce by label if that annoys.
 export function ProjectPage() {
@@ -69,6 +75,7 @@ export function ProjectPage() {
             })
           }
         />
+        <CoverField />
       </Stack>
       <Stack gap={16} pt={44}>
         <Card shadow="xs">
@@ -105,6 +112,90 @@ export function ProjectPage() {
           </Alert>
         )}
       </Stack>
+    </div>
+  );
+}
+
+/** 4d: the preview image, generated from the theme's fills or uploaded. */
+function CoverField() {
+  const path = useProjectStore((s) => s.doc.metadata.previewImage);
+  const dir = useProjectStore((s) => s.dir);
+  const edit = useProjectStore((s) => s.edit);
+  const store = useProjectStoreApi();
+  const file = useProjectFile(path, path ? previewMime(path) : undefined);
+  const save = (target: string, bytes: Uint8Array) =>
+    runtime
+      .runPromise(writeProjectFile(dir, target, bytes))
+      .then(() =>
+        edit('Set cover', (d) => void (d.metadata.previewImage = target)),
+      );
+  const generate = () =>
+    save(COVER_PATH, new TextEncoder().encode(coverSvg(store.getState().doc)));
+  const upload = (f: File | null) =>
+    f?.arrayBuffer().then((buf) => {
+      const ext =
+        f.type === 'image/svg+xml'
+          ? 'svg'
+          : f.type === 'image/png'
+            ? 'png'
+            : 'jpg';
+      return save(`./assets/preview.${ext}`, new Uint8Array(buf));
+    });
+  return (
+    <div>
+      <Text fw={500} fz={13} mb={6}>
+        Cover
+      </Text>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '200px 1fr',
+          gap: 16,
+          alignItems: 'start',
+        }}
+      >
+        <div
+          style={{
+            aspectRatio: '4 / 3',
+            borderRadius: 'var(--mantine-radius-md)',
+            overflow: 'hidden',
+            border: '1px solid var(--mantine-color-default-border)',
+            display: 'grid',
+            placeItems: 'center',
+            color: 'var(--mantine-color-dimmed)',
+            fontSize: 12,
+          }}
+        >
+          {file?.file ? (
+            <img
+              src={file.file.url}
+              alt="Theme cover"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            (file?.error ?? 'No cover')
+          )}
+        </div>
+        <Stack gap={8} align="flex-start">
+          <Button variant="default" size="xs" onClick={generate}>
+            Generate from theme
+          </Button>
+          <FileButton
+            onChange={upload}
+            accept="image/svg+xml,image/png,image/jpeg"
+          >
+            {(props) => (
+              <Button {...props} variant="subtle" size="xs">
+                Upload image…
+              </Button>
+            )}
+          </FileButton>
+          <Text fz={12} c="dimmed">
+            SVG, PNG or JPEG, 4:3. The generated cover is an SVG painted from
+            the window, panel and button fills; the export rasterizes it.
+          </Text>
+        </Stack>
+      </div>
     </div>
   );
 }

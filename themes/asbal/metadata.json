@@ -9,5 +9,6 @@
   },
   "description": "Dark crimson built-in, filled-pill buttons.",
   "updates": null,
-  "chromeStyle": "dark"
+  "chromeStyle": "dark",
+  "previewImage": "./assets/preview.svg"
 }

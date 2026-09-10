@@ -1,9 +1,28 @@
 /** Node layer for `Images` on sharp. Not for the browser bundle. */
 import { Effect, Layer } from 'effect';
 import sharp from 'sharp';
-import { ImageError, imageFormat, Images } from './images';
+import { DEFAULT_RASTER, ImageError, imageFormat, Images } from './images';
 
 export const imagesSharp = Layer.succeed(Images, {
+  rasterize: (svg) =>
+    Effect.tryPromise({
+      try: async () => {
+        const source = sharp(Buffer.from(svg));
+        const meta = await source.metadata();
+        const sized =
+          meta.width && meta.height ? source : source.resize(DEFAULT_RASTER);
+        const { data, info } = await sized
+          .png()
+          .toBuffer({ resolveWithObject: true });
+        return {
+          bytes: new Uint8Array(data),
+          format: 'png' as const,
+          width: info.width,
+          height: info.height,
+        };
+      },
+      catch: (e) => new ImageError({ message: (e as Error).message }),
+    }),
   strip: (bytes) =>
     Effect.tryPromise({
       try: async () => {

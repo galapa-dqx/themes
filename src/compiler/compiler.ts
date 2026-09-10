@@ -37,7 +37,13 @@ const compileMetadata = (project: Project, pkg: Package) =>
       .readFile(`${project.dir}/${previewImage.slice(2)}`)
       .pipe(Effect.orElseSucceed(() => undefined));
     if (!source) return (yield* fail(`${previewImage} does not exist`), out);
-    const image = yield* (yield* Images).strip(source).pipe(Effect.either);
+    const images = yield* Images;
+    // An SVG preview is a project-only convenience; the package stays raster.
+    const image = yield* (
+      previewImage.endsWith('.svg')
+        ? images.rasterize(new TextDecoder().decode(source))
+        : images.strip(source)
+    ).pipe(Effect.either);
     if (image._tag === 'Left') return (yield* fail(image.left.message), out);
     const { bytes, format, width, height } = image.right;
     if (width > PREVIEW.side || height > PREVIEW.side) {

@@ -9,5 +9,6 @@
   },
   "description": "An asset-panel, bevel-button theme.",
   "updates": null,
-  "chromeStyle": "light"
+  "chromeStyle": "light",
+  "previewImage": "./assets/preview.svg"
 }

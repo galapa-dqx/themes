@@ -499,7 +499,7 @@ export const ProjectMetadataSchema = closed({
   $schema: Opt(Type.Literal(schemaUrl('metadata'))),
   formatVersion: Type.Literal(THEME_FORMAT_VERSION),
   ...metadataCore,
-  previewImage: Opt(projectPath('png|jpe?g')),
+  previewImage: Opt(projectPath('png|jpe?g|svg')),
 });
 
 export const ProjectTokensSchema = closed({

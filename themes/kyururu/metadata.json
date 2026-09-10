@@ -8,5 +8,6 @@
     "url": "https://galapa.app/"
   },
   "updates": null,
-  "chromeStyle": "light"
+  "chromeStyle": "light",
+  "previewImage": "./assets/preview.svg"
 }

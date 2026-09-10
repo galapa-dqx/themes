@@ -9,5 +9,6 @@
   },
   "description": "A warm parchment theme with a filled-pill button.",
   "updates": null,
-  "chromeStyle": "light"
+  "chromeStyle": "light",
+  "previewImage": "./assets/preview.svg"
 }
