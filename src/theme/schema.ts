@@ -108,6 +108,8 @@ const FontFeatures = tagRecord(
 const FontWeight = Type.Integer({ minimum: 1, maximum: 1000 });
 const FontStyle = Type.Enum(['normal', 'italic', 'oblique']);
 const TextCase = Type.Enum(['none', 'uppercase', 'lowercase']);
+/** Where a part sits relative to its owner's box. */
+const Placement = Type.Enum(['straddle', 'inside']);
 const TextDecoration = Type.Array(
   Type.Enum(['underline', 'strikethrough', 'overline', 'baseline']),
   { uniqueItems: true },
@@ -235,6 +237,7 @@ const ProjectVariantState = closed({
 });
 export const ProjectVariantImage = closed({
   ...ProjectVariantState.properties,
+  placement: Opt(Placement),
   size: WideSize,
   states: wideStates(ProjectVariantState),
 });
@@ -302,6 +305,7 @@ const CompiledVariantBase = closed({
   assets: Type.Record(Type.String(), CompiledSvg),
   currentColor: Opt(HexColor),
   opacity: Opacity,
+  placement: Opt(Placement),
   size: WideSize,
 });
 export const CompiledVariantImage = closed({
@@ -397,6 +401,7 @@ const project = (e: CatalogEntry): TSchema => {
       const state = narrow(ProjectVariantState, { assets });
       return narrow(ProjectVariantImage, {
         assets,
+        placement: e.placement ? Opt(Placement) : undefined,
         size: size(e),
         states: states(e, state),
       });
@@ -445,6 +450,7 @@ const compiled = (e: CatalogEntry): TSchema => {
       return stateful(
         narrow(CompiledVariantBase, {
           assets: variantAssets(e, CompiledSvg),
+          placement: e.placement ? Placement : undefined,
           size: size(e),
         }),
       );

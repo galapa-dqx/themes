@@ -41,6 +41,8 @@ export type CatalogEntry = {
   assetOptional?: true;
   /** VariantImageControl only: closed variant keys, all optional in a project. */
   variants?: readonly string[];
+  /** VariantImageControl only: the part may straddle its owner's left edge or sit inside it. */
+  placement?: true;
   parts?: Readonly<Record<string, CatalogEntry>>;
 };
 
@@ -150,6 +152,7 @@ export const CONTROL_CATALOG = {
         states: S.newsItem,
         size: { width: 14, height: 14 },
         variants: ['events', 'updates', 'maintenance', 'news'],
+        placement: true,
       },
     },
   }),

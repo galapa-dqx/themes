@@ -1,9 +1,10 @@
 /**
  * The news-item specimen: main's `NewsList.tsx` + `NewsList.module.css` — a
  * flex row (gap 8) at the theme's own height, the title flexing and
- * ellipsised, the date fixed, and the category gem absolutely centred on the
- * frame's left border, half outside it (hence main's 8px bleed, kept here so
- * nothing clips).
+ * ellipsised, the date fixed, and the category gem where the theme puts it:
+ * straddling — main's only mode, absolutely centred on the frame's left
+ * border with half of it outside (hence main's 8px bleed, kept here so
+ * nothing clips) — or inside, a cell of the row that pushes the title along.
  *
  * Two differences from main, both V2 truth rather than choices: the title
  * carries its own colour (V1 inherited the frame's ambient content colour,
@@ -38,6 +39,14 @@ const ALL = [
 
 /** main's `.Badge`: centred on the left border, half of it outside the box. */
 const BLEED = 8;
+/** Straddling, the gem hangs outside the frame; inside, it is the row's first cell. */
+const STRADDLE = {
+  position: 'absolute',
+  top: '50%',
+  left: 0,
+  transform: 'translate(-50%, -50%)',
+} as const;
+const INSIDE = { flex: 'none' } as const;
 
 const mono = {
   fontFamily: 'monospace',
@@ -66,7 +75,7 @@ const summary = (view: ControlView) => {
         : 'no stroke',
     `title ${text('title')}`,
     `date ${text('date')}`,
-    `gem ${gem?.variant.currentColor ?? 'unset'}`,
+    `gem ${gem?.variant.currentColor ?? 'unset'} · ${gem?.variant.placement}`,
   ].join(' · ');
 };
 
@@ -86,12 +95,13 @@ export function NewsItemSpecimen({
   };
   const gem =
     view.parts.gem?.kind === 'variant-image' ? view.parts.gem : undefined;
+  const inside = gem?.variant.placement === 'inside';
   return (
     <div
       style={{
         width: '100%',
         minWidth: 0,
-        paddingLeft: BLEED,
+        paddingLeft: inside ? 0 : BLEED,
         display: 'flex',
         flexDirection: 'column',
         gap: 10,
@@ -104,18 +114,19 @@ export function NewsItemSpecimen({
             key={item.category}
             view={view.frame}
             ring={view.showRing ? ring : undefined}
-            style={{ display: 'flex', gap: 8, width: '100%', minWidth: 0 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              width: '100%',
+              minWidth: 0,
+            }}
           >
             {gem && (
               <ImagePart
                 view={gem.variant}
                 variant={item.category}
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: 0,
-                  transform: 'translate(-50%, -50%)',
-                }}
+                style={inside ? INSIDE : STRADDLE}
               />
             )}
             <TextPart

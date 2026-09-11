@@ -18,6 +18,8 @@ import { TokenError, type ResolvedTokens, type Typography } from './tokens';
 import type { Project } from './project';
 
 export type Paint = Color | 'none';
+/** Where a part sits relative to its owner's box. */
+export type Placement = 'straddle' | 'inside';
 type Four = [number, number, number, number];
 type Size = { width?: number; height?: number };
 type CompiledTypography = Static<typeof CompiledTypographyDisplay>;
@@ -69,6 +71,8 @@ export type ResolvedVariantImage = {
   assets: Record<string, string>;
   currentColor?: Color;
   opacity: number;
+  /** Only where the catalog allows it (`news-item.gem`). */
+  placement?: Placement;
   size?: Size;
 };
 export type ResolvedWindow = { fill: Color; borderColor: Paint };
@@ -257,17 +261,21 @@ const image: Normalizer = (v, _e, r, path) => ({
   size: size(r),
 });
 
-const variantImage: Normalizer = (v, _e, r, path) => ({
-  assets: Object.fromEntries(
-    Object.entries((r.assets as Raw | undefined) ?? {}).map(([k, a]) => [
-      k,
-      v.asset(a, `${path}/assets/${k}`),
-    ]),
-  ),
-  currentColor: v.optColor(r.currentColor, `${path}/currentColor`),
-  opacity: opacity(r),
-  size: size(r),
-});
+const variantImage: Normalizer = (v, e, r, path) => {
+  const out: ResolvedVariantImage = {
+    assets: Object.fromEntries(
+      Object.entries((r.assets as Raw | undefined) ?? {}).map(([k, a]) => [
+        k,
+        v.asset(a, `${path}/assets/${k}`),
+      ]),
+    ),
+    currentColor: v.optColor(r.currentColor, `${path}/currentColor`),
+    opacity: opacity(r),
+    size: size(r),
+  };
+  if (e.placement) out.placement = (r.placement as Placement) ?? 'straddle';
+  return out;
+};
 
 const windowControl: Normalizer = (v, _e, r, path) => ({
   fill: v.color(r.fill, `${path}/fill`),

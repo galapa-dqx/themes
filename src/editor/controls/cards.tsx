@@ -183,6 +183,25 @@ const opacityRow = (r: ReturnType<typeof useRows>) =>
       w={90}
     />,
   );
+/** Layout, so base only: a state that moved the gem would reflow the row. */
+const placementRow = (r: ReturnType<typeof useRows>, entry: CatalogEntry) =>
+  entry.placement && !r.stateScope
+    ? r.row(
+        'Placement',
+        'placement',
+        <SegmentedControl
+          size="xs"
+          fullWidth
+          data={[
+            { value: 'straddle', label: 'Straddle' },
+            { value: 'inside', label: 'Inside' },
+          ]}
+          value={r.value<string>('placement') ?? 'straddle'}
+          onChange={(v) => r.set('placement', v)}
+        />,
+        'Straddle centres it on the left border; inside takes its own space and pushes the content right',
+      )
+    : null;
 const sizeRow = (r: ReturnType<typeof useRows>, entry: CatalogEntry) =>
   entry.size && !r.stateScope
     ? r.row(
@@ -594,6 +613,7 @@ export function VariantImageCard(props: CardProps) {
           }
         />
         {opacityRow(r)}
+        {placementRow(r, entry)}
         {sizeRow(r, entry)}
       </Rows>
     </CardShell>

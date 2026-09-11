@@ -22,6 +22,7 @@ export type StateName = 'default' | ControlState;
 export type Four = [number, number, number, number];
 export type Size = { width?: number; height?: number };
 export type Corner = 'round' | 'bevel' | 'scoop' | 'notch' | 'squircle';
+export type Placement = 'straddle' | 'inside';
 export const MAGENTA = '#ff00ff';
 
 export type PathView = {
@@ -64,6 +65,8 @@ export type VariantView = {
   builtin: Record<string, string>;
   currentColor?: string;
   opacity: number;
+  /** Only where the catalog allows it (`news-item.gem`). */
+  placement?: Placement;
   size?: Size;
 };
 export type WindowView = { fill?: string; borderColor: string };
@@ -278,6 +281,9 @@ const node = (
           builtin: BUILTIN[id] ?? {},
           currentColor: v.color(r.currentColor),
           opacity,
+          placement: entry.placement
+            ? ((r.placement as Placement | undefined) ?? 'straddle')
+            : undefined,
           size,
         },
       };

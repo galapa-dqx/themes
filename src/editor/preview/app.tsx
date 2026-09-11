@@ -22,7 +22,13 @@ import { Frame } from './Frame';
 import { ImagePart } from './ImagePart';
 import type { ControlView, FocusRingView, TextView } from './resolve';
 import { TextPart } from './TextPart';
-import { APP_SIZE, useFocusRing, useInstance, type Screen } from './useView';
+import {
+  APP_SIZE,
+  useFocusRing,
+  useInstance,
+  useView,
+  type Screen,
+} from './useView';
 
 /** main Window.css:89-91. */
 const SHADOW = '0 25px 50px -12px rgb(0 0 0/45%), 0 2px 8px rgb(0 0 0/20%)';
@@ -386,6 +392,10 @@ function ScrollPanel({
 /* ---------- launcher ---------- */
 
 function Launcher() {
+  const gem = useView('news-item', 'default').parts.gem;
+  // A straddling gem hangs half outside its row; the panel bleeds to fit it.
+  const bleed =
+    gem?.kind === 'variant-image' && gem.variant.placement === 'inside' ? 0 : 8;
   return (
     <div
       style={{
@@ -400,7 +410,7 @@ function Launcher() {
       <div style={{ gridColumn: '1 / -1' }}>
         <Carousel />
       </div>
-      <ScrollPanel k="news" fade bleedLeft={8}>
+      <ScrollPanel k="news" fade bleedLeft={bleed}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {NEWS.map(([category, title, date], i) => (
             <NewsRow
@@ -565,12 +575,16 @@ function NewsRow({
         <ImagePart
           view={gem}
           variant={category}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: 0,
-            transform: 'translate(-50%, -50%)',
-          }}
+          style={
+            gem.placement === 'inside'
+              ? { flex: 'none' }
+              : {
+                  position: 'absolute',
+                  top: '50%',
+                  left: 0,
+                  transform: 'translate(-50%, -50%)',
+                }
+          }
         />
       )}
       <TextPart

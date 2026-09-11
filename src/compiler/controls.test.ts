@@ -160,6 +160,32 @@ describe('resolveControls', () => {
     expect(gem.states!.hover.assets).toEqual(gem.assets);
   });
 
+  it('defaults gem placement to straddle and carries an explicit one', async () => {
+    const item = (gem: Record<string, unknown>) => ({
+      'controls/news-item.json': {
+        shape: 'path',
+        parts: { title: plainText, date: plainText, gem },
+      },
+    });
+    const base = { currentColor: '#000000' };
+    expect((await ok(item(base)))['news-item'].parts!.gem.placement).toBe(
+      'straddle',
+    );
+    const inside = await ok(
+      item({
+        ...base,
+        placement: 'inside',
+        states: { hover: { currentColor: '#111111' } },
+      }),
+    );
+    const gem = inside['news-item'].parts!.gem;
+    expect(gem.placement).toBe('inside');
+    // Layout, not a state: a state fragment still reads the base placement.
+    expect(gem.states!.hover.placement).toBe('inside');
+    // Only the catalog's placement-capable part has the field at all.
+    expect(inside['tab-bar'].parts!.hint).not.toHaveProperty('placement');
+  });
+
   it('reports typography and reference problems at their path', async () => {
     const text = (typography: unknown) => ({ color: '#000000', typography });
     expect(

@@ -296,6 +296,7 @@ const lowerConfig = (
           );
         }
         out.assets = assets;
+        if (c.placement !== undefined) out.placement = c.placement;
         break;
       }
       case 'window':
