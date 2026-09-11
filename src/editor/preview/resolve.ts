@@ -138,7 +138,7 @@ export const resolveAsset = (tokens: Tokens, value: unknown) => {
 };
 
 /** Tab order: interaction states first, prop-driven states after. */
-const DISPLAY_ORDER: ControlState[] = [
+export const DISPLAY_ORDER: ControlState[] = [
   'hover',
   'pressed',
   'focused',

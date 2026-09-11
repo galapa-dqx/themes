@@ -39,6 +39,7 @@ import { duplicateProject } from '@/editor/persistence';
 import { ago } from '@/editor/projectList';
 import { newProjectId, useProjectStoreApi } from '@/editor/projectStore';
 import { ControlsPage } from '@/editor/ControlsPage';
+import { PreviewPage } from '@/editor/PreviewPage';
 import { ProjectPage } from '@/editor/ProjectPage';
 import { SettingsPage } from '@/editor/SettingsPage';
 import { TokensPage } from '@/editor/TokensPage';
@@ -223,6 +224,7 @@ export default function App() {
         {open && current.id === 'project' && <ProjectPage />}
         {open && current.id === 'tokens' && <TokensPage />}
         {open && current.id === 'controls' && <ControlsPage />}
+        {open && current.id === 'preview' && <PreviewPage />}
       </Shell>
     </ProjectStoreProvider>
   );

@@ -11,12 +11,15 @@ export function TextPart({
   className,
   style,
   children,
+  ...rest
 }: {
   view: TextView;
   as?: ElementType;
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
+  /** Stage hit-testing (`data-control`, `data-key`). */
+  [data: `data-${string}`]: string | undefined;
 }) {
   const Tag = as ?? 'span';
   const text = useTextStyle(view);
@@ -24,6 +27,7 @@ export function TextPart({
   const boxes = useContext(BoxesContext);
   return (
     <Tag
+      {...rest}
       className={className}
       style={{
         ...text,
