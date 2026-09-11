@@ -21,7 +21,12 @@ import {
   Text,
 } from '@mantine/core';
 import { Effect } from 'effect';
-import { IconArrowRightBar, IconDroplet } from '@tabler/icons-react';
+import {
+  IconArrowBarToRight,
+  IconArrowRightBar,
+  IconDroplet,
+  IconStrokeCurved,
+} from '@tabler/icons-react';
 import { Link, useParams } from 'react-router';
 import { merge } from '@/compiler/controls';
 import type { CatalogEntry } from '@/theme/catalog';
@@ -48,7 +53,6 @@ import {
   CornerField,
   FieldRow,
   InsetField,
-  NumberField,
   PaintField,
   ScrubField,
   RadiusField,
@@ -645,23 +649,25 @@ export function FocusRingCard(props: CardProps) {
         {r.row(
           'Width',
           'width',
-          <NumberField
+          <ScrubField
+            icon={IconStrokeCurved}
+            label="Width"
             value={r.value<number>('width')}
             onChange={(v) => r.set('width', v)}
             placeholder={2}
             min={0}
-            suffix=" px"
             w={90}
           />,
         )}
         {r.row(
           'Offset',
           'offset',
-          <NumberField
+          <ScrubField
+            icon={IconArrowBarToRight}
+            label="Offset"
             value={r.value<number>('offset')}
             onChange={(v) => r.set('offset', v)}
             placeholder={-2}
-            suffix=" px"
             w={90}
           />,
           'Negative draws inside the edge',

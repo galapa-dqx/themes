@@ -1,0 +1,11 @@
+/* The joined fields are number inputs for the keyboard's sake; their native
+   spinners would not fit two of them side by side, so they stay hidden. */
+.Field {
+  appearance: textfield;
+}
+
+.Field::-webkit-outer-spin-button,
+.Field::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}

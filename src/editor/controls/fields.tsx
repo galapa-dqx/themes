@@ -293,43 +293,6 @@ export function InsetField({
   );
 }
 
-export function NumberField({
-  value,
-  onChange,
-  placeholder,
-  min,
-  max,
-  step,
-  suffix,
-  w,
-}: {
-  value: number | undefined;
-  onChange(v: number | undefined): void;
-  /** The default shown while the field is empty. */
-  placeholder?: number;
-  min?: number;
-  max?: number;
-  step?: number;
-  suffix?: string;
-  w?: number;
-}) {
-  return (
-    <NumberInput
-      size="xs"
-      hideControls
-      w={w}
-      styles={mono}
-      value={value ?? ''}
-      placeholder={placeholder === undefined ? undefined : String(placeholder)}
-      min={min}
-      max={max}
-      step={step}
-      suffix={suffix}
-      onChange={(v) => onChange(typeof v === 'number' ? v : undefined)}
-    />
-  );
-}
-
 export function RadiusField({
   value,
   onChange,

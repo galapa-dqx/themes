@@ -11,6 +11,7 @@ import {
   IconSquare,
 } from '@tabler/icons-react';
 import { SIDES, type Box, type Side } from './nineSlice';
+import styles from './InsetGroup.module.css';
 
 /**
  * Tabler's border-top/bottom/left/right/outer grammar (24-grid, 2px round
@@ -177,8 +178,8 @@ export function InsetGroup({
               {/* Uncontrolled and re-keyed on the value: typing commits on blur/Enter, drags refresh it. */}
               <input
                 key={value[sides[0]]}
-                type="text"
-                inputMode="numeric"
+                className={styles.Field}
+                type="number"
                 aria-label={`${label ?? 'Inset'} ${sides.join(' ')}`}
                 defaultValue={value[sides[0]]}
                 onBlur={(e) => commit(sides, e.currentTarget)}
