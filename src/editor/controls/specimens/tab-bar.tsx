@@ -12,8 +12,7 @@
  * compiler's built-in art, replaceable per variant, so the variants row shows
  * what each key actually draws.
  */
-import { Anchor, Text } from '@mantine/core';
-import { Link, useParams } from 'react-router';
+import { Text } from '@mantine/core';
 import { Frame } from '@/editor/preview/Frame';
 import { ImagePart } from '@/editor/preview/ImagePart';
 import type { ControlView, VariantView } from '@/editor/preview/resolve';
@@ -44,18 +43,10 @@ const caption = {
 
 /** The hints are meaningless alone: say what they flank. */
 export function TabBarFields() {
-  const { id = '' } = useParams();
   return (
     <Text fz={12} c="dimmed">
-      Drawn beside the{' '}
-      <Anchor component={Link} to={`/editor/${id}/controls/tab`} fz={12}>
-        Tab
-      </Anchor>{' '}
-      and{' '}
-      <Anchor component={Link} to={`/editor/${id}/controls/subtab`} fz={12}>
-        Subtab
-      </Anchor>{' '}
-      controls, never on their own.
+      Bumpers flank the window tabs and triggers the settings subtabs; the hints
+      are never drawn on their own.
     </Text>
   );
 }

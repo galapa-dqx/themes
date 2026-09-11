@@ -5,6 +5,7 @@
  */
 import { useState, type ComponentType } from 'react';
 import {
+  Divider,
   Group,
   NavLink,
   Stack,
@@ -127,7 +128,7 @@ const META: Record<RootControlId, Meta> = {
 const GROUPS: { label: string; ids: RootControlId[] }[] = [
   {
     label: 'Chrome',
-    ids: ['window', 'titlebar', 'tab-bar', 'subtabs', 'focus-ring', 'panel'],
+    ids: ['window', 'titlebar', 'focus-ring', 'panel'],
   },
   {
     label: 'Controls',
@@ -148,12 +149,29 @@ const GROUPS: { label: string; ids: RootControlId[] }[] = [
   },
 ];
 
+/**
+ * Chrome with no page of its own: each only ever appears with one control, so
+ * it is edited and previewed inside that control instead of beside it. The
+ * project format is unchanged — these are still root controls in their own file.
+ */
+const MERGED_INTO: Partial<Record<RootControlId, RootControlId>> = {
+  'tab-bar': 'tab',
+  subtabs: 'subtab',
+};
+const mergedInto = (id: RootControlId) =>
+  (Object.keys(MERGED_INTO) as RootControlId[]).find(
+    (part) => MERGED_INTO[part] === id,
+  );
+
 export function ControlsPage() {
   const { id: themeId = '', item } = useParams();
   const [query, setQuery] = useState('');
   const controls = useProjectStore((s) => s.doc.controls);
   if (!item || !(item in CONTROL_CATALOG))
     return <Navigate to={`/editor/${themeId}/controls/window`} replace />;
+  const host = MERGED_INTO[item as RootControlId];
+  if (host)
+    return <Navigate to={`/editor/${themeId}/controls/${host}`} replace />;
   const current = item as RootControlId;
   const q = query.toLowerCase();
   return (
@@ -183,8 +201,11 @@ export function ControlsPage() {
           style={{ overflow: 'auto', minHeight: 0 }}
         >
           {GROUPS.map((g) => {
+            // Merged chrome answers to its own name too, and shows its host.
             const ids = g.ids.filter((id) =>
-              controlLabel(id).toLowerCase().includes(q),
+              [id, mergedInto(id)].some(
+                (c) => c && controlLabel(c).toLowerCase().includes(q),
+              ),
             );
             if (ids.length === 0) return null;
             return (
@@ -203,8 +224,12 @@ export function ControlsPage() {
                 </Text>
                 {ids.map((id) => {
                   const Icon = META[id].icon;
-                  // The dot marks a required control the project hasn't defined yet.
-                  const missing = CONTROL_CATALOG[id].required && !controls[id];
+                  // The dot marks a required control the project hasn't
+                  // defined yet — including the chrome merged into it.
+                  const part = mergedInto(id);
+                  const missing = [id, part].some(
+                    (c) => c && CONTROL_CATALOG[c].required && !controls[c],
+                  );
                   return (
                     <NavLink
                       key={id}
@@ -254,6 +279,7 @@ export function ControlsPage() {
 
 /** Editor and preview of one control; the state tab lives in `?state=`. */
 function Workspace({ id }: { id: RootControlId }) {
+  const part = mergedInto(id);
   const [params, setParams] = useSearchParams();
   const wanted = params.get('state');
   const state: StateName =
@@ -263,7 +289,7 @@ function Workspace({ id }: { id: RootControlId }) {
   const setState = (s: StateName) =>
     setParams(s === 'default' ? {} : { state: s }, { replace: true });
   return (
-    <SplitPane side={<PreviewPanel id={id} state={state} />}>
+    <SplitPane side={<PreviewPanel id={id} state={state} part={part} />}>
       <Stack gap={0} style={{ overflow: 'auto', minWidth: 0 }}>
         <Group gap={12} p="20px 24px 0" wrap="nowrap">
           <div style={{ flex: 1 }}>
@@ -276,15 +302,40 @@ function Workspace({ id }: { id: RootControlId }) {
           </div>
         </Group>
         <ControlEditor id={id} state={state} onState={setState} />
+        {part && (
+          <>
+            <Divider mx={24} />
+            <div style={{ padding: '20px 24px 0' }}>
+              <Title order={3} fz={16}>
+                {controlLabel(part)}
+              </Title>
+              <Text c="dimmed" fz={13}>
+                {META[part].description}
+              </Text>
+            </div>
+            {/* Stateless chrome: always its own Default, whatever tab the host is on. */}
+            <ControlEditor id={part} state="default" onState={() => {}} />
+          </>
+        )}
       </Stack>
     </SplitPane>
   );
 }
 
-function PreviewPanel({ id, state }: { id: RootControlId; state: StateName }) {
+function PreviewPanel({
+  id,
+  state,
+  part,
+}: {
+  id: RootControlId;
+  state: StateName;
+  /** Chrome merged into this control, previewed under it. */
+  part?: RootControlId;
+}) {
   const [boxes, setBoxes] = useState(false);
   // ponytail: the 4a "In context · Launcher" shot is the future Preview page.
   const Specimen = CONTROLS[id]?.Specimen ?? GenericSpecimen;
+  const PartSpecimen = part && (CONTROLS[part]?.Specimen ?? GenericSpecimen);
   return (
     <div
       style={{
@@ -324,6 +375,21 @@ function PreviewPanel({ id, state }: { id: RootControlId; state: StateName }) {
               cellWidth={CONTROLS[id]?.cellWidth}
             />
           </Island>
+          {part && PartSpecimen && (
+            <>
+              <Text fz={11} fw={600} c="dimmed" tt="uppercase" lts={0.4} mt={8}>
+                Isolated · {controlLabel(part)}
+              </Text>
+              <Island>
+                <StateGrid
+                  id={part}
+                  Specimen={PartSpecimen}
+                  current="default"
+                  cellWidth={CONTROLS[part]?.cellWidth}
+                />
+              </Island>
+            </>
+          )}
         </BoxesContext.Provider>
       </Stack>
     </div>
