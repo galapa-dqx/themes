@@ -15,7 +15,7 @@ import { NewsItemSpecimen } from './specimens/news-item';
 import { PanelSpecimen } from './specimens/panel';
 import { PlayRowSpecimen } from './specimens/play-row';
 import { ProgressSpecimen, ProgressFields } from './specimens/progress';
-import { ScrollbarSpecimen, ScrollbarFields } from './specimens/scrollbar';
+import { ScrollbarSpecimen } from './specimens/scrollbar';
 import { SettingHelpSpecimen } from './specimens/setting-help';
 import { SettingRowSpecimen, SettingRowFields } from './specimens/setting-row';
 import { SettingsSpecimen } from './specimens/settings';
@@ -50,11 +50,7 @@ export const CONTROLS: Partial<Record<RootControlId, ControlModule>> = {
   subtabs: { Specimen: SubtabsSpecimen },
   switch: { Specimen: SwitchSpecimen, Fields: SwitchFields },
   progress: { Specimen: ProgressSpecimen, Fields: ProgressFields },
-  scrollbar: {
-    Specimen: ScrollbarSpecimen,
-    Fields: ScrollbarFields,
-    cellWidth: 220,
-  },
+  scrollbar: { Specimen: ScrollbarSpecimen, cellWidth: 220 },
   'setting-row': {
     Specimen: SettingRowSpecimen,
     Fields: SettingRowFields,

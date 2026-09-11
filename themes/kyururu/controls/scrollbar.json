@@ -10,10 +10,7 @@
     },
     "thumb": {
       "shape": "path",
-      "fill": "{colors.muted}",
-      "size": {
-        "width": 8
-      }
+      "fill": "{colors.muted}"
     }
   }
 }

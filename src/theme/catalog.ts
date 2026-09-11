@@ -183,7 +183,8 @@ export const CONTROL_CATALOG = {
   subtabs: frame({ size: { height: 34 } }),
   scrollbar: composite({
     track: frame({ size: { width: 8 } }),
-    thumb: frame({ states: S.scrollbarThumb, size: { width: 8 } }),
+    // No width: the app stretches the thumb across the track column.
+    thumb: frame({ states: S.scrollbarThumb }),
   }),
   progress: composite({
     track: frame({ size: { height: 10 } }),

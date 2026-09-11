@@ -12,10 +12,7 @@
     "thumb": {
       "shape": "path",
       "radius": "pill",
-      "fill": "{colors.muted}",
-      "size": {
-        "width": 8
-      }
+      "fill": "{colors.muted}"
     }
   }
 }

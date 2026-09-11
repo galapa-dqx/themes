@@ -14,10 +14,7 @@
       "shape": "path",
       "radius": 4,
       "corner": "bevel",
-      "fill": "{colors.muted}",
-      "size": {
-        "width": 8
-      }
+      "fill": "{colors.muted}"
     }
   }
 }

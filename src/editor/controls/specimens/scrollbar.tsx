@@ -5,13 +5,13 @@
  * Geometry is `ScrollPanel.module.css` verbatim: a two-column grid,
  * `minmax(0,1fr)` of content then a track column of `--g-scrollbar-track-w`,
  * 8px apart; the track is the host and the thumb an absolutely placed box at
- * `left:0; right:0` with percentage `top`/`height`, so it is always exactly
- * the track's width — the thumb's own width var is emitted and never read.
+ * `left:0; right:0` with percentage `top`/`height` inside the track's content
+ * box, so it is always exactly the track's inner width; the thumb has no
+ * width of its own.
  *
  * ponytail: the thumb is static (main's demo position: top 0, height 35%);
  * drag/scroll belongs to the live Preview page, not a forced-state cell.
  */
-import { Text } from '@mantine/core';
 import { Frame } from '@/editor/preview/Frame';
 import type {
   AssetView,
@@ -23,7 +23,7 @@ import type {
 import { TextPart } from '@/editor/preview/TextPart';
 import { useView } from '@/editor/preview/useView';
 
-/** The catalog default for both parts; a project may omit `size`. */
+/** The catalog default; a project may omit the track's `size`. */
 const TRACK_W = 8;
 
 const shorthand = ([t, r, b, l]: Four) =>
@@ -90,40 +90,25 @@ export function ScrollbarSpecimen({ view }: { view: ControlView }) {
           </TextPart>
         </div>
         <Frame view={track.frame} style={{ width: 'auto' }}>
-          <Frame
-            view={thumb.frame}
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              width: 'auto',
-              top: 0,
-              height: '35%',
-            }}
-          />
+          {/* A static child, so the track's padding (or an asset's content
+              insets) is respected; the thumb is placed inside it. */}
+          <div style={{ position: 'relative', flex: 1, alignSelf: 'stretch' }}>
+            <Frame
+              view={thumb.frame}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                width: 'auto',
+                top: 0,
+                height: '35%',
+              }}
+            />
+          </div>
         </Frame>
       </div>
       <span style={mono}>track {summary(track.frame)}</span>
       <span style={mono}>thumb {summary(thumb.frame)}</span>
     </div>
-  );
-}
-
-/**
- * The one thing the thumb's own Size row can't tell you: the app stretches
- * the thumb across the track column, so only the track's width is a width.
- */
-export function ScrollbarFields() {
-  const view = useView('scrollbar', 'default');
-  const track = view.parts.track;
-  const thumb = view.parts.thumb;
-  if (track?.kind !== 'frame' || thumb?.kind !== 'frame') return null;
-  const tw = track.frame.size?.width ?? TRACK_W;
-  const kw = thumb.frame.size?.width ?? TRACK_W;
-  return (
-    <Text fz={12} c={kw === tw ? 'dimmed' : 'orange.7'}>
-      The thumb is drawn across the {tw} px track column.
-      {kw !== tw && ` Its own ${kw} px width has no effect.`}
-    </Text>
   );
 }

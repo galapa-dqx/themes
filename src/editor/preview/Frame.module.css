@@ -53,6 +53,10 @@
   flex: none;
   height: 100%;
   min-width: var(--part-lead);
+  /* The band is capped at half the height, not half the width: on a box
+     taller than wide (a pill scrollbar) a square Lead would overflow and
+     draw its arc outside the frame. Capped, the radius clamps to fit. */
+  max-width: 50%;
   border-right-width: 0;
   border-bottom-width: 0;
   border-top-left-radius: var(--part-radius);

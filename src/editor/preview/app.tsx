@@ -372,17 +372,21 @@ function ScrollPanel({
       </div>
       {track?.kind === 'frame' && thumb?.kind === 'frame' && (
         <Frame view={track.frame} {...hit} style={{ width: 'auto' }}>
-          <Frame
-            view={thumb.frame}
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              width: 'auto',
-              top: `${pos.top}%`,
-              height: `${pos.height}%`,
-            }}
-          />
+          {/* A static child, so the track's padding (or an asset's content
+              insets) is respected; the thumb is placed inside it. */}
+          <div style={{ position: 'relative', flex: 1, alignSelf: 'stretch' }}>
+            <Frame
+              view={thumb.frame}
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                width: 'auto',
+                top: `${pos.top}%`,
+                height: `${pos.height}%`,
+              }}
+            />
+          </div>
         </Frame>
       )}
     </div>
