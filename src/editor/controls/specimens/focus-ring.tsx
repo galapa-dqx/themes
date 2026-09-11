@@ -1,8 +1,8 @@
 /**
- * The focus-ring specimen. Main draws the ring as a plain CSS outline on the
- * host element's border box (Themed.module.css:216-225) — rounded with the
- * host's radius, never following its corner shape — so this shows the real
- * hosts in their focused state with the ring on. A neutral geometry box goes
+ * The focus-ring specimen. The ring is a CSS outline on the host's border box
+ * (main's Themed.module.css:216-225), and the host carries the frame's radius
+ * and corner shape, so the ring follows the control's own shape. This shows
+ * the real hosts in their focused state with the ring on. A neutral geometry box goes
  * first, because a ring the same colour as the control it lands on (anlucia's
  * accent button) is invisible there, and width/offset still need to be legible.
  * A host whose focused state sets `showRing: false` shows no ring, as on main.

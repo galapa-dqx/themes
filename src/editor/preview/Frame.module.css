@@ -13,6 +13,10 @@
   isolation: isolate;
   background: none;
   border: 0;
+
+  /* Paints nothing; it's here so the focus ring — an outline on this box —
+     follows the frame's own shape instead of a rectangle. */
+  border-radius: var(--part-radius);
 }
 
 .Surface {
@@ -73,6 +77,7 @@
 }
 
 @supports (corner-shape: bevel) {
+  .Host,
   .Surface,
   .Lead,
   .Trail,

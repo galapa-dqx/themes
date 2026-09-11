@@ -8,24 +8,7 @@ import { Frame } from './Frame';
 import { ImagePart } from './ImagePart';
 import type { ControlView, FocusRingView } from './resolve';
 import { TextPart } from './TextPart';
-
-/** Sample text per full identity; anything else shows its part name. */
-const SAMPLE: Record<string, string> = {
-  'button.text': 'Play',
-  'input.label': 'Username',
-  'input.value': 'anlucialuvr69',
-  'input.placeholder': 'Enter password',
-  'tab.text': 'Launcher',
-  'subtab.text': 'General',
-  'news-item.title': 'Patch notes 1.2',
-  'news-item.date': '2026-09-09',
-  'setting-row.label': 'Resolution',
-  'setting-row.value': '1920 × 1080',
-  'titlebar.wordmark': 'Galapa',
-  'settings.heading': 'Settings',
-  'setting-help.title': 'About this setting',
-  'setting-help.body': 'A short explanation of the setting.',
-};
+import { SAMPLE } from './textStyle';
 
 function Node({
   view,

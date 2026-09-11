@@ -20,6 +20,7 @@ import {
   IconArrowBackUp,
   IconBorderRadius,
   IconLink,
+  IconLinkPlus,
   IconSquareLetterH,
   IconSquareLetterW,
   IconTypography,
@@ -35,8 +36,10 @@ import type { Box, Side } from '@/editor/nineSlice';
 import { writeProjectFile } from '@/editor/persistence';
 import type { Corner, Four, Size } from '@/editor/preview/resolve';
 import { resolveTypography } from '@/editor/preview/resolve';
+import { typographyStyle } from '@/editor/preview/textStyle';
 import { useProjectStore } from '@/editor/projectStore';
 import { runtime } from '@/editor/runtime';
+import { useFontFamily } from '@/editor/useProjectFile';
 import { EMPTY, safeFileName } from '@/editor/tokensUtil';
 import { fontLabel } from '@/editor/tokenView';
 import {
@@ -54,10 +57,7 @@ const mono = {
     borderRadius: 4,
   },
 };
-const orange = {
-  borderColor: 'var(--mantine-color-orange-5)',
-  background: 'var(--mantine-color-orange-0)',
-};
+const ORANGE = 'var(--mantine-color-orange-6)';
 
 /** The card body grid every row lives in. */
 export function Rows({ children }: { children: ReactNode }) {
@@ -129,16 +129,21 @@ export function FieldRow({
   );
 }
 
-/** ColorField for optional paints: unset, `'none'` (when allowed), or a colour. */
+/**
+ * ColorField for a paint. "Unset" and "none" both mean nothing is painted, so
+ * the field shows one thing — None — and `clearTo` says which of the two the
+ * slot's schema takes. Without it the slot is required, and empty is an error.
+ */
 export function PaintField({
   value,
   onChange,
-  allowNone,
+  clearTo,
   error,
 }: {
   value: Paint | undefined;
   onChange(v: Paint | undefined): void;
-  allowNone?: boolean;
+  /** What clearing writes: a paint slot takes `'none'`, an optional colour nothing. */
+  clearTo?: 'none' | 'unset';
   error?: string;
 }) {
   const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
@@ -146,7 +151,8 @@ export function PaintField({
   // Leaving None restores the colour it replaced, not a random token.
   const [last, setLast] = useState<ColorValue>();
   const seed: ColorValue = last ?? (first ? `{colors.${first}}` : '#888888');
-  if (value === undefined)
+  const empty = value === undefined || value === 'none';
+  if (empty && !clearTo)
     return (
       <UnstyledButton
         onClick={() => onChange(seed)}
@@ -167,12 +173,13 @@ export function PaintField({
     );
   return (
     <ColorField
-      value={value}
+      value={empty ? 'none' : value}
       seed={seed}
-      allowNone={allowNone}
+      allowNone={clearTo !== undefined}
       onChange={(v) => {
-        if (v === 'none' && value !== 'none') setLast(value);
-        onChange(v);
+        if (v !== 'none') return onChange(v);
+        if (!empty) setLast(value as ColorValue);
+        onChange(clearTo === 'none' ? 'none' : undefined);
       }}
       colors={colors}
     />
@@ -493,17 +500,20 @@ export function AssetField({
   );
 }
 
-/** 3c: an input-styled summary that opens the TypographyPanel; a bare ref becomes `{ $extends }`. */
+/** 3c: one input — token, overrides, live sample, source icon — opening the TypographyPanel. */
 export function TypographyField({
   value,
   onChange,
   editable,
+  sample,
   error,
 }: {
   value: string | TypographyValue | undefined;
   onChange(v: string | TypographyValue | undefined): void;
   /** Hides the text transform row. */
   editable?: boolean;
+  /** Shown at the right in the resolved typography, as 3c's live preview. */
+  sample?: string;
   error?: string;
 }) {
   const [opened, setOpened] = useState(false);
@@ -513,6 +523,7 @@ export function TypographyField({
     typeof value === 'string' ? { $extends: value } : (value ?? {});
   const parent = resolveTypography(tokens, object.$extends);
   const resolved = resolveTypography(tokens, object);
+  const family = useFontFamily(resolved?.font);
   const ownKeys = Object.keys(object).filter((k) => k !== '$extends');
   const own = ownKeys.length;
   const name = object.$extends?.slice(12, -1);
@@ -536,8 +547,11 @@ export function TypographyField({
       <Popover.Target>
         <UnstyledButton
           onClick={() => setOpened((o) => !o)}
-          // `+n` alone hides which keys they are.
-          title={own ? `Overrides ${ownKeys.join(', ')}` : undefined}
+          // The sample shows the typography; the title spells it out, and
+          // names the overridden keys that `+n` alone hides.
+          title={[summary, own ? `overrides ${ownKeys.join(', ')}` : undefined]
+            .filter(Boolean)
+            .join(' · ')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -547,35 +561,58 @@ export function TypographyField({
             minHeight: 30,
             border: `1px solid var(--mantine-color-${opened ? 'blue-6' : error ? 'red-6' : 'default-border'})`,
             boxShadow: opened ? '0 0 0 2px rgba(34, 139, 230, 0.2)' : undefined,
-            background: error
-              ? 'var(--mantine-color-red-light)'
-              : own
-                ? orange.background
-                : undefined,
+            background: error ? 'var(--mantine-color-red-light)' : undefined,
             borderRadius: 4,
             fontFamily: 'var(--mantine-font-family-monospace)',
             fontSize: 12,
             minWidth: 0,
           }}
         >
-          <IconTypography size={15} color="var(--mantine-color-dimmed)" />
+          <IconTypography
+            size={15}
+            color="var(--mantine-color-dimmed)"
+            style={{ flex: 'none' }}
+          />
           <span
             style={{
-              flex: 1,
               minWidth: 0,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
           >
-            {error ??
-              (name ? `${name}${own ? ` +${own}` : ''}` : (summary ?? 'unset'))}
+            {error ?? name ?? summary ?? 'unset'}
           </span>
-          {name && summary && (
-            <Text span fz={11} c="dimmed" truncate>
-              {summary}
-            </Text>
+          {own > 0 && (
+            <span style={{ flex: 'none', color: ORANGE }}>+{own}</span>
           )}
+          <span style={{ flex: 1 }} />
+          {sample && resolved && (
+            <span
+              style={{
+                ...typographyStyle(resolved, family),
+                // One row height whatever the token's own size is.
+                fontSize: 13,
+                lineHeight: 1,
+                minWidth: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {sample}
+            </span>
+          )}
+          {name &&
+            (own ? (
+              <IconLinkPlus size={15} color={ORANGE} style={{ flex: 'none' }} />
+            ) : (
+              <IconLink
+                size={15}
+                color={`var(--mantine-color-${opened ? 'blue-6' : 'dimmed'})`}
+                style={{ flex: 'none' }}
+              />
+            ))}
         </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown p={0}>

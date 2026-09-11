@@ -9,6 +9,24 @@ import { fontLabel } from '@/editor/tokenView';
 import { useFontFamily } from '@/editor/useProjectFile';
 import type { TextView } from './resolve';
 
+/** Sample text per full text-part identity; anything else shows its part name. */
+export const SAMPLE: Record<string, string> = {
+  'button.text': 'Play',
+  'input.label': 'Username',
+  'input.value': 'anlucialuvr69',
+  'input.placeholder': 'Enter password',
+  'tab.text': 'Launcher',
+  'subtab.text': 'General',
+  'news-item.title': 'Patch notes 1.2',
+  'news-item.date': '2026-09-09',
+  'setting-row.label': 'Resolution',
+  'setting-row.value': '1920 × 1080',
+  'titlebar.wordmark': 'Galapa',
+  'settings.heading': 'Settings',
+  'setting-help.title': 'About this setting',
+  'setting-help.body': 'A short explanation of the setting.',
+};
+
 const DECORATION: Record<string, string> = {
   underline: 'underline',
   strikethrough: 'line-through',

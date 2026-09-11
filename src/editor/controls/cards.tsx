@@ -25,7 +25,6 @@ import { IconArrowRightBar, IconDroplet } from '@tabler/icons-react';
 import { Link, useParams } from 'react-router';
 import { merge } from '@/compiler/controls';
 import type { CatalogEntry } from '@/theme/catalog';
-import { ColorField } from '@/editor/ColorField';
 import { defaultSlicing, type Asset, type Slicing } from '@/editor/nineSlice';
 import { writeProjectFile } from '@/editor/persistence';
 import { ImagePart } from '@/editor/preview/ImagePart';
@@ -37,6 +36,7 @@ import {
   type Size,
   type StateName,
 } from '@/editor/preview/resolve';
+import { SAMPLE } from '@/editor/preview/textStyle';
 import { useAsset, useSvgText } from '@/editor/preview/useAsset';
 import { useProjectStore } from '@/editor/projectStore';
 import { runtime } from '@/editor/runtime';
@@ -216,7 +216,8 @@ function CurrentColorRow({
     <PaintField
       value={value}
       onChange={(v) => r.set('currentColor', v)}
-      error={uses && value === undefined ? 'Required' : undefined}
+      clearTo={uses ? undefined : 'unset'}
+      error={uses ? 'Required' : undefined}
     />,
     uses === false
       ? 'This SVG has no currentColor — the tint does nothing'
@@ -267,7 +268,7 @@ export function FrameCard(props: CardProps) {
               <PaintField
                 value={r.value<Paint>('fill')}
                 onChange={(v) => r.set('fill', v)}
-                allowNone
+                clearTo="none"
               />,
             )}
             {r.row(
@@ -276,7 +277,7 @@ export function FrameCard(props: CardProps) {
               <PaintField
                 value={r.value<Paint>('border.color')}
                 onChange={(v) => r.set('border.color', v)}
-                allowNone
+                clearTo="none"
               />,
             )}
             {r.row(
@@ -429,9 +430,8 @@ function SlicingSection({ value }: { value: string | undefined }) {
 }
 
 export function TextCard(props: CardProps) {
-  const { entry, title } = props;
+  const { entry, title, edit, path } = props;
   const r = useRows(props);
-  const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
   const color = r.value<Paint>('color');
   return (
     <CardShell title={title}>
@@ -444,25 +444,18 @@ export function TextCard(props: CardProps) {
               value={r.value<string | Record<string, unknown>>('typography')}
               onChange={(v) => r.set('typography', v)}
               editable={entry.typography === 'editable'}
+              sample={SAMPLE[[edit.id, ...path].join('.')] ?? title}
               error={r.base.typography === undefined ? 'Required' : undefined}
             />,
           )}
         {r.row(
           'Color',
           'color',
-          color === undefined || color === 'none' ? (
-            <PaintField
-              value={undefined}
-              onChange={(v) => r.set('color', v)}
-              error={r.stateScope ? undefined : 'Required'}
-            />
-          ) : (
-            <ColorField
-              value={color}
-              onChange={(v) => r.set('color', v)}
-              colors={colors}
-            />
-          ),
+          <PaintField
+            value={color}
+            onChange={(v) => r.set('color', v)}
+            error={r.stateScope ? undefined : 'Required'}
+          />,
         )}
         {opacityRow(r)}
         {entry.leftInset !== undefined &&
@@ -489,7 +482,6 @@ export function TextCard(props: CardProps) {
 
 export function PaintCard(props: CardProps) {
   const r = useRows(props);
-  const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
   const color = r.value<Paint>('color');
   return (
     <CardShell title={props.title}>
@@ -497,19 +489,11 @@ export function PaintCard(props: CardProps) {
         {r.row(
           'Color',
           'color',
-          color === undefined || color === 'none' ? (
-            <PaintField
-              value={undefined}
-              onChange={(v) => r.set('color', v)}
-              error={r.stateScope ? undefined : 'Required'}
-            />
-          ) : (
-            <ColorField
-              value={color}
-              onChange={(v) => r.set('color', v)}
-              colors={colors}
-            />
-          ),
+          <PaintField
+            value={color}
+            onChange={(v) => r.set('color', v)}
+            error={r.stateScope ? undefined : 'Required'}
+          />,
         )}
         {opacityRow(r)}
       </Rows>
@@ -624,9 +608,7 @@ export function WindowCard(props: CardProps) {
           <PaintField
             value={fill}
             onChange={(v) => r.set('fill', v)}
-            error={
-              fill === undefined || fill === 'none' ? 'Required' : undefined
-            }
+            error="Required"
           />,
           'Behind every page of the app',
         )}
@@ -636,7 +618,7 @@ export function WindowCard(props: CardProps) {
           <PaintField
             value={r.value<Paint>('borderColor')}
             onChange={(v) => r.set('borderColor', v)}
-            allowNone
+            clearTo="none"
           />,
           '1px on the OS window frame; hidden when maximized and in console mode',
         )}
@@ -647,7 +629,6 @@ export function WindowCard(props: CardProps) {
 
 export function FocusRingCard(props: CardProps) {
   const r = useRows(props);
-  const colors = useProjectStore((s) => s.doc.tokens.colors ?? EMPTY);
   const color = r.value<Paint>('color');
   return (
     <CardShell title={props.title}>
@@ -655,19 +636,11 @@ export function FocusRingCard(props: CardProps) {
         {r.row(
           'Color',
           'color',
-          color === undefined || color === 'none' ? (
-            <PaintField
-              value={undefined}
-              onChange={(v) => r.set('color', v)}
-              error="Required"
-            />
-          ) : (
-            <ColorField
-              value={color}
-              onChange={(v) => r.set('color', v)}
-              colors={colors}
-            />
-          ),
+          <PaintField
+            value={color}
+            onChange={(v) => r.set('color', v)}
+            error="Required"
+          />,
         )}
         {r.row(
           'Width',
