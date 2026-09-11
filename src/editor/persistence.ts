@@ -249,6 +249,20 @@ export const openProject = (id: string, options?: Partial<OpenOptions>) =>
     return { store, diagnostics, fresh } satisfies OpenedProject;
   });
 
+/** Writes every JSON file of `doc` into `dir`, bypassing the batched writer. */
+export const writeDocument = (dir: string, doc: Document) =>
+  Effect.flatMap(FileSystem.FileSystem, (fs) =>
+    Effect.forEach(
+      [
+        'metadata.json',
+        'tokens.json',
+        ...Object.keys(doc.controls).map((c) => `controls/${c}.json`),
+      ],
+      (f) => fs.writeFileString(`${dir}/${f}`, serialize(doc, f)!),
+      { discard: true },
+    ),
+  );
+
 /** Copies `from`'s folder (assets included) and writes `doc` over it under a new id and name. */
 export const duplicateProject = (from: string, doc: Document) =>
   Effect.gen(function* () {
@@ -256,24 +270,14 @@ export const duplicateProject = (from: string, doc: Document) =>
     const id = newProjectId();
     const dir = projectDir(id);
     yield* fs.copy(projectDir(from), dir);
-    const copy: Document = {
+    yield* writeDocument(dir, {
       ...doc,
       metadata: {
         ...doc.metadata,
         id: `app.galapa.themes.${id}`,
         name: `${doc.metadata.name} copy`,
       },
-    };
-    const files = [
-      'metadata.json',
-      'tokens.json',
-      ...Object.keys(copy.controls).map((c) => `controls/${c}.json`),
-    ];
-    yield* Effect.forEach(
-      files,
-      (f) => fs.writeFileString(`${dir}/${f}`, serialize(copy, f)!),
-      { discard: true },
-    );
+    });
     return id;
   });
 

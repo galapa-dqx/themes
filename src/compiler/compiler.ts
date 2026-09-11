@@ -14,7 +14,7 @@ import {
   type CompiledMetadata,
 } from '@/theme/schema';
 import { resolveControls } from './controls';
-import { Diagnostics } from './diagnostics';
+import { Diagnostics, type Diagnostic } from './diagnostics';
 import { Images } from './images';
 import { lowerTheme } from './lower';
 import { Package } from './package';
@@ -76,16 +76,15 @@ const conforms = (file: string, schema: TSchema, value: unknown) =>
     }
   });
 
-export interface Compiled {
-  /** Directory holding metadata.json, theme.json, licenses.json, assets/, licenses/. */
-  readonly dir: string;
-  readonly diagnostics: readonly import('./diagnostics').Diagnostic[];
+export interface CompiledFiles {
+  /** metadata.json, theme.json, licenses.json, assets/*, licenses/*: archive-relative. */
+  readonly files: ReadonlyMap<string, Uint8Array>;
+  readonly diagnostics: readonly Diagnostic[];
 }
 
-/** Compiles `projectDir` into `outDir` (created if needed) or a fresh temp directory. */
-export const compileProject = (projectDir: string, outDir?: string) =>
+/** Compiles `projectDir` into the package's files, in memory. */
+export const compileFiles = (projectDir: string) =>
   Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
     const d = yield* Diagnostics;
 
     const project = yield* loadProject(projectDir);
@@ -101,22 +100,37 @@ export const compileProject = (projectDir: string, outDir?: string) =>
     yield* conforms('licenses.json', CompiledLicensesSchema, licenses);
     yield* d.checkpoint;
 
+    const files = new Map(pkg.files);
+    const json = (name: string, value: unknown) =>
+      files.set(
+        name,
+        new TextEncoder().encode(JSON.stringify(value, null, 2) + '\n'),
+      );
+    json('metadata.json', metadata);
+    json('theme.json', theme);
+    json('licenses.json', licenses);
+    return { files, diagnostics: yield* d.all } satisfies CompiledFiles;
+  });
+
+export interface Compiled {
+  /** Directory holding metadata.json, theme.json, licenses.json, assets/, licenses/. */
+  readonly dir: string;
+  readonly diagnostics: readonly Diagnostic[];
+}
+
+/** Compiles `projectDir` into `outDir` (created if needed) or a fresh temp directory. */
+export const compileProject = (projectDir: string, outDir?: string) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    const { files, diagnostics } = yield* compileFiles(projectDir);
     const dir =
       outDir ?? (yield* fs.makeTempDirectory({ prefix: 'galapatheme-' }));
     yield* fs.makeDirectory(dir, { recursive: true });
-    const json = (name: string, value: unknown) =>
-      fs.writeFileString(
-        `${dir}/${name}`,
-        JSON.stringify(value, null, 2) + '\n',
-      );
-    yield* json('metadata.json', metadata);
-    yield* json('theme.json', theme);
-    yield* json('licenses.json', licenses);
-    for (const [path, bytes] of pkg.files) {
+    for (const [path, bytes] of files) {
       yield* fs.makeDirectory(`${dir}/${path}`.replace(/\/[^/]+$/, ''), {
         recursive: true,
       });
       yield* fs.writeFile(`${dir}/${path}`, bytes);
     }
-    return { dir, diagnostics: yield* d.all } satisfies Compiled;
+    return { dir, diagnostics } satisfies Compiled;
   });

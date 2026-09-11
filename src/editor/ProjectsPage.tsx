@@ -9,6 +9,7 @@ import {
   AppShell,
   Box,
   Button,
+  FileButton,
   Group,
   Loader,
   Menu,
@@ -40,6 +41,7 @@ import {
 } from './projectList';
 import { newProjectId } from './projectStore';
 import { runtime } from './runtime';
+import { useImportProject } from './transfer';
 
 const GRID = {
   display: 'grid',
@@ -52,6 +54,7 @@ export function ProjectsPage() {
   const [query, setQuery] = useState('');
   const reload = () => runtime.runPromise(listProjects).then(setProjects);
   useEffect(() => void reload(), []);
+  const importProject = useImportProject();
   const q = query.trim().toLowerCase();
   const match = (name: string) => !q || name.toLowerCase().includes(q);
   const mine = projects?.filter((p) => match(p.metadata.name));
@@ -67,10 +70,17 @@ export function ProjectsPage() {
           <Text c="gray.4">/</Text>
           <Text c="dimmed">Projects</Text>
           <Box flex={1} />
-          {/* ponytail: enabled once .galtheme packaging exists. */}
-          <Button variant="default" size="xs" disabled>
-            Import .galtheme
-          </Button>
+          <FileButton
+            onChange={importProject.pick}
+            accept={importProject.accept}
+          >
+            {(props) => (
+              <Button {...props} variant="default" size="xs">
+                Import project…
+              </Button>
+            )}
+          </FileButton>
+          {importProject.modal}
         </Group>
       </AppShell.Header>
       <AppShell.Main bg="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8))">

@@ -3,7 +3,9 @@ import { FetchHttpClient } from '@effect/platform';
 import { ConfigProvider, Layer, ManagedRuntime } from 'effect';
 import { FontTools } from '@/compiler/fontTools';
 import { GoogleFonts } from '@/compiler/googleFonts';
+import { Images } from '@/compiler/images';
 import { layerOpfs } from '@/compiler/opfs';
+import { Svg } from '@/compiler/svg';
 import { Slicer } from './slicer';
 
 const config = Layer.setConfigProvider(
@@ -28,5 +30,7 @@ export const runtime = ManagedRuntime.make(
     ),
     GoogleFonts.Default.pipe(Layer.provide(FetchHttpClient.layer)),
     Slicer.Default,
+    Svg.Default,
+    Images.browser,
   ),
 );

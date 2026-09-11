@@ -18,12 +18,14 @@ import { previewMime } from './projectList';
 import { useProjectStore, useProjectStoreApi } from './projectStore';
 import { runtime } from './runtime';
 import { useProjectFile } from './useProjectFile';
+import { useExportTheme } from './transfer';
 
 // ponytail: every keystroke is one undo entry; coalesce by label if that annoys.
 export function ProjectPage() {
   const metadata = useProjectStore((s) => s.doc.metadata);
   const defined = useProjectStore((s) => Object.keys(s.doc.controls).length);
   const edit = useProjectStore((s) => s.edit);
+  const exportTheme = useExportTheme();
 
   return (
     <div
@@ -100,10 +102,16 @@ export function ProjectPage() {
               </Text>
             </Group>
           </Stack>
-          {/* ponytail: enabled once the compiler runs in the browser. */}
-          <Button fullWidth mt={14} size="sm" disabled>
-            Export .galtheme
+          <Button
+            fullWidth
+            mt={14}
+            size="sm"
+            loading={exportTheme.busy}
+            onClick={exportTheme.run}
+          >
+            Export .galapatheme
           </Button>
+          {exportTheme.modal}
         </Card>
         {defined < ROOT_CONTROL_IDS.length && (
           <Alert color="orange" title="Incomplete theme">

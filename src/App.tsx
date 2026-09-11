@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   Center,
+  FileButton,
   Group,
   Loader,
   TextInput,
@@ -19,6 +20,8 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import {
+  IconArrowBackUp,
+  IconArrowForwardUp,
   IconCheck,
   IconChevronDown,
   IconComponents,
@@ -34,6 +37,7 @@ import {
   IconPlus,
   IconSettings,
 } from '@tabler/icons-react';
+import { useHotkeys } from '@mantine/hooks';
 import { useAppStore } from '@/editor/appStore';
 import { duplicateProject } from '@/editor/persistence';
 import { ago } from '@/editor/projectList';
@@ -45,6 +49,11 @@ import { SettingsPage } from '@/editor/SettingsPage';
 import { TokensPage } from '@/editor/TokensPage';
 import { runtime } from '@/editor/runtime';
 import { ProjectStoreProvider, useProjectStore } from '@/editor/projectStore';
+import {
+  useExportProject,
+  useExportTheme,
+  useImportProject,
+} from '@/editor/transfer';
 import { useProject, type ProjectState } from '@/editor/useProject';
 
 const SECTIONS = [
@@ -80,6 +89,50 @@ function SaveBadge() {
   );
 }
 
+/** Undo/redo, each naming the transaction it would apply. */
+function History() {
+  const undo = useProjectStore((s) => s.undo);
+  const redo = useProjectStore((s) => s.redo);
+  const past = useProjectStore((s) => s.past.at(-1)?.label);
+  const future = useProjectStore((s) => s.future[0]?.label);
+  // No tags ignored: every field writes straight to the store, so the store's
+  // history is the only one that exists, inside an input or not.
+  useHotkeys(
+    [
+      ['mod+Z', undo],
+      ['mod+Y', redo],
+      ['mod+shift+Z', redo],
+    ],
+    [],
+  );
+  return (
+    <Group gap={2} wrap="nowrap">
+      <Tooltip label={past ? `Undo ${past}` : 'Nothing to undo'}>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label="Undo"
+          disabled={!past}
+          onClick={undo}
+        >
+          <IconArrowBackUp size={18} />
+        </ActionIcon>
+      </Tooltip>
+      <Tooltip label={future ? `Redo ${future}` : 'Nothing to redo'}>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label="Redo"
+          disabled={!future}
+          onClick={redo}
+        >
+          <IconArrowForwardUp size={18} />
+        </ActionIcon>
+      </Tooltip>
+    </Group>
+  );
+}
+
 function ThemeMenu({ themeId }: { themeId: string }) {
   const name = useProjectStore((s) => s.doc.metadata.name);
   const edit = useProjectStore((s) => s.edit);
@@ -87,6 +140,8 @@ function ThemeMenu({ themeId }: { themeId: string }) {
   const recent = useAppStore((s) => s.recent);
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const exportProject = useExportProject();
+  const importProject = useImportProject();
   const commit = (value: string) => {
     const next = value.trim();
     if (next && next !== name)
@@ -145,10 +200,20 @@ function ThemeMenu({ themeId }: { themeId: string }) {
           </Menu.Item>
           <Menu.Item
             leftSection={<IconFileExport size={16} />}
-            rightSection={<Kbd>⌘ E</Kbd>}
+            onClick={exportProject.run}
           >
-            Export .galtheme
+            Export project
           </Menu.Item>
+          <FileButton
+            onChange={importProject.pick}
+            accept={importProject.accept}
+          >
+            {(props) => (
+              <Menu.Item {...props} leftSection={<IconFileImport size={16} />}>
+                Import project…
+              </Menu.Item>
+            )}
+          </FileButton>
           <Menu.Divider />
           <Menu.Item
             leftSection={<IconFolderOpen size={16} />}
@@ -157,9 +222,6 @@ function ThemeMenu({ themeId }: { themeId: string }) {
             to="/editor"
           >
             Open theme…
-          </Menu.Item>
-          <Menu.Item leftSection={<IconFileImport size={16} />}>
-            Import .galtheme…
           </Menu.Item>
           <Menu.Label>Recent</Menu.Label>
           {recent.map((t) => (
@@ -192,6 +254,22 @@ function ThemeMenu({ themeId }: { themeId: string }) {
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
+      {exportProject.modal}
+      {importProject.modal}
+    </>
+  );
+}
+
+/** The header's Export theme: compile and download, ⌘E. */
+function ExportTheme() {
+  const { run, busy, modal } = useExportTheme();
+  useHotkeys([['mod+E', run]], []);
+  return (
+    <>
+      <Button size="xs" loading={busy} onClick={run}>
+        Export theme
+      </Button>
+      {modal}
     </>
   );
 }
@@ -305,10 +383,11 @@ function Shell({
           <Text c="dimmed">{current.label}</Text>
           {open && <SaveBadge />}
           <Box flex={1} />
+          {open && <History />}
           <Button variant="default" size="xs">
             Import sprites
           </Button>
-          <Button size="xs">Export theme</Button>
+          {open && <ExportTheme />}
         </Group>
       </AppShell.Header>
 
