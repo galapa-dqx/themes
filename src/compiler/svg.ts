@@ -62,7 +62,7 @@ const NUMBER = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?%?$/i;
 const ID = /^[\w:.-]+$/;
 const LOCAL_URL = /^url\(\s*#([\w:.-]+)\s*\)$/;
 const TOKEN = /\{colors\.([a-z0-9]+(?:-[a-z0-9]+)*)\}/g;
-const SLICE = /^(\d+)_(\d+)$/;
+const SLICE = /^(0|[1-9]\d*)_(0|[1-9]\d*)$/;
 const REPEAT = new Set(['stretch', 'repeat', 'round', 'space']);
 
 const where = (n: XastElement) =>

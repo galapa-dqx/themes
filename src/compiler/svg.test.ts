@@ -192,6 +192,170 @@ describe('compileSvg (nine-slice)', () => {
     );
   });
 
+  it('accepts every topology, every repeat mode, and an offset viewBox', () => {
+    for (const body of [
+      slice('0_0', 0, 0, 10, 2) +
+        slice('0_1', 0, 2, 10, 6) +
+        slice('0_2', 0, 8, 10, 2),
+      slice('0_0', 0, 0, 2, 10) +
+        slice('1_0', 2, 0, 6, 10) +
+        slice('2_0', 8, 0, 2, 10),
+      slice('0_0', 0, 0, 10, 10, ' data-slice-repeat="round"'),
+      slice('0_0', 0, 0, 10, 10, ' data-slice-repeat="space"'),
+    ])
+      expect(nine(markers + body).content).toEqual([2, 2, 6, 6]);
+    const offset = markers
+      .replace('x="1" y="1"', 'x="6" y="6"')
+      .replace('x="2" y="2"', 'x="7" y="7"');
+    expect(
+      compileSvg(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="5 5 10 10">${offset}${slice('0_0', 5, 5, 10, 10)}</svg>`,
+        { profile: 'nine-slice' },
+      ).content,
+    ).toEqual([7, 7, 6, 6]);
+  });
+
+  it.each([
+    [
+      'a repeat slice with preserveAspectRatio',
+      wrap(
+        markers +
+          slice(
+            '0_0',
+            0,
+            0,
+            10,
+            10,
+            ' data-slice-repeat="repeat" preserveAspectRatio="none"',
+          ),
+      ),
+      '<svg id="0_0">: repeat slices may not set preserveAspectRatio',
+    ],
+    [
+      'a space slice with preserveAspectRatio',
+      wrap(
+        markers +
+          slice(
+            '0_0',
+            0,
+            0,
+            10,
+            10,
+            ' data-slice-repeat="space" preserveAspectRatio="none"',
+          ),
+      ),
+      '<svg id="0_0">: space slices may not set preserveAspectRatio',
+    ],
+    [
+      'a complete 2x2 grid',
+      wrap(
+        markers +
+          slice('0_0', 0, 0, 5, 5) +
+          slice('1_0', 5, 0, 5, 5) +
+          slice('0_1', 0, 5, 5, 5) +
+          slice('1_1', 5, 5, 5, 5),
+      ),
+      '<svg>: slices must form a complete 1x1, 1x3, 3x1, or 3x3 grid',
+    ],
+    [
+      'no slices',
+      wrap(markers),
+      '<svg>: slices must form a complete 1x1, 1x3, 3x1, or 3x3 grid',
+    ],
+    [
+      'a duplicate slice',
+      wrap(markers + grid3 + slice('0_0', 0, 0, 2, 2)),
+      '<svg id="0_0">: duplicate id "0_0"',
+    ],
+    [
+      'a zero-padded slice id',
+      wrap(markers + grid3.replace('id="0_0"', 'id="00_0"')),
+      '<svg id="00_0">: nine-slice root may only contain markers and <svg id="col_row"> slices',
+    ],
+    [
+      'a slice id on a non-svg element',
+      wrap(markers + '<rect id="0_0" width="10" height="10"/>'),
+      '<rect id="0_0">: nine-slice root may only contain markers and <svg id="col_row"> slices',
+    ],
+    [
+      'a column that changes width between rows',
+      wrap(
+        markers +
+          grid3.replace(
+            'id="1_2" x="2" y="8" width="6"',
+            'id="1_2" x="2" y="8" width="5"',
+          ),
+      ),
+      '<svg>: slice 1_2 does not tile its row and column',
+    ],
+    [
+      'overlapping rows',
+      wrap(
+        markers + grid3.replace('id="0_1" x="0" y="2"', 'id="0_1" x="0" y="1"'),
+      ),
+      '<svg>: slice 0_1 does not tile its row and column',
+    ],
+    [
+      'slices short of the viewBox height',
+      wrap(markers + slice('0_0', 0, 0, 10, 5)),
+      '<svg>: slices do not span the viewBox height',
+    ],
+    [
+      'a non-numeric slice size',
+      wrap(
+        markers +
+          slice('0_0', 0, 0, 10, 10).replace('width="10"', 'width="abc"'),
+      ),
+      '<svg id="0_0">: width must be a plain number, got "abc"',
+    ],
+    [
+      'a duplicate frame marker',
+      wrap(
+        markers +
+          '<rect id="frame" x="1" y="1" width="8" height="8" fill="none"/>' +
+          grid3,
+      ),
+      '<rect id="frame">: duplicate id "frame"',
+    ],
+    [
+      'markers nested in a group',
+      wrap(`<g>${markers}</g>${grid3}`),
+      '<svg>: nine-slice requires a direct child <rect id="frame">',
+    ],
+    [
+      'a stroked marker',
+      wrap(
+        markers.replace(
+          'height="6" fill="none"',
+          'height="6" fill="none" stroke="#000"',
+        ) + grid3,
+      ),
+      '<rect id="content">: marker rectangles must not paint',
+    ],
+    [
+      'content outside the frame',
+      wrap(markers.replace('id="content" x="2"', 'id="content" x="0"') + grid3),
+      '<rect id="content">: content must lie within frame',
+    ],
+    [
+      'a zero-width frame',
+      wrap(
+        markers.replace(
+          'id="frame" x="1" y="1" width="8"',
+          'id="frame" x="1" y="1" width="0"',
+        ) + grid3,
+      ),
+      '<rect id="frame">: geometry must be finite and positive',
+    ],
+    [
+      'a missing viewBox',
+      `<svg xmlns="http://www.w3.org/2000/svg">${markers}${grid3}</svg>`,
+      '<svg>: a finite, positive viewBox is required',
+    ],
+  ])('rejects %s', (_, source, message) =>
+    rejects(source, message, 'nine-slice'),
+  );
+
   it('requires fragment references to stay inside their slice', () => {
     const defs =
       '<defs><linearGradient id="g"><stop offset="0"/></linearGradient></defs>';
