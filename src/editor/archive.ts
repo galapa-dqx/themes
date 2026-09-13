@@ -45,14 +45,16 @@ const walk = (dir: string) =>
 export const exportProject = (dir: string, doc: Document) =>
   Effect.gen(function* () {
     yield* writeDocument(dir, doc);
-    return packProject(yield* walk(dir));
+    const files = yield* walk(dir);
+    return yield* Effect.promise(() => packProject(files));
   });
 
 export const exportTheme = (dir: string, doc: Document) =>
   Effect.gen(function* () {
     yield* writeDocument(dir, doc);
     const { files, diagnostics } = yield* compileFiles(dir);
-    return { bytes: packTheme(files, Date.now()), diagnostics };
+    const bytes = yield* Effect.promise(() => packTheme(files, Date.now()));
+    return { bytes, diagnostics };
   }).pipe(Effect.provide(Diagnostics.Default));
 
 /**
@@ -64,7 +66,7 @@ export const exportTheme = (dir: string, doc: Document) =>
 export const importProject = (bytes: Uint8Array) =>
   Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
-    const files = yield* Effect.try({
+    const files = yield* Effect.tryPromise({
       try: () => unpackProject(bytes),
       catch: (e) => e as ArchiveError,
     });
